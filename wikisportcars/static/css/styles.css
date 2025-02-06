@@ -1,0 +1,199 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+header {
+    background: linear-gradient(90deg, #35424a, #e8491d);
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    padding: 10px 20px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5em;
+    text-align: center;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+nav a {
+    color: #ffffff;
+    text-decoration: none;
+    padding: 10px 20px;
+    font-size: 1.2em;
+    background: #35424a;
+    border-radius: 5px;
+    transition: background 0.3s, transform 0.2s;
+}
+
+nav a:hover {
+    background: #45a049;
+    transform: scale(1.05);
+}
+
+nav a.left {
+    margin-right: auto;
+    justify-content: flex-start;
+}
+
+nav a.center {
+    justify-content: center;
+    display: flex;
+}
+
+nav .right {
+    display: flex;
+    gap: 15px;
+    margin-left: auto;
+    justify-content: flex-end;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+}
+
+.car-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.car-item {
+    background: #ffffff;
+    border: 1px solid #dddddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.car-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.car-item h3 {
+    margin-top: 0;
+    color: #35424a;
+}
+
+.car-item p {
+    color: #666;
+}
+
+.car-item a {
+    display: inline-block;
+    background: #e8491d;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.car-item a:hover {
+    background: #45a049;
+}
+
+footer {
+    background: #35424a;
+    color: #ffffff;
+    text-align: center;
+    padding: 10px 0;
+    font-size: 0.9em;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 20px 0;
+    padding: 0;
+    list-style: none;
+}
+
+.button-group li {
+    margin: 0;
+    display: inline;
+}
+
+.button-group li a {
+    display: inline-block;
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: white;
+    background: #e8491d;
+    border-radius: 5px;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.button-group li a:hover {
+    background: #45a049;
+    transform: scale(1.1);
+}
+
+.alert {
+    padding: 15px;
+    background-color: #f44336;
+    color: white;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+
+.alert.success {
+    background-color: #4CAF50;
+}
+
+.alert.warning {
+    background-color: #ff9800;
+}
+
+button {
+    display: inline-block;
+    background: #e8491d;
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background 0.3s, transform 0.2s;
+}
+
+button:hover {
+    background: #45a049;
+    transform: scale(1.05);
+}
+
+@media (max-width: 768px) {
+    nav {
+        flex-direction: column;
+    }
+
+    .container {
+        width: 95%;
+    }
+}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>WikiSportCars</title>
+</head>
+<body>
+    <header>
+        <h1>Benvenuti su WikiSportCars</h1>
+        <nav>
+            <a href="{{ url_for('index') }}" class="left">Home</a></li>
+            <a href="{{ url_for('favorites') }}" class="center">Preferiti </a></li>
+            <div class="right">
+                <a href="{{ url_for('login') }}">Login</a></li>
+                <a href="{{ url_for('register') }}">Registrati</a></li>
+            </div>
+            
+        </nav>
+    </header>
+    <main>
+        <h2>Macchine Disponibili</h2>
+        <div class="car-list">
+            {% for car in cars %}
+                <div class="car-item">
+                    <h3>{{ car.name }}</h3>
+                    <p>{{ car.description }}</p>
+                    <a href="{{ url_for('car_detail', car_id=car.id) }}">Dettagli</a>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+    <footer>
+        <p>&copy; 2023 WikiSportCars. Tutti i diritti riservati.</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Preferiti - WikiSportCars</title>
+</head>
+<body>
+    <header>
+        <h1>I tuoi Preferiti</h1>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('index') }}">Home</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main>
+        {% if favorites %}
+            <ul>
+                {% for car in favorites %}
+                    <li>
+                        <h2>{{ car.name }}</h2>
+                        <p>{{ car.description }}</p>
+                        <a href="{{ url_for('car_detail', car_id=car.id) }}">Dettagli</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>Non hai ancora salvato nessun preferito.</p>
+        {% endif %}
+    </main>
+    <footer>
+        <p>&copy; 2023 WikiSportCars</p>
+    </footer>
+</body>
+</html>

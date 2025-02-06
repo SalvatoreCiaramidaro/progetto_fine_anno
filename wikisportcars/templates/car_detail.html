@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Dettagli Auto - WikiSportCars</title>
+</head>
+<body>
+    <div class="container">
+        <h1>{{ car.name }}</h1>
+        <img src="{{ car.image_url }}" alt="{{ car.name }}" class="car-image">
+        <p><strong>Marca:</strong> {{ car.brand }}</p>
+        <p><strong>Modello:</strong> {{ car.model }}</p>
+        <p><strong>Anno:</strong> {{ car.year }}</p>
+        <p><strong>Descrizione:</strong> {{ car.description }}</p>
+
+        {% if user_logged_in %}
+            <form action="{{ url_for('save_to_favorites', car_id=car.id) }}" method="POST">
+                <button type="submit">Aggiungi ai Preferiti</button>
+            </form>
+        {% else %}
+            <p>Accedi per aggiungere ai preferiti.</p>
+        {% endif %}
+
+        <a href="{{ url_for('index') }}">Torna alla lista delle auto</a>
+    </div>
+</body>
+</html>
