@@ -10,10 +10,8 @@
     <header>
         <h1>I tuoi Preferiti</h1>
         <nav>
-            <ul>
-                <li><a href="{{ url_for('index') }}">Home</a></li>
-                <li><a href="{{ url_for('logout') }}">Logout</a></li>
-            </ul>
+            <a href="{{ url_for('index') }}" class="left">Home</a>
+            <a href="{{ url_for('logout') }}" class="right" action="/index">Logout</a>
         </nav>
     </header>
     <main>
