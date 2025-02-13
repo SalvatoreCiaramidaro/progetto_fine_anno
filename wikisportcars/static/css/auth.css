@@ -1,0 +1,596 @@
+/* ===================== */
+/* Global Reset & Variabili */
+/* ===================== */
+html {
+  box-sizing: border-box;
+  /* Variabili per l’animazione */
+  --black: #1a1c20;
+  --white: #fff;
+  --green: #00c380;
+  --d-green: #019b66;
+  --gray: #c1c1c1;
+  --l-gray: #c4c4c4;
+  --m-gray: #373838;
+  --d-gray: #282724;
+  --d-blue: #202428;
+  --orange: #ef6206;
+  --yellow: #dfa500;
+  --l-yellow: #deb953;
+  --light: #fbfbfb;
+  --n-road: -4em;
+  --p-road: 7em;
+  
+  /* Sfondo base per il contenuto (l’animazione verrà sotto) */
+  background-color: #f4f4f4;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+/* ===================== */
+/* Animazione Auto in Background */
+/* ===================== */
+.car-animation {
+  position: fixed;
+  top: 0;
+  left: -3em;  /* Spazio extra a sinistra */
+  width: calc(100% + 6em);  /* Spazio extra su entrambi i lati */
+  height: 100%;
+  z-index: -1; /* Rimane sotto il contenuto */
+  overflow: hidden;
+  background-color: var(--m-gray);
+  background-repeat: no-repeat;
+  /* NOTA: Rimuoviamo l'animazione "car" da questo elemento, così la strada rimane fissa */
+  background-image:
+    /* rubber-l */
+    radial-gradient(circle at 49% 117%, var(--black) 37%, transparent 38%),
+    radial-gradient(circle at -24% 50%, var(--white) 31%, transparent 49%),
+    radial-gradient(2.95em 2.5em at 52% 1.2%, var(--black) 37%, transparent 38%),
+    radial-gradient(2.95em 2.5em at 52% 1.2%, var(--black) 37%, transparent 38%),
+    linear-gradient(var(--black) 100%, transparent 0),
+    /* rubber-r */
+    radial-gradient(circle at 49% 117%, var(--black) 37%, transparent 38%),
+    radial-gradient(circle at 124% 50%, var(--white) 31%, transparent 49%),
+    radial-gradient(2.95em 2.5em at 48% 1.2%, var(--black) 37%, transparent 38%),
+    radial-gradient(2.95em 2.5em at 48% 1.2%, var(--black) 37%, transparent 38%),
+    linear-gradient(var(--black) 100%, transparent 0),
+    /* shadow */
+    linear-gradient(var(--m-gray) 100%, transparent 0);
+  background-size:
+    /* rubber-l */
+    2.5em 2.5em,
+    0.7em 0.6em,
+    2.5em 0.9em,
+    2.5em 0.9em,
+    1.95em 3.9em,
+    /* rubber-r */
+    2.5em 2.5em,
+    0.7em 0.6em,
+    2.5em 0.9em,
+    2.5em 0.9em,
+    1.95em 3.9em,
+    /* shadow */
+    13em 0.9em;
+  background-position:
+    /* rubber-l */
+    calc(50% - 6.4em) calc(50% - 1.7em),
+    calc(50% - 5.26em) calc(50% + 3.4em),
+    calc(50% - 6.5em) calc(50% + 3.8em),
+    calc(50% - 4.3em) calc(50% + 3.2em),
+    calc(50% - 6.58em) calc(50% + 1.5em),
+    /* rubber-r */
+    calc(50% + 6.45em) calc(50% - 1.7em),
+    calc(50% + 5.26em) calc(50% + 3.4em),
+    calc(50% + 6.5em) calc(50% + 3.8em),
+    calc(50% + 4.3em) calc(50% + 3.2em),
+    calc(50% + 6.58em) calc(50% + 1.5em),
+    /* shadow */
+    center calc(50% + 3.8em);
+}
+
+/* Pseudo-element per la striscia tratteggiata (road) */
+/* Rimane centrato e fisso orizzontalmente */
+.car-animation::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(50% - 26.2em);
+  width: 15.5em;
+  height: 62.9em;
+  background-size: 24.6% 491%;
+  background-repeat: no-repeat;
+  background-position: center 0;
+  /* Applichiamo solo l’animazione "line" per far muovere la texture verticale (simulando la corsa) */
+  animation: line 1.5s infinite linear;
+  transform: translateX(-50%) perspective(311px) rotateX(83deg) translate3d(0, -11.975em, 0);
+  background-image: repeating-linear-gradient(to top, var(--white), var(--white) 4.6%, transparent 0, transparent 13.01%);
+  
+  /* Clip-path per limitare la striscia tratteggiata all'interno dell'area desiderata (ad es. tra le ruote) */
+  clip-path: polygon(20% 0, 80% 0, 80% 100%, 20% 100%);
+}
+
+/* Pseudo-element per i dettagli della macchina (compresi gli interni) */
+/* Qui applichiamo l’animazione "car" per far oscillare la macchina */
+.car-animation::after {
+  content: "";
+  position: absolute;
+  left: calc(50% - 7.55em);
+  top: calc(50% - 8.8em);
+  width: 15.2em;
+  height: 13.2em;
+  background-repeat: no-repeat;
+  /* Combiniamo le animazioni: "car" (oscillazione orizzontale), "light" e "shake" */
+  animation: car 3.5s cubic-bezier(0.57, 0.63, 0.49, 0.65) infinite,
+             light 1s linear infinite,
+             shake 3.5s linear infinite;
+  background-image:
+    /* ceiling */
+    radial-gradient(58em 20em at 50% 215%, transparent 20%, var(--white) 20.5%, var(--white) 20.8%, var(--m-gray) 21.5%),
+    /* antenna */
+    radial-gradient(circle at center 100%, var(--black) 30%, transparent 0),
+    linear-gradient(var(--white) 100%, transparent 0),
+    /* glass - finestre interne */
+    radial-gradient(17.8em 37em at 70% 240%, var(--black) 30%, transparent 30.5%),
+    radial-gradient(17.8em 37em at 31% 240%, var(--black) 30%, transparent 30.5%),
+    /* luci interne */
+    radial-gradient(circle, var(--light) 48%, var(--black) 52%, var(--black) 59%, transparent 62%),
+    radial-gradient(circle, var(--light) 48%, var(--black) 52%, var(--black) 59%, transparent 62%),
+    /* dettagli del cofano (hood-ro) */
+    radial-gradient(1em 1em at 102% 100%, var(--m-gray) 28%, #f3f3f3 30%),
+    radial-gradient(1em 1em at 97% -7%, var(--m-gray) 28%, var(--l-gray) 30%),
+    radial-gradient(1em 1em at -6% 102%, var(--m-gray) 28%, #efefef 30%),
+    radial-gradient(1em 1em at -6% -1%, var(--m-gray) 28%, var(--l-gray) 30%),
+    /* fascia frontale (hood-f) */
+    linear-gradient(to top, var(--m-gray) 50%, var(--d-gray) 0, var(--d-gray) 58%, var(--m-gray) 0),
+    /* interno cofano (hood-e) */
+    linear-gradient(to top, var(--l-gray) 30%, var(--white) 100%, transparent 0),
+    /* bordi laterali */
+    radial-gradient(16.4em 30.1em at 209% 333%, var(--white) 30%, transparent 30.2%),
+    radial-gradient(16.4em 30.1em at -109% 333%, var(--white) 30%, transparent 30.2%),
+    /* bordo inferiore (hood-o) */
+    linear-gradient(var(--gray) 100%, transparent 0),
+    /* parte centrale del cofano */
+    linear-gradient(var(--white) 100%, transparent 0),
+    /* specchietti */
+    radial-gradient(6.7em 2.5em at 154% 8%, var(--black) 30%, transparent 33%),
+    radial-gradient(6.7em 2.5em at -53% 8%, var(--black) 30%, transparent 33%),
+    /* dettagli guida */
+    linear-gradient(var(--orange) 100%, transparent 0),
+    linear-gradient(var(--orange) 100%, transparent 0),
+    /* targhetta */
+    linear-gradient(var(--yellow) 100%, transparent 0),
+    linear-gradient(var(--l-yellow) 100%, transparent 0),
+    /* paraurti e bordi */
+    linear-gradient(var(--d-blue) 100%, transparent 0),
+    radial-gradient(circle at 124% 39%, var(--d-blue) 60%, transparent 64%),
+    radial-gradient(circle at -44% 39%, var(--d-blue) 60%, transparent 64%),
+    radial-gradient(13.2em 2em at 50% 59%, var(--l-gray) 96%, transparent 100%),
+    radial-gradient(1.6em 1.6em at 75% -9%, var(--l-gray) 60%, transparent 64%),
+    radial-gradient(1.6em 1.6em at 15% -9%, var(--l-gray) 60%, transparent 64%),
+    /* parte inferiore */
+    linear-gradient(var(--d-blue) 100%, transparent 0),
+    radial-gradient(6.9em 4.6em at 295% 3%, var(--d-blue) 30%, transparent 31%),
+    radial-gradient(6.9em 4.6em at -189% 3%, var(--d-blue) 30%, transparent 31%);
+  background-size:
+    61.5% 20%,   /* ceiling */
+    5% 6%,       /* antenna */
+    0.4% 39%,    /* antenna */
+    60% 30%,     /* glass-l */
+    60% 30%,     /* glass-r */
+    16% 16%,     /* light */
+    16% 16%,     /* light */
+    2.4% 2%,     /* hood-ro */
+    2.4% 2.3%,   /* hood-ro */
+    2.4% 2.3%,   /* hood-ro */
+    2.4% 2.3%,   /* hood-ro */
+    91% 12%,     /* hood-f */
+    93.9% 17%,   /* hood-e */
+    12% 17.5%,   /* hood-l */
+    12% 17.5%,   /* hood-r */
+    38% 1.1%,    /* hood-o */
+    77% 25%,     /* hood */
+    9% 30%,      /* mirror */
+    9% 30%,      /* mirror */
+    8.4% 3%,     /* guide-l */
+    8.4% 3%,     /* guide-r */
+    33% 6.5%,    /* plaque */
+    36% 9%,      /* plaque */
+    87% 30%,     /* bumper */
+    10% 12%,     /* bumper-l */
+    10% 12%,     /* bumper-r */
+    78% 35%,     /* bumper-d */
+    11% 8%,      /* bumper-l */
+    11% 8%,      /* bumper-r */
+    68% 8%,      /* floor */
+    5% 7%,       /* floor-l */
+    5% 7%;       /* floor-r */
+  background-position:
+    50.5% 0,     /* ceiling */
+    90% 37%,     /* antenna */
+    88% 1.2%,    /* antenna */
+    0 11.7%,     /* glass-l */
+    100% 11.7%,  /* glass-r */
+    5% 63%,      /* light */
+    95% 63%,     /* light */
+    4.1% 55.7%,  /* hood-ro */
+    4.1% 65.9%,  /* hood-ro */
+    95.8% 55.7%, /* hood-ro */
+    95.8% 65.8%, /* hood-ro */
+    center 62%,  /* hood-f */
+    49% 63.6%,   /* hood-e */
+    3.4% 46.2%,  /* hood-l */
+    96.5% 46.2%, /* hood-r */
+    center 40.9%,/* hood-o */
+    center 50.3%,/* hood */
+    5.7% 48.6%,  /* mirror */
+    95% 48.6%,   /* mirror */
+    5% 75.2%,    /* guide-l */
+    95% 75.2%,   /* guide-r */
+    51% 86%,     /* plaque */
+    51.5% 87.3%, /* plaque */
+    center 71.9%,/* bumper */
+    -0.8% 77.8%, /* bumper-l */
+    101.7% 77.8%,/* bumper-r */
+    center 80.2%,/* bumper-d */
+    4% 85.9%,   /* bumper-l */
+    97% 85.9%,  /* bumper-r */
+    center 92.5%,/* floor */
+    11.7% 92.6%,/* floor-l */
+    88.3% 92.6%;/* floor-r */
+}
+
+/* ===================== */
+/* Stili del Layout della Pagina */
+/* ===================== */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  /* Sfondo trasparente per far vedere l’animazione sottostante */
+  background-color: transparent;
+  color: #333;
+  position: relative;
+  z-index: 0;
+}
+
+header {
+  background: linear-gradient(90deg, #35424a, #e8491d);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  padding: 10px 20px;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2.5em;
+  text-align: center;
+}
+
+nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #ffffff;
+  padding: 10px 20px;
+  border-radius: 5px;
+  margin-top: 10px;
+}
+
+nav a {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  background: #35424a;
+  border-radius: 5px;
+  transition: background 0.3s, transform 0.2s;
+}
+
+nav a:hover {
+  background: #45a049;
+  transform: scale(1.05);
+}
+
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 15px;
+  margin: 0;
+  padding: 0;
+}
+
+nav a.left {
+  margin-right: auto;
+  justify-content: flex-start;
+}
+
+nav ul.center {
+  flex-grow: 1;
+  justify-content: center;
+  display: flex;
+}
+
+nav ul.right {
+  margin-left: auto;
+  justify-content: flex-end;
+  display: flex;
+}
+
+nav ul li {
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li a {
+  color: #ffffff;
+  text-decoration: none;
+  padding: 10px 20px;
+  font-size: 1.2em;
+  background: #35424a;
+  border-radius: 5px;
+  transition: background 0.3s, transform 0.2s;
+}
+
+nav ul li a:hover {
+  background: #45a049;
+  transform: scale(1.05);
+}
+
+.container {
+  width: 80%;
+  margin: auto;
+  overflow: hidden;
+}
+
+.car-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.car-item {
+  background: #ffffff;
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.car-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.car-item h3 {
+  margin-top: 0;
+  color: #35424a;
+}
+
+.car-item p {
+  color: #666;
+}
+
+.car-item a {
+  display: inline-block;
+  background: #e8491d;
+  color: white;
+  padding: 10px 15px;
+  border-radius: 5px;
+  text-decoration: none;
+  transition: background 0.3s;
+}
+
+.car-item a:hover {
+  background: #45a049;
+}
+
+footer {
+  background: #35424a;
+  color: #ffffff;
+  text-align: center;
+  padding: 10px 0;
+  font-size: 0.9em;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.button-group {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin: 20px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.button-group li {
+  margin: 0;
+  display: inline;
+}
+
+.button-group li a {
+  display: inline-block;
+  padding: 10px 20px;
+  font-size: 1em;
+  font-weight: bold;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: white;
+  background: #e8491d;
+  border-radius: 5px;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.button-group li a:hover {
+  background: #45a049;
+  transform: scale(1.1);
+}
+
+.alert {
+  padding: 15px;
+  background-color: #f44336;
+  color: white;
+  margin-bottom: 20px;
+  border-radius: 5px;
+}
+
+.alert.success {
+  background-color: #4CAF50;
+}
+
+.alert.warning {
+  background-color: #ff9800;
+}
+
+button {
+  display: inline-block;
+  background: #e8491d;
+  color: #ffffff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background 0.3s, transform 0.2s;
+}
+
+button:hover {
+  background: #45a049;
+  transform: scale(1.05);
+}
+
+/* Nuovi stili per il login card */
+.login-card {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    max-width: 600px; /* Aumentato da 500px per occupare di più la metà sinistra */
+    width: 100%;
+    margin: 50px auto;
+    text-align: center;
+}
+
+/* Miglioramento degli input */
+.login-card input[type="text"],
+.login-card input[type="password"] {
+    width: 90%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Miglioramento dei label */
+.login-card label {
+    font-weight: bold;
+    display: block;
+    text-align: left;
+    margin: 10px 0 5px;
+}
+
+/* Pulsante migliorato */
+.login-card button {
+    width: 95%;
+    padding: 10px;
+    margin-top: 15px;
+    font-size: 1.1em;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+}
+
+.login-card button:hover {
+    background: #45a049;
+    transform: scale(1.03);
+}
+
+/* Nuovi stili per layout a due colonne sulla pagina login */
+.login-layout {
+    display: flex;
+    min-height: 100vh; /* Occupa tutta l'altezza della finestra */
+}
+.login-section {
+    flex: 0 0 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #f4f4f4; /* O colore di sfondo desiderato */
+}
+.animation-section {
+    flex: 0 0 50%;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Aggiornamento della posizione di .car-animation per il nuovo layout */
+.animation-section .car-animation {
+    position: absolute;
+    top: 0;
+    left: 0;      /* Rimuove l'offset sinistro */
+    width: 100%;  /* Copre tutto lo spazio della sezione */
+    height: 100%;
+    z-index: 0;
+}
+
+@media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+  }
+  .container {
+    width: 95%;
+  }
+}
+
+/* ===================== */
+/* Keyframes per l'Animazione della macchina */
+/* ===================== */
+@keyframes line {
+  100% { background-position: center 100%; }
+}
+
+@keyframes car {
+  15%, 23% { transform: translate3d(-2.3em, 0, 0); }
+  36%, 42% { transform: translate3d(-0.8em, 0, 0); }
+  61%, 71.5% { transform: translate3d(2.8em, 0, 0); }
+  81%, 88% { transform: translate3d(1.5em, 0, 0); }
+}
+
+@keyframes light {
+  0%, 37% { --light: #fbfbfb; }
+  50% { --light: #f1f1f1; }
+  62% { --light: #fbfbfb; }
+  65% { --light: #f1f1f1; }
+  95% { --light: #fbfbfb; }
+  100% { --light: #f1f1f1; }
+}
+
+@keyframes shake {
+  5%, 26% { transform: rotate(-1.5deg); }
+  33%, 41% { transform: rotate(-0.5deg); }
+  48%, 69% { transform: rotate(1.5deg); }
+  80%, 95% { transform: rotate(0.5deg); }
+}
+
+/* ===================== */
+/* Media Query per dispositivi piccoli per .car-animation */
+/* ===================== */
+@media screen and (max-width: 36em) {
+  .car-animation {
+    transform: scale(0.5);
+  }
+  .car-animation::before {
+    width: 11em;
+    --n-road: -4em;
+    --p-road: 4em;
+  }
+}
