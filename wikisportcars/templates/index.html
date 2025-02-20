@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Icona della pagina -->
     <link rel="icon" type="image/png" href="../static/favicon/favicon.png">
     <title>WikiSportCars</title>
@@ -13,18 +14,21 @@
         <h1>Benvenuti su WikiSportCars</h1>
         <nav>
             <div class="nav-left">
-                <a href="{{ url_for('index') }}">Home</a>
-            </div>
-            <div class="nav-center">
-                <a href="{{ url_for('favorites') }}">Preferiti</a>
+                <a href="{{ url_for('index') }}"><i class="fas fa-home"></i></a>
             </div>
             <div class="nav-right">
-                {% if current_user.is_authenticated %}
-                    <a href="{{ url_for('logout') }}">Logout</a>
-                {% else %}
-                    <a href="{{ url_for('login', next=request.path) }}">Login</a>
-                    <a href="{{ url_for('register') }}">Registrati</a>
-                {% endif %}
+                <div class="dropdown">
+                    <button class="dropbtn">Menu</button>
+                    <div class="dropdown-content">
+                        <a href="{{ url_for('favorites') }}">Preferiti</a>
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('logout') }}">Logout</a>
+                        {% else %}
+                            <a href="{{ url_for('login', next=request.path) }}">Login</a>
+                            <a href="{{ url_for('register') }}">Registrati</a>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </nav>
     </header>
@@ -52,8 +56,15 @@
             </div>
         {% endif %}
     </main>
-    <footer>
-        <p>&copy; 2023 WikiSportCars. Tutti i diritti riservati.</p>
-    </footer>
+
+  <footer>
+    <p>&copy; 2023 WikiSportCars. Tutti i diritti riservati.</p>
+  </footer>
+
+  <script>
+    function toggleMenu() {
+      document.getElementById('dropdownMenu').classList.toggle('open');
+    }
+  </script>
 </body>
 </html>

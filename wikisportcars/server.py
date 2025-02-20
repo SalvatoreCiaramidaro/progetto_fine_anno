@@ -104,11 +104,25 @@ def register():
 def car_detail(car_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
+    
+    # Ottieni i dettagli della macchina
     cursor.execute('SELECT * FROM cars WHERE id = %s', (car_id,))
     car = cursor.fetchone()
+
+    # Ottieni le immagini extra dalla tabella 'car_images'
+    cursor.execute('SELECT image FROM car_images WHERE car_id = %s', (car_id,))
+    images = cursor.fetchall()
+
     cursor.close()
     conn.close()
+
+    if car:
+        # Converti in lista semplice di link
+        car['images'] = [img['image'] for img in images]
+    
     return render_template('car_detail.html', car=car)
+
+
 
 @app.route('/favorites')
 @login_required

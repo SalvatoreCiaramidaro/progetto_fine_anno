@@ -1,33 +1,168 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <title>Dettagli Auto - WikiSportCars</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dettagli Auto - {{ car.name }}</title>
+  
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/car_detail.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon/favicon.png') }}">
+  <style>
+    /* Stili generali per header e nav */
+    header {
+      background: linear-gradient(90deg, #35424a, #e8491d);
+      color: #fff;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+      padding: 10px 20px;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.5em;
+      text-align: center;
+    }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 20px;
+    }
+    /* Pulsante Home (sinistra) */
+    .nav-left a {
+      color: #ffffff;
+      text-decoration: none;
+      padding: 10px 20px;
+      font-size: 1.2em;
+      background: #35424a;
+      border-radius: 5px;
+      transition: background 0.3s, transform 0.2s;
+    }
+    .nav-left a:hover {
+      background: #45a049;
+      transform: scale(1.05);
+    }
+    /* Menù a tendina (destra) */
+    .nav-right {
+      position: relative;
+      display: inline-block;
+    }
+    .menu-toggle {
+      background: #35424a;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      font-size: 1.2em;
+    }
+    .menu-toggle:hover {
+      background: #45a049;
+      transform: scale(1.05);
+    }
+    .dropdown-menu {
+      position: absolute;
+      top: 50px; /* Distanza dal pulsante */
+      right: 0;
+      width: 180px;
+      background: #35424a;
+      color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-10px);
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+    .dropdown-menu.open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .dropdown-menu ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .dropdown-menu li a {
+      display: block;
+      padding: 12px 16px;
+      color: #fff;
+      text-decoration: none;
+      transition: background 0.3s;
+      font-size: 0.95em;
+    }
+    .dropdown-menu li a:hover {
+      background: rgba(255,255,255,0.2);
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>{{ car.name }}</h1>
-        {% if car.image[0:4] == 'http' %}
-            <img src="{{ car.image }}" alt="{{ car.name }}" class="car-image">
-        {% else %}
-            <img src="{{ url_for('static', filename='images/' ~ car.image) }}" alt="{{ car.name }}" class="car-image">
-        {% endif %}
-        <p><strong>Marca:</strong> {{ car.brand }}</p>
-        <p><strong>Modello:</strong> {{ car.model }}</p>
-        <p><strong>Anno:</strong> {{ car.year }}</p>
-        <p><strong>Descrizione:</strong> {{ car.description }}</p>
 
-        {% if user_logged_in %}
-            <form action="{{ url_for('save_to_favorites', car_id=car.id) }}" method="POST">
-                <button type="submit">Aggiungi ai Preferiti</button>
-            </form>
-        {% else %}
-            <p>Accedi per aggiungere ai preferiti.</p>
-        {% endif %}
-
-        <a href="{{ url_for('index') }}">Torna alla lista delle auto</a>
+<header>
+  <h1>Dettagli Auto</h1>
+  <nav>
+    <div class="nav-left">
+      <a href="{{ url_for('index') }}"><i class="fas fa-home"></i></a>
     </div>
+    <div class="nav-right">
+      <button class="menu-toggle" onclick="toggleMenu()">
+        <i class="fas fa-user"></i>
+      </button>
+      <div class="dropdown-menu" id="dropdownMenu">
+        <ul>
+          <li><a href="{{ url_for('favorites') }}">Preferiti</a></li>
+          {% if current_user.is_authenticated %}
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+          {% else %}
+            <li><a href="{{ url_for('login', next=request.path) }}">Login</a></li>
+            <li><a href="{{ url_for('register') }}">Registrati</a></li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<div class="container">
+  <h2>{{ car.name }}</h2>
+
+  <div class="image-container">
+    <button class="prev-btn" onclick="changeImage(-1)">&#10094;</button>
+    <img id="carImage" src="{{ car.image }}" alt="Car Image">
+    <button class="next-btn" onclick="changeImage(1)">&#10095;</button>
+  </div>
+  
+  <div class="car-info">
+    <p><strong>Marca:</strong> {{ car.brand }}</p>
+    <p><strong>Anno:</strong> {{ car.year }}</p>
+    <p><strong>Descrizione:</strong> {{ car.description }}</p>
+    <p><strong>Modello:</strong> {{ car.model }}</p>
+    <p><strong>Motore:</strong> {{ car.engine }}</p>
+  </div>
+
+  {% if current_user.is_authenticated %}
+    <a href="{{ url_for('add_to_favorites', car_id=car.id) }}">
+      <button class="add-favorite"><i class="fas fa-heart"></i> Aggiungi ai Preferiti</button>
+    </a>
+  {% else %}
+    <p><a href="{{ url_for('login', next=request.path) }}">Accedi</a> per aggiungere ai preferiti.</p>
+  {% endif %}
+</div>
+
+<script>
+  let images = ["{{ car.image }}"{% for image in car.images %}, "{{ image }}"{% endfor %}];
+
+  function toggleMenu() {
+    document.getElementById('dropdownMenu').classList.toggle('open');
+  }
+</script>
+<script src="{{ url_for('static', filename='js/car_detail.js') }}"></script>
+
 </body>
 </html>
