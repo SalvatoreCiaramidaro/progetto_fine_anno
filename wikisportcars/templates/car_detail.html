@@ -9,98 +9,6 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/car_detail.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon/favicon.png') }}">
-  <style>
-    /* Stili generali per header e nav */
-    header {
-      background: linear-gradient(90deg, #35424a, #e8491d);
-      color: #fff;
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-      padding: 10px 20px;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 2.5em;
-      text-align: center;
-    }
-    nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 10px 20px;
-    }
-    /* Pulsante Home (sinistra) */
-    .nav-left a {
-      color: #ffffff;
-      text-decoration: none;
-      padding: 10px 20px;
-      font-size: 1.2em;
-      background: #35424a;
-      border-radius: 5px;
-      transition: background 0.3s, transform 0.2s;
-    }
-    .nav-left a:hover {
-      background: #45a049;
-      transform: scale(1.05);
-    }
-    /* Menù a tendina (destra) */
-    .nav-right {
-      position: relative;
-      display: inline-block;
-    }
-    .menu-toggle {
-      background: #35424a;
-      color: #fff;
-      padding: 10px 20px;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background 0.3s, transform 0.2s;
-      font-size: 1.2em;
-    }
-    .menu-toggle:hover {
-      background: #45a049;
-      transform: scale(1.05);
-    }
-    .dropdown-menu {
-      position: absolute;
-      top: 50px; /* Distanza dal pulsante */
-      right: 0;
-      width: 180px;
-      background: #35424a;
-      color: #fff;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-10px);
-      transition: all 0.3s ease;
-      z-index: 999;
-    }
-    .dropdown-menu.open {
-      opacity: 1;
-      visibility: visible;
-      transform: translateY(0);
-    }
-    .dropdown-menu ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    .dropdown-menu li a {
-      display: block;
-      padding: 12px 16px;
-      color: #fff;
-      text-decoration: none;
-      transition: background 0.3s;
-      font-size: 0.95em;
-    }
-    .dropdown-menu li a:hover {
-      background: rgba(255,255,255,0.2);
-    }
-  </style>
 </head>
 <body>
 
@@ -116,12 +24,12 @@
       </button>
       <div class="dropdown-menu" id="dropdownMenu">
         <ul>
-          <li><a href="{{ url_for('favorites') }}">Preferiti</a></li>
+          <a href="{{ url_for('favorites') }}">Preferiti</a>
           {% if current_user.is_authenticated %}
-            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+              <a href="{{ url_for('logout') }}">Logout</a>
           {% else %}
-            <li><a href="{{ url_for('login', next=request.path) }}">Login</a></li>
-            <li><a href="{{ url_for('register') }}">Registrati</a></li>
+              <a href="{{ url_for('login', next=request.path) }}">Login</a>
+              <a href="{{ url_for('register') }}">Registrati</a>
           {% endif %}
         </ul>
       </div>
@@ -147,13 +55,35 @@
   </div>
 
   {% if current_user.is_authenticated %}
+  {% if is_favorite %}
+    <a href="{{ url_for('remove_from_favorites', car_id=car.id) }}">
+      <button class="remove-favorite"><i class="fas fa-heart"></i> Rimuovi dai Preferiti</button>
+    </a>
+  {% else %}
     <a href="{{ url_for('add_to_favorites', car_id=car.id) }}">
       <button class="add-favorite"><i class="fas fa-heart"></i> Aggiungi ai Preferiti</button>
     </a>
-  {% else %}
-    <p><a href="{{ url_for('login', next=request.path) }}">Accedi</a> per aggiungere ai preferiti.</p>
   {% endif %}
+{% else %}
+  <p><a href="{{ url_for('login', next=request.path) }}">Accedi</a> per aggiungere ai preferiti.</p>
+{% endif %}
 </div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+        <div class="flash-message {{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+    <script>
+      // Scorri in fondo alla pagina se sono presenti messaggi flash
+      window.scrollTo(0, document.body.scrollHeight);
+    </script>
+  {% endif %}
+{% endwith %}
 
 <br>
 <br>
@@ -163,6 +93,8 @@ let images = {{ ([car.image] + car.images)|tojson }};
   function toggleMenu() {
     document.getElementById('dropdownMenu').classList.toggle('open');
   }
+  // Scorri in fondo alla pagina se sono presenti messaggi flash
+  window.scrollTo(0, document.body.scrollHeight);
 </script>
 <script src="{{ url_for('static', filename='js/car_detail.js') }}"></script>
 

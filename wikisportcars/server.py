@@ -146,15 +146,25 @@ def car_detail(car_id):
     # Ottieni le immagini extra dalla tabella 'car_images'
     cursor.execute('SELECT image FROM car_images WHERE car_id = %s', (car_id,))
     images = cursor.fetchall()
-
     cursor.close()
     conn.close()
 
     if car:
         # Converti in lista semplice di link
         car['images'] = [img['image'] for img in images]
-    
-    return render_template('car_detail.html', car=car)
+
+    # Controllo se la macchina è già nei preferiti
+    is_favorite = False
+    if current_user.is_authenticated:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM favorites WHERE user_id = %s AND car_id = %s', (current_user.id, car_id))
+        if cursor.fetchone():
+            is_favorite = True
+        cursor.close()
+        conn.close()
+
+    return render_template('car_detail.html', car=car, is_favorite=is_favorite)
 
 
 
@@ -176,12 +186,31 @@ def add_to_favorites(car_id):
     user_id = current_user.id
     conn = get_db_connection()
     cursor = conn.cursor()
-    cursor.execute('INSERT INTO favorites (user_id, car_id) VALUES (%s, %s)', (user_id, car_id))
+    # Verifica se l'auto è già presente nei preferiti
+    cursor.execute('SELECT * FROM favorites WHERE user_id = %s AND car_id = %s', (user_id, car_id))
+    if cursor.fetchone():
+        flash('Auto già presente tra i preferiti!', 'info')
+    else:
+        cursor.execute('INSERT INTO favorites (user_id, car_id) VALUES (%s, %s)', (user_id, car_id))
+        conn.commit()
+        flash('Auto aggiunta ai preferiti!', 'success')
+    cursor.close()
+    conn.close()
+    return redirect(url_for('car_detail', car_id=car_id))
+
+
+@app.route('/remove_from_favorites/<int:car_id>')
+@login_required
+def remove_from_favorites(car_id):
+    user_id = current_user.id
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('DELETE FROM favorites WHERE user_id = %s AND car_id = %s', (user_id, car_id))
     conn.commit()
     cursor.close()
     conn.close()
-    flash('Car added to favorites!', 'success')
-    return redirect(url_for('favorites'))
+    flash('Auto rimossa dai preferiti!', 'success')
+    return redirect(url_for('car_detail', car_id=car_id))
 
 @app.route('/logout')
 def logout():

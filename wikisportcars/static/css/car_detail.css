@@ -37,3 +37,71 @@
 .prev-btn:hover, .next-btn:hover {
     background-color: rgba(0, 0, 0, 0.8);
 }
+
+/* MENU A TENDINA */
+.nav-right {
+    position: relative;
+    display: inline-block;
+}
+
+.menu-toggle {
+    background: #35424a;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    font-size: 1.2em;
+}
+
+.menu-toggle:hover {
+    background: #45a049;
+    transform: scale(1.05);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    width: 180px;
+    background: #35424a;
+    color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+.dropdown-menu.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* Assicura che la lista del menu venga disposta verticalmente */
+.dropdown-menu ul {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+}
+
+/* Assicura che ogni voce del menu occupi l'intera larghezza */
+.dropdown-menu ul li {
+    width: 100%;
+}
+
+/* Verifica che i link del menu siano blocchi che occupano tutta la larghezza */
+.dropdown-menu ul li a {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.dropdown-menu ul li a:hover {
+    background: rgba(255,255,255,0.2);
+}
