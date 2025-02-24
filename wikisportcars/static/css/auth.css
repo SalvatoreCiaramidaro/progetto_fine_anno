@@ -498,18 +498,20 @@ button:hover {
 }
 
 /* Pulsante migliorato */
-.login-card button {
+.login-card input.button {
     width: 95%;
     padding: 10px;
     margin-top: 15px;
     font-size: 1.1em;
+    background: #e8491d;
+    color: #ffffff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: background 0.3s, transform 0.2s;
 }
 
-.login-card button:hover {
+.login-card input.button:hover {
     background: #45a049;
     transform: scale(1.03);
 }
@@ -593,4 +595,16 @@ button:hover {
     --n-road: -4em;
     --p-road: 4em;
   }
+}
+
+.flash-message {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-weight: bold;
+}
+.flash-message.danger {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
 }

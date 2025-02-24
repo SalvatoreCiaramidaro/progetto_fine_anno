@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session
+from flask import Flask, render_template, request, redirect, url_for, flash, session,jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 import mysql.connector
 import logging
@@ -87,18 +87,52 @@ def login():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+    if request.method == 'GET':
+        return render_template("register.html")
+
+    # Gestione della richiesta POST (assicurati che il form invii i dati con method="POST")
+    username = request.form.get('username')
+    password = request.form.get('password')
+
+    if not username or not password:
+        flash("Username e password sono obbligatori.", "danger")
+        return redirect(url_for("register"))
+
+    conn = None
+    cursor = None
+    try:
+        logging.info(f"Tentativo di registrazione utente: {username}")
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute('INSERT INTO users (username, password) VALUES (%s, %s)', (username, password))
+
+        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+
+        if user:
+            logging.info(f"Utente già esistente: {username}")
+            flash("Utente già esistente.", "danger")
+            return redirect(url_for("register"))
+
+        cursor.execute("""
+            INSERT INTO users (username, password)
+            VALUES (%s, %s)
+        """, (username, password))
         conn.commit()
-        cursor.close()
-        conn.close()
-        flash('Registration successful!', 'success')
-        return redirect(url_for('login'))
-    return render_template('register.html')
+
+        logging.info(f"Utente registrato con successo: {username}")
+        flash("Registrazione avvenuta con successo. Effettua il login.", "success")
+        return redirect(url_for("login"))
+
+    except mysql.connector.Error as e:
+        logging.error(f"Database error: {e}")
+        flash("Errore del server. Riprova più tardi.", "danger")
+        return redirect(url_for("register"))
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 @app.route('/car/<int:car_id>')
 def car_detail(car_id):

@@ -23,7 +23,7 @@ CREATE TABLE cars (
 );
 
 INSERT INTO cars (id, name, description, image, brand, model, year, engine) VALUES
-(1, 'Corvette C6', 'Macchina sportiva americana Muscle con motore V8', 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/2003_Chevrolet_Corvette_C6_%284794073538%29_%28cropped%29.jpg/260px-2003_Chevrolet_Corvette_C6_%284794073538%29_%28cropped%29.jpg', 'Chevrolet Corvette', 'C6', 2003, 'V8'),
+(1, 'Corvette C6', 'Macchina sportiva americana Muscle con motore V8', 'https://upload.wikimedia.org/wikipedia/commons/9/99/2003_Chevrolet_Corvette_C6_%284794073538%29_%28cropped%29.jpg', 'Chevrolet Corvette', 'C6', 2003, 'V8'),
 (2, 'Ferrari 458', 'Macchina sportiva italiana con motore V8', 'https://images.ctfassets.net/uaddx06iwzdz/1qzdgJF4iYltZDsb6tOpLW/d44cbcf8ec3cb959494ac40c36d48a07/ferrari-458-italia-side.jpeg', 'Ferrari', '458', 2009, 'V8'),
 (3, 'Porsche 911', 'Macchina sportiva tedesca con motore 6 cilindri', 'https://img.autoabc.lv/Porsche-911/Porsche-911_2011_Kupeja_231232737_4.jpg', 'Porsche', '911', 2011, '6 cilindri'),
 (4, 'Lamborghini Huracan', 'Macchina sportiva italiana con motore V10', 'https://www.virgilio.it/motori/wp-content/uploads/sites/4/2024/04/Lamborghini-Huracan-STJ.jpeg', 'Lamborghini', 'Huracan', 2014, 'V10'),

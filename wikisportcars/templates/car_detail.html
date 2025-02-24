@@ -156,8 +156,7 @@
 </div>
 
 <script>
-  let images = ["{{ car.image }}"{% for image in car.images %}, "{{ image }}"{% endfor %}];
-
+let images = {{ ([car.image] + car.images)|tojson }};  
   function toggleMenu() {
     document.getElementById('dropdownMenu').classList.toggle('open');
   }
