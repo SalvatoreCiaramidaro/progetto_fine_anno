@@ -17,6 +17,9 @@
                 <a href="{{ url_for('index') }}"><i class="fas fa-home"></i></a>
             </div>
             <div class="nav-right">
+                {% if current_user.is_authenticated %}
+                    <span class="greeting">Ciao, {{ current_user.username }}!</span>
+                {% endif %}
                 <div class="dropdown">
                     <button class="dropbtn">Menu</button>
                     <div class="dropdown-content">
@@ -49,6 +52,7 @@
                         </div>
                         <div class="small-car-info">
                             <h3>{{ car.name }}</h3>
+                            <p>{{ car.description }}</p>
                             <a href="{{ url_for('car_detail', car_id=car.id) }}">Dettagli</a>
                         </div>
                     </div>

@@ -369,3 +369,9 @@ button:hover {
     display: block;
     max-height: 500px; /* Adjust as needed */
 }
+
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}

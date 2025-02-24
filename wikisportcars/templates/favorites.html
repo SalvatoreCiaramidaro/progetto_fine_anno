@@ -15,16 +15,27 @@
         </nav>
     </header>
     <main>
-        {% if favorites %}
-            <ul>
-                {% for car in favorites %}
-                    <li>
-                        <h2>{{ car.name }}</h2>
-                        <p>{{ car.description }}</p>
-                        <a href="{{ url_for('car_detail', car_id=car.id) }}">Dettagli</a>
-                    </li>
+        <br>
+        <br>
+        {% if cars %}
+            <div class="car-list">
+                {% for car in cars %}
+                    <div class="small-car-container">
+                        <div class="small-car-image">
+                            {% if car.image[0:4] == 'http' %}
+                                <img src="{{ car.image }}" alt="{{ car.name }}">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='images/' ~ car.image) }}" alt="{{ car.name }}">
+                            {% endif %}
+                        </div>
+                        <div class="small-car-info">
+                            <h3>{{ car.name }}</h3>
+                            <p>{{ car.description }}</p>
+                            <a href="{{ url_for('car_detail', car_id=car.id) }}">Dettagli</a>
+                        </div>
+                    </div>
                 {% endfor %}
-            </ul>
+            </div>
         {% else %}
             <p>Non hai ancora salvato nessun preferito.</p>
         {% endif %}
