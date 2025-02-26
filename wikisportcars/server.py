@@ -5,7 +5,7 @@ import logging
 from urllib.parse import urlparse, urljoin
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
-
+from werkzeug.security import generate_password_hash
 
 
 
@@ -42,6 +42,8 @@ class User(UserMixin):
         self.confirmed = confirmed
 
 
+
+
 # Configura Flask-Mail
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Usa il server SMTP di Gmail o un altro
 app.config['MAIL_PORT'] = 465
@@ -73,9 +75,17 @@ def load_user(user_id):
     user = cursor.fetchone()
     cursor.close()
     conn.close()
+
     if user:
-        return User(id=user['id'], username=user['username'])
+        return User(
+            id=user['id'], 
+            username=user['username'], 
+            email=user['email'], 
+            password=user['password'],  # Anche se non serve per l'autenticazione dopo il login
+            confirmed=user['confirmed']
+        )
     return None
+
 
 @app.route('/confirm/<token>')
 def confirm_email(token):
@@ -134,11 +144,10 @@ def login():
         conn.close()
         
         if user:
-            user_obj = User(id=user['id'], username=user['username'])
+            user_obj = User(id=user['id'], username=user['username'], email=user['email'], password=user['password'], confirmed=user['confirmed'])
             login_user(user_obj)
             flash('Login successful!', 'success')
 
-            # Protezione contro Open Redirects: assicuriamoci che `next_page` sia un URL interno valido
             if next_page and urlparse(next_page).netloc == '':
                 return redirect(next_page)
             return redirect(url_for('index'))
@@ -148,8 +157,9 @@ def login():
     return render_template('login.html', next=next_page)
 
 
-from flask import render_template, redirect, url_for, flash, request
-from werkzeug.security import generate_password_hash
+
+
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
