@@ -3,6 +3,9 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 import mysql.connector
 import logging
 from urllib.parse import urlparse, urljoin
+from flask_mail import Mail, Message
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+
 
 
 
@@ -10,11 +13,14 @@ logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
-
+app.config['SECURITY_PASSWORD_SALT'] = 'your_security_password_salt'
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 login_manager.login_message_category = "info"  # Per mostrare un messaggio di avviso
+
+# Removed SQLAlchemy initialization.
+# All database interactions now use mysql.connector for MariaDB.
 
 # Configurazione per la connessione al database con MariaDB
 db_config = {
@@ -28,9 +34,36 @@ def get_db_connection():
     return mysql.connector.connect(**db_config)
 
 class User(UserMixin):
-    def __init__(self, id, username):
+    def __init__(self, id, username, email, password, confirmed=False):
         self.id = id
         self.username = username
+        self.email = email
+        self.password = password
+        self.confirmed = confirmed
+
+
+# Configura Flask-Mail
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Usa il server SMTP di Gmail o un altro
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = 'stefaniagitto71@gmail.com'
+app.config['MAIL_PASSWORD'] = 'gkry vbeu brft vuue'
+app.config['MAIL_DEFAULT_SENDER'] = 'wikisportcars@gmail.com'
+
+mail = Mail(app)
+
+# Funzione per generare un link di conferma
+def generate_confirmation_token(email):
+    serializer = URLSafeTimedSerializer(app.secret_key)
+    return serializer.dumps(email, salt=app.config['SECURITY_PASSWORD_SALT'])
+
+# Funzione per inviare l'email di conferma
+def send_confirmation_email(user_email):
+    token = generate_confirmation_token(user_email)
+    confirm_url = url_for('confirm_email', token=token, _external=True)
+    html = f'<p>Per confermare il tuo account, clicca <a href="{confirm_url}">qui</a></p>'
+    msg = Message('Conferma il tuo account', recipients=[user_email], html=html)
+    mail.send(msg)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -43,6 +76,36 @@ def load_user(user_id):
     if user:
         return User(id=user['id'], username=user['username'])
     return None
+
+@app.route('/confirm/<token>')
+def confirm_email(token):
+    try:
+        serializer = URLSafeTimedSerializer(app.secret_key)
+        email = serializer.loads(token, salt=app.config['SECURITY_PASSWORD_SALT'], max_age=3600)  # Link valido per 1 ora
+    except SignatureExpired:
+        flash('Il link di conferma è scaduto.', 'danger')
+        return redirect(url_for('register'))
+    
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+    user = cursor.fetchone()
+    if not user:
+        flash('Utente non trovato.', 'danger')
+        cursor.close()
+        conn.close()
+        return redirect(url_for('register'))
+    
+    if user.get('confirmed'):
+        flash('Il tuo account è già stato confermato.', 'info')
+    else:
+        cursor.execute("UPDATE users SET confirmed = 1 WHERE email = %s", (email,))
+        conn.commit()
+        flash('Il tuo account è stato confermato con successo!', 'success')
+    
+    cursor.close()
+    conn.close()
+    return redirect(url_for('login'))
 
 @app.route('/')
 def index():
@@ -85,10 +148,33 @@ def login():
     return render_template('login.html', next=next_page)
 
 
+from flask import render_template, redirect, url_for, flash, request
+from werkzeug.security import generate_password_hash
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    if request.method == 'GET':
-        return render_template("register.html")
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        password_hash = generate_password_hash(password)
+
+        # Aggiungi l'utente al database
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (username, email, password_hash))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        # Invia l'email di conferma
+        send_confirmation_email(email)
+
+        flash('Registrazione avvenuta con successo! Controlla la tua email per confermare il tuo account.', 'success')
+        return redirect(url_for('login'))
+
+    return render_template('register.html')
+
 
     # Gestione della richiesta POST (assicurati che il form invii i dati con method="POST")
     username = request.form.get('username')
