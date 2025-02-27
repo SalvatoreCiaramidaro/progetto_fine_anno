@@ -127,8 +127,6 @@ def index():
     conn.close()
     return render_template('index.html', cars=cars)
 
-from urllib.parse import urlparse, urljoin
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     next_page = request.args.get('next')
