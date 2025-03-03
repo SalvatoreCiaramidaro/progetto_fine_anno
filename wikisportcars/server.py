@@ -5,7 +5,7 @@ import logging
 from urllib.parse import urlparse, urljoin
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 
 
@@ -127,35 +127,27 @@ def index():
     conn.close()
     return render_template('index.html', cars=cars)
 
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    next_page = request.args.get('next')
-    
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password))
+        cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
         user = cursor.fetchone()
         cursor.close()
         conn.close()
         
-        if user:
+        if user and check_password_hash(user['password'], password):
             user_obj = User(id=user['id'], username=user['username'], email=user['email'], password=user['password'], confirmed=user['confirmed'])
             login_user(user_obj)
-            flash('Login successful!', 'success')
-
-            if next_page and urlparse(next_page).netloc == '':
-                return redirect(next_page)
-            return redirect(url_for('index'))
+            return jsonify(success=True, message='Login successful!')
         else:
-            flash('Invalid credentials', 'danger')
+            return jsonify(success=False, message='Invalid credentials')
 
-    return render_template('login.html', next=next_page)
-
-
-
+    return render_template('login.html')
 
 
 
@@ -182,51 +174,6 @@ def register():
         return redirect(url_for('login'))
 
     return render_template('register.html')
-
-
-    # Gestione della richiesta POST (assicurati che il form invii i dati con method="POST")
-    username = request.form.get('username')
-    password = request.form.get('password')
-
-    if not username or not password:
-        flash("Username e password sono obbligatori.", "danger")
-        return redirect(url_for("register"))
-
-    conn = None
-    cursor = None
-    try:
-        logging.info(f"Tentativo di registrazione utente: {username}")
-        conn = get_db_connection()
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-        user = cursor.fetchone()
-
-        if user:
-            logging.info(f"Utente già esistente: {username}")
-            flash("Utente già esistente.", "danger")
-            return redirect(url_for("register"))
-
-        cursor.execute("""
-            INSERT INTO users (username, password)
-            VALUES (%s, %s)
-        """, (username, password))
-        conn.commit()
-
-        logging.info(f"Utente registrato con successo: {username}")
-        flash("Registrazione avvenuta con successo. Effettua il login.", "success")
-        return redirect(url_for("login"))
-
-    except mysql.connector.Error as e:
-        logging.error(f"Database error: {e}")
-        flash("Errore del server. Riprova più tardi.", "danger")
-        return redirect(url_for("register"))
-
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
 
 @app.route('/car/<int:car_id>')
 def car_detail(car_id):
