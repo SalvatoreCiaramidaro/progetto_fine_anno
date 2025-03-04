@@ -18,7 +18,7 @@
         <div class="login-section">
             <div class="login-card">
                 <h2>Benvenuto in WikiSportCars!</h2>
-                <form method="POST" action="{{ url_for('login', next=request.args.get('next')) }}">
+                <form method="POST" action="{{ url_for('login') }}">
                     <input type="hidden" name="next" value="{{ request.args.get('next', '') }}">
                     <label for="username">Username:</label>
                     <input type="text" id="username" name="username" required> <br><br>
@@ -28,21 +28,14 @@
                 
                     <input type="submit" value="Accedi" class="button">
                 </form>
+                <div id="message-container"></div> <!-- Container per i messaggi -->
                 <p>Non hai un account? <a href="{{ url_for('register') }}">Registrati qui</a></p>
-                {% with messages = get_flashed_messages() %}
-                    {% if messages %}
-                        <ul class="flashes">
-                        {% for message in messages %}
-                            <li>{{ message }}</li>
-                        {% endfor %}
-                        </ul>
-                    {% endif %}
-                {% endwith %}
             </div>
         </div>
         <div class="animation-section">
             <div class="car-animation"></div>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
 </html>

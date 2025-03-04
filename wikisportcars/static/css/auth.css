@@ -597,16 +597,25 @@ button:hover {
   }
 }
 
+.flash-messages {
+  margin-top: 10px;
+}
+
 .flash-message {
   padding: 10px;
-  margin: 10px 0;
-  border-radius: 4px;
-  font-weight: bold;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  text-align: center;
 }
+
+.flash-message.success {
+  background-color: #d4edda;
+  color: #155724;
+}
+
 .flash-message.danger {
   background-color: #f8d7da;
   color: #721c24;
-  border: 1px solid #f5c6cb;
 }
 
 .message {
@@ -616,12 +625,12 @@ button:hover {
   text-align: center;
 }
 
-.message.green {
+.message.success {
   background-color: #d4edda;
   color: #155724;
 }
 
-.message.red {
+.message.danger {
   background-color: #f8d7da;
   color: #721c24;
 }

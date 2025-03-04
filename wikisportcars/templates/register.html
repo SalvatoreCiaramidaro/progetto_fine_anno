@@ -10,7 +10,7 @@
     <link rel="icon" type="image/png" href="../static/favicon/favicon.png">
     <title>Registrazione - WikiSportCars</title>
 </head>
-<body>
+<body data-login-url="{{ url_for('login') }}">
     <header>
         <nav>
             <a href="{{ url_for('index') }}" class="fas fa-home"></a>
@@ -20,7 +20,7 @@
         <div class="login-section">
             <div class="login-card">
                 <h2>Registrati</h2>
-                <form action="{{ url_for('register') }}" method="POST">
+                <form id="register-form" action="{{ url_for('register') }}" method="POST">
                     <div class="form-group">
                         <label for="email">Email:</label>
                         <input type="text" id="email" name="email" required>
@@ -39,33 +39,14 @@
                     </div>
                     <input type="submit" value="Registrati" class="button">
                 </form>
+                <div id="message-container"></div> <!-- Container per i messaggi -->
                 <p>Hai già un account? <a href="{{ url_for('login') }}">Accedi qui</a></p>
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        <div class="flash-messages">
-                          {% for category, message in messages %}
-                          <div class="flash-message {{ category }}">
-                            {{ message }}
-                          </div>
-                          {% endfor %}
-                        </div>
-                      {% endif %}
-                    {% endwith %}
             </div>
         </div>
         <div class="animation-section">
             <div class="car-animation"></div>
         </div>
     </div>
-    <script>
-    function validatePassword(input) {
-        const password = document.getElementById('password').value;
-        if (input.value !== password) {
-            input.setCustomValidity('Le password non corrispondono.');
-        } else {
-            input.setCustomValidity('');
-        }
-    }
-    </script>
+    <script src="{{ url_for('static', filename='js/register.js') }}"></script>
 </body>
 </html>

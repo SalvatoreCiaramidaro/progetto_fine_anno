@@ -6,6 +6,7 @@ from urllib.parse import urlparse, urljoin
 from flask_mail import Mail, Message
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from werkzeug.security import generate_password_hash, check_password_hash
+from mysql.connector.errors import IntegrityError
 
 
 
@@ -143,7 +144,8 @@ def login():
         if user and check_password_hash(user['password'], password):
             user_obj = User(id=user['id'], username=user['username'], email=user['email'], password=user['password'], confirmed=user['confirmed'])
             login_user(user_obj)
-            return jsonify(success=True, message='Login successful!')
+            next_page = request.form.get('next')
+            return jsonify(success=True, next=next_page or url_for('index'))
         else:
             return jsonify(success=False, message='Invalid credentials')
 
@@ -159,19 +161,21 @@ def register():
         password = request.form['password']
         password_hash = generate_password_hash(password)
 
-        # Aggiungi l'utente al database
-        conn = get_db_connection()
-        cursor = conn.cursor()
-        cursor.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (username, email, password_hash))
-        conn.commit()
-        cursor.close()
-        conn.close()
+        try:
+            # Aggiungi l'utente al database
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (username, email, password_hash))
+            conn.commit()
+            cursor.close()
+            conn.close()
 
-        # Invia l'email di conferma
-        send_confirmation_email(email)
+            # Invia l'email di conferma
+            send_confirmation_email(email)
 
-        flash('Registrazione avvenuta con successo! Controlla la tua email per confermare il tuo account.', 'success')
-        return redirect(url_for('login'))
+            return jsonify(success=True, message='Registrazione avvenuta con successo! Controlla la tua email per confermare il tuo account.')
+        except IntegrityError:
+            return jsonify(success=False, message='L\'email è già associata a un account. Per favore, usa un\'altra email.')
 
     return render_template('register.html')
 

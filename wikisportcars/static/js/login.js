@@ -13,32 +13,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const result = await response.json();
 
-        if (response.ok && result.success) {
-            showMessage(result.message, 'green');
+        if (result.success) {
+            showMessage('Login successful!', 'success');
             
             // Svuota i campi del form
             form.reset();
 
             // Prendi il valore del campo nascosto "next"
-            const nextUrl = document.querySelector('input[name="next"]').value || '/';
+            const nextUrl = result.next || '/';
 
             setTimeout(() => {
                 window.location.href = nextUrl;
             }, 3000);
         } else {
-            showMessage(result.message || 'Errore durante il login', 'red');
-            
-            // Svuota i campi del form
-            form.reset();
+            showMessage(result.message || 'Errore durante il login', 'danger');
         }
     });
 
-    function showMessage(message, color) {
+    function showMessage(message, category) {
         messageContainer.innerHTML = ''; // Pulisce i messaggi precedenti
         const messageElement = document.createElement('div');
         messageElement.textContent = message;
-        messageElement.style.color = color;
-        messageElement.classList.add('message');
+        messageElement.classList.add('message', category);
         messageContainer.appendChild(messageElement);
     }
 });
