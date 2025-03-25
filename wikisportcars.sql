@@ -90,7 +90,7 @@ INSERT INTO car_images (car_id, image)
 VALUES 
 
 (1, 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/2003_Chevrolet_Corvette_C6_%284794076030%29.jpg/1200px-2003_Chevrolet_Corvette_C6_%284794076030%29.jpg'),
-(1, 'https://media-ys.automobile.it/api/v1/am-ad/images/7012cffc8470830ddbd50fc0d8c71e7b?rule=ad-1280.jpeg'),
+(1, 'https://prod.pictures.autoscout24.net/listing-images/371eda98-9e26-4830-8020-e02e5d53f945_25712121-81eb-4913-8e92-48f42f7e9784.jpg/1280x960.webp'),
 (1, 'https://prod-01-loadandpay-media.s3.eu-west-1.amazonaws.com/medias/cache/app_auction_slides_thumb/616802750f6c6332789666.jpg'),
 
 (2, 'https://example.com/image1.jpg'),
