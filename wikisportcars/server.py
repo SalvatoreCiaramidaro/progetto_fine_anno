@@ -2,21 +2,27 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 import logging
 from urllib.parse import urlparse, urljoin
-from flask_mail import Mail, Message
-from itsdangerous import URLSafeTimedSerializer, SignatureExpired
 from werkzeug.security import generate_password_hash, check_password_hash
 from mysql.connector.errors import IntegrityError
-from db_config import db_cursor  # Importazione del context manager dal nuovo modulo
+
+# Importazioni dai moduli personalizzati
+from db_config import db_cursor
+from email_service import email_service, mail
 
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 app.config['SECURITY_PASSWORD_SALT'] = 'your_security_password_salt'
+
+# Inizializza LoginManager
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
-login_manager.login_message_category = "info"  # Per mostrare un messaggio di avviso
+login_manager.login_message_category = "info"
+
+# Inizializza il servizio email
+email_service.init_app(app)
 
 class User(UserMixin):
     def __init__(self, id, username, email, password, confirmed=False):
@@ -25,29 +31,6 @@ class User(UserMixin):
         self.email = email
         self.password = password
         self.confirmed = confirmed
-
-# Configura Flask-Mail
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'  # Usa il server SMTP di Gmail o un altro
-app.config['MAIL_PORT'] = 465
-app.config['MAIL_USE_SSL'] = True
-app.config['MAIL_USERNAME'] = 'stefaniagitto71@gmail.com'
-app.config['MAIL_PASSWORD'] = 'gkry vbeu brft vuue'
-app.config['MAIL_DEFAULT_SENDER'] = 'wikisportcars@gmail.com'
-
-mail = Mail(app)
-
-# Funzione per generare un link di conferma
-def generate_confirmation_token(email):
-    serializer = URLSafeTimedSerializer(app.secret_key)
-    return serializer.dumps(email, salt=app.config['SECURITY_PASSWORD_SALT'])
-
-# Funzione per inviare l'email di conferma
-def send_confirmation_email(user_email):
-    token = generate_confirmation_token(user_email)
-    confirm_url = url_for('confirm_email', token=token, _external=True)
-    html = f'<p>Per confermare il tuo account, clicca <a href="{confirm_url}">qui</a></p>'
-    msg = Message('Conferma il tuo account', recipients=[user_email], html=html)
-    mail.send(msg)
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -72,26 +55,30 @@ def load_user(user_id):
 @app.route('/confirm/<token>')
 def confirm_email(token):
     try:
-        serializer = URLSafeTimedSerializer(app.secret_key)
-        email = serializer.loads(token, salt=app.config['SECURITY_PASSWORD_SALT'], max_age=3600)  # Link valido per 1 ora
-    except SignatureExpired:
-        flash('Il link di conferma è scaduto.', 'danger')
-        return redirect(url_for('register'))
-    
-    with db_cursor(dictionary=True) as (cursor, conn):
-        cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
-        user = cursor.fetchone()
-        if not user:
-            flash('Utente non trovato.', 'danger')
-            return redirect(url_for('register'))
+        email = email_service.confirm_token(token)
+        if email is None:
+            flash('Il link di conferma è scaduto.', 'danger')
+            return redirect(url_for('login'))
         
-        if user.get('confirmed'):
-            flash('Il tuo account è già stato confermato.', 'info')
-        else:
-            cursor.execute("UPDATE users SET confirmed = 1 WHERE email = %s", (email,))
-            flash('Il tuo account è stato confermato con successo!', 'success')
-    
-    return redirect(url_for('login'))
+        with db_cursor(dictionary=True) as (cursor, conn):
+            cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
+            user = cursor.fetchone()
+            if not user:
+                flash('Utente non trovato.', 'danger')
+                return redirect(url_for('login'))
+            
+            if user.get('confirmed'):
+                flash('Il tuo account è già stato confermato.', 'info')
+            else:
+                cursor.execute("UPDATE users SET confirmed = 1 WHERE email = %s", (email,))
+                flash('Il tuo account è stato confermato con successo!', 'success')
+        
+        return redirect(url_for('login'))
+    except Exception as e:
+        logging.error(f"Errore nella conferma dell'email: {str(e)}")
+        flash('Si è verificato un errore durante la conferma dell\'account.', 'danger')
+        return redirect(url_for('login'))
+
 
 @app.route('/')
 def index():
@@ -135,7 +122,6 @@ def login():
     return render_template('login.html')
 
 
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -149,8 +135,8 @@ def register():
             with db_cursor() as (cursor, conn):
                 cursor.execute("INSERT INTO users (username, email, password) VALUES (%s, %s, %s)", (username, email, password_hash))
 
-            # Invia l'email di conferma
-            send_confirmation_email(email)
+            # Invia l'email di conferma usando il nuovo servizio
+            email_service.send_confirmation_email(email)
 
             return jsonify(success=True, message='Registrazione avvenuta con successo! Controlla la tua email per confermare il tuo account.')
         except IntegrityError:
