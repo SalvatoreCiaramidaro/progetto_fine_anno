@@ -93,11 +93,10 @@ VALUES
 (1, 'https://prod.pictures.autoscout24.net/listing-images/371eda98-9e26-4830-8020-e02e5d53f945_25712121-81eb-4913-8e92-48f42f7e9784.jpg/1280x960.webp'),
 (1, 'https://prod-01-loadandpay-media.s3.eu-west-1.amazonaws.com/medias/cache/app_auction_slides_thumb/616802750f6c6332789666.jpg'),
 
-(2, 'https://example.com/image1.jpg'),
-(2, 'https://example.com/image2.jpg'),
-(2, 'https://example.com/image3.jpg'),
-(2, 'https://example.com/image4.jpg'),
-(2, 'https://example.com/image5.jpg'),
+(2, 'https://www.autoscout24.it/cms-content-assets/2kNB9B2UWSOJMfdLiCsn7u-0f66f5f33762f0ffbfee88bef76a5cfb-ferrari-458-italia-back-1100.jpeg'),
+(2, 'https://www.autoscout24.it/cms-content-assets/6WYtZ8Kj5mO5QNBwcnCFpv-e23737ee3525530297d8ff37ec60840b-ferrari-458-italia-interior-1100.jpeg'),
+(2, 'https://upload.wikimedia.org/wikipedia/commons/6/63/Ferrari_458_Italia_engine.jpg'),
+
 
 (3, 'https://example.com/image6.jpg'),
 (3, 'https://example.com/image7.jpg'),

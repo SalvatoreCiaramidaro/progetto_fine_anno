@@ -38,6 +38,17 @@
 </header>
 
 <div class="container">
+  <!-- Blocco per visualizzare i messaggi flash -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="flash-message {{ category }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
   <h2>{{ car.name }}</h2>
 
   <div class="image-container">
@@ -55,46 +66,44 @@
   </div>
 
   {% if current_user.is_authenticated %}
-  {% if is_favorite %}
-    <a href="{{ url_for('remove_from_favorites', car_id=car.id) }}">
-      <button class="remove-favorite"><i class="fas fa-heart"></i> Rimuovi dai Preferiti</button>
-    </a>
+      {% if is_favorite %}
+          <form action="{{ url_for('remove_from_favorites', car_id=car.id) }}" method="post">
+              <button type="submit" class="remove-favorite">
+                  <i class="fas fa-heart"></i> Rimuovi dai Preferiti
+              </button>
+          </form>
+      {% else %}
+          <form action="{{ url_for('add_to_favorites', car_id=car.id) }}" method="post">
+              <button type="submit" class="add-favorite">
+                  <i class="fas fa-heart"></i> Aggiungi ai Preferiti
+              </button>
+          </form>
+      {% endif %}
   {% else %}
-    <a href="{{ url_for('add_to_favorites', car_id=car.id) }}">
-      <button class="add-favorite"><i class="fas fa-heart"></i> Aggiungi ai Preferiti</button>
-    </a>
+      <p><a href="{{ url_for('login', next=request.path) }}">Accedi</a> per aggiungere ai preferiti.</p>
   {% endif %}
-{% else %}
-  <p><a href="{{ url_for('login', next=request.path) }}">Accedi</a> per aggiungere ai preferiti.</p>
-{% endif %}
 </div>
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="flash-messages">
-      {% for category, message in messages %}
-        <div class="flash-message {{ category }}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    </div>
-    <script>
-      // Scorri in fondo alla pagina se sono presenti messaggi flash
-      window.scrollTo(0, document.body.scrollHeight);
-    </script>
-  {% endif %}
-{% endwith %}
-
-<br>
-<br>
+<br><br>
 
 <script>
 let images = {{ ([car.image] + car.images)|tojson }};  
-  function toggleMenu() {
-    document.getElementById('dropdownMenu').classList.toggle('open');
-  }
-  // Scorri in fondo alla pagina se sono presenti messaggi flash
-  window.scrollTo(0, document.body.scrollHeight);
+function toggleMenu() {
+  document.getElementById('dropdownMenu').classList.toggle('open');
+}
+
+// Auto-chiusura dei messaggi flash dopo alcuni secondi
+document.addEventListener('DOMContentLoaded', function() {
+  const flashMessages = document.querySelectorAll('.flash-message');
+  flashMessages.forEach(function(message) {
+    setTimeout(function() {
+      message.style.opacity = '0';
+      setTimeout(function() {
+        message.style.display = 'none';
+      }, 600); // tempo di transizione
+    }, 3000); // 3 secondi prima della chiusura
+  });
+});
 </script>
 <script src="{{ url_for('static', filename='js/car_detail.js') }}"></script>
 
