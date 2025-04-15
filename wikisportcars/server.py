@@ -266,6 +266,46 @@ def search():
         return render_template('search.html', cars=[], query=query)
 
 
+@app.route('/api/search')
+def api_search():
+    query = request.args.get('query', '')
+    start_with = request.args.get('start_with', 'false').lower() == 'true'
+    
+    if not query:
+        return jsonify({"cars": []})
+    
+    # Se start_with è true, cerca solo all'inizio dei campi (senza % all'inizio)
+    # altrimenti usa la corrispondenza parziale ovunque nel campo
+    search_term = f'{query}%' if start_with else f'%{query}%'
+    
+    try:
+        with db_cursor(dictionary=True) as (cursor, conn):
+            # Cerca corrispondenze solo in brand, model e name
+            cursor.execute(
+                'SELECT * FROM cars WHERE brand LIKE %s OR model LIKE %s OR name LIKE %s',
+                (search_term, search_term, search_term)
+            )
+            cars = cursor.fetchall()
+        
+        # Assicurati che i risultati siano serializzabili in JSON
+        safe_cars = []
+        for car in cars:
+            # Converti tutti i valori che potrebbero non essere JSON serializzabili
+            safe_car = {}
+            for key, value in car.items():
+                if isinstance(value, (int, str, float, bool, type(None))):
+                    safe_car[key] = value
+                else:
+                    # Converti altri tipi in stringhe
+                    safe_car[key] = str(value)
+            safe_cars.append(safe_car)
+        
+        return jsonify({"cars": safe_cars})
+    except Exception as e:
+        logging.error(f"Errore API ricerca: {str(e)}")
+        return jsonify({"error": str(e), "cars": []}), 500
+
+
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():

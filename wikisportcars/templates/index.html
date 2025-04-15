@@ -16,6 +16,12 @@
             <div class="nav-left">
                 <a href="{{ url_for('index') }}"><i class="fas fa-home"></i></a>
             </div>
+            <div class="nav-center">
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Cerca auto...">
+                    <button id="search-button"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
             <div class="nav-right">
                 {% if current_user.is_authenticated %}
                     <span class="greeting">Ciao, {{ current_user.username }}!</span>
@@ -37,28 +43,38 @@
     </header>
     <main>
         <h2>Macchine Disponibili</h2>
-        {% if not cars %}
-            <p>Nessuna macchina disponibile.</p>
-        {% else %}
-            <div class="car-list">
-                {% for car in cars %}
-                    <div class="small-car-container">
-                        <div class="small-car-image">
-                            {% if car.image[0:4] == 'http' %}
-                                <img src="{{ car.image }}" alt="{{ car.name }}">
-                            {% else %}
-                                <img src="{{ url_for('static', filename='images/' ~ car.image) }}" alt="{{ car.name }}">
-                            {% endif %}
-                        </div>
-                        <div class="small-car-info">
-                            <h3>{{ car.name }}</h3>
-                            <p>{{ car.small_description }}</p>
-                            <a href="{{ url_for('car_detail', car_id=car.id) }}">Dettagli</a>
-                        </div>
-                    </div>
-                {% endfor %}
+        <div id="search-results-container" style="display: none;">
+            <h3>Risultati della ricerca</h3>
+            <button id="clear-search" class="clear-btn">Mostra tutte le auto</button>
+            <div id="search-results" class="car-list">
+                <!-- I risultati della ricerca verranno inseriti qui -->
             </div>
-        {% endif %}
+        </div>
+        
+        <div id="all-cars-container">
+            {% if not cars %}
+                <p>Nessuna macchina disponibile.</p>
+            {% else %}
+                <div class="car-list" id="all-cars">
+                    {% for car in cars %}
+                        <div class="small-car-container">
+                            <div class="small-car-image">
+                                {% if car.image[0:4] == 'http' %}
+                                    <img src="{{ car.image }}" alt="{{ car.name }}">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/' ~ car.image) }}" alt="{{ car.name }}">
+                                {% endif %}
+                            </div>
+                            <div class="small-car-info">
+                                <h3>{{ car.name }}</h3>
+                                <p>{{ car.small_description }}</p>
+                                <a href="{{ url_for('car_detail', car_id=car.id) }}">Dettagli</a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
     </main>
     <br>
     <br>
@@ -71,6 +87,87 @@
     function toggleMenu() {
       document.getElementById('dropdownMenu').classList.toggle('open');
     }
+    
+    // Funzione di ricerca AJAX
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('search-input');
+        const searchButton = document.getElementById('search-button');
+        const clearSearchButton = document.getElementById('clear-search');
+        const searchResultsContainer = document.getElementById('search-results-container');
+        const searchResults = document.getElementById('search-results');
+        const allCarsContainer = document.getElementById('all-cars-container');
+        
+        // Funzione per eseguire la ricerca
+        function performSearch() {
+            const query = searchInput.value.trim();
+            
+            if (query.length < 1) {
+                return;
+            }
+            
+            // Mostra indicatore di caricamento
+            searchResults.innerHTML = '<div class="loading">Ricerca in corso...</div>';
+            searchResultsContainer.style.display = 'block';
+            allCarsContainer.style.display = 'none';
+            
+            // Richiesta AJAX
+            fetch(`/api/search?query=${encodeURIComponent(query)}&start_with=true`)
+                .then(response => response.json())
+                .then(data => {
+                    // Pulisci i risultati precedenti
+                    searchResults.innerHTML = '';
+                    
+                    if (data.cars.length === 0) {
+                        searchResults.innerHTML = '<p>Nessun risultato trovato.</p>';
+                        return;
+                    }
+                    
+                    // Mostra i risultati
+                    data.cars.forEach(car => {
+                        const carElement = document.createElement('div');
+                        carElement.className = 'small-car-container';
+                        
+                        const imgSrc = car.image.startsWith('http') 
+                            ? car.image 
+                            : `/static/images/${car.image}`;
+                            
+                        carElement.innerHTML = `
+                            <div class="small-car-image">
+                                <img src="${imgSrc}" alt="${car.name}">
+                            </div>
+                            <div class="small-car-info">
+                                <h3>${car.name}</h3>
+                                <p>${car.small_description}</p>
+                                <a href="/car/${car.id}">Dettagli</a>
+                            </div>
+                        `;
+                        
+                        searchResults.appendChild(carElement);
+                    });
+                })
+                .catch(error => {
+                    console.error('Errore durante la ricerca:', error);
+                    searchResults.innerHTML = '<p>Si è verificato un errore durante la ricerca.</p>';
+                });
+        }
+        
+        // Event listener per il pulsante di ricerca
+        searchButton.addEventListener('click', performSearch);
+        
+        // Event listener per la ricerca con invio
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+        
+        // Event listener per pulire la ricerca
+        clearSearchButton.addEventListener('click', function() {
+            searchInput.value = '';
+            searchResultsContainer.style.display = 'none';
+            allCarsContainer.style.display = 'block';
+        });
+    });
   </script>
 </body>
 </html>
