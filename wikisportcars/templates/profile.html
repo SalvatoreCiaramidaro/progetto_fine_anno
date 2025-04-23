@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Profilo Utente{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <h1>Profilo Utente</h1>
+    <div class="profile-content">
+        <div class="profile-section">
+            <h2>Informazioni Personali</h2>
+            <form id="profileForm" method="POST">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" value="{{ user.username }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" value="{{ user.email }}" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Aggiorna Profilo</button>
+            </form>
+            <div id="profileResult" class="alert" style="display: none;"></div>
+        </div>
+
+        <div class="profile-section">
+            <h2>Cambio Password</h2>
+            <form id="passwordForm" action="{{ url_for('change_password') }}" method="POST">
+                <div class="form-group">
+                    <label for="current_password">Password Attuale:</label>
+                    <input type="password" id="current_password" name="current_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="new_password">Nuova Password:</label>
+                    <input type="password" id="new_password" name="new_password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Conferma Nuova Password:</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required>
+                </div>
+                <button type="submit" class="btn btn-warning">Cambia Password</button>
+            </form>
+            <div id="passwordResult" class="alert" style="display: none;"></div>
+        </div>
+
+        <div class="profile-section">
+            <h2>I tuoi Preferiti</h2>
+            <a href="{{ url_for('favorites') }}" class="btn btn-info">Visualizza Auto Preferite</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}
