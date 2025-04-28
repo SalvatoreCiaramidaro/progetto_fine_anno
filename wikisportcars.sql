@@ -4,13 +4,15 @@ CREATE DATABASE wikisportcars;
 USE wikisportcars;
 
 DROP TABLE IF EXISTS `users`;
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(50) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    confirmed BOOLEAN DEFAULT FALSE
-);
+-- Struttura della tabella `users`
+CREATE TABLE IF NOT EXISTS `users` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `username` VARCHAR(100) UNIQUE NOT NULL,
+  `email` VARCHAR(100) UNIQUE NOT NULL,
+  `password` VARCHAR(255) NOT NULL,
+  `confirmed` BOOLEAN DEFAULT 0,
+  `profile_image` VARCHAR(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
 DROP TABLE IF EXISTS `cars`;

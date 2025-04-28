@@ -3,7 +3,10 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, curren
 import logging
 from urllib.parse import urlparse, urljoin
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from mysql.connector.errors import IntegrityError
+import os
+import uuid
 
 # Importazioni dai moduli personalizzati
 from db_config import db_cursor
@@ -14,6 +17,11 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 app.config['SECURITY_PASSWORD_SALT'] = 'your_security_password_salt'
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/profile_images')
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
+
+# Assicurati che la cartella per il caricamento delle immagini esista
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Inizializza LoginManager
 login_manager = LoginManager()
@@ -25,12 +33,17 @@ login_manager.login_message_category = "info"
 email_service.init_app(app)
 
 class User(UserMixin):
-    def __init__(self, id, username, email, password, confirmed=False):
+    def __init__(self, id, username, email, password, confirmed=False, profile_image=None):
         self.id = id
         self.username = username
         self.email = email
         self.password = password
         self.confirmed = confirmed
+        self.profile_image = profile_image
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -45,12 +58,39 @@ def load_user(user_id):
                 username=user['username'], 
                 email=user['email'], 
                 password=user['password'],
-                confirmed=user['confirmed']
+                confirmed=user['confirmed'],
+                profile_image=user.get('profile_image')
             )
     except Exception as e:
         logging.error(f"Errore durante il caricamento dell'utente: {str(e)}")
     return None
 
+# Funzione per ottenere l'immagine del profilo corrente dell'utente
+def get_profile_image(user_id):
+    try:
+        with db_cursor(dictionary=True) as (cursor, conn):
+            cursor.execute('SELECT profile_image FROM users WHERE id = %s', (user_id,))
+            result = cursor.fetchone()
+            if result and result['profile_image']:
+                return result['profile_image']
+    except Exception as e:
+        app.logger.error(f"Errore nel recupero dell'immagine del profilo: {str(e)}")
+    return None
+
+# Context processor per rendere disponibile l'immagine del profilo in tutti i template
+@app.context_processor
+def inject_profile_image():
+    if current_user.is_authenticated:
+        try:
+            with db_cursor(dictionary=True) as (cursor, conn):
+                cursor.execute('SELECT profile_image FROM users WHERE id = %s', (current_user.id,))
+                result = cursor.fetchone()
+                app.logger.info(f"Immagine profilo recuperata: {result}")
+                if result and result['profile_image']:
+                    return {'user_profile_image': result['profile_image']}
+        except Exception as e:
+            app.logger.error(f"Errore nel recupero dell'immagine del profilo: {str(e)}")
+    return {'user_profile_image': None}
 
 @app.route('/confirm/<token>')
 def confirm_email(token):
@@ -108,7 +148,8 @@ def login():
                     username=user['username'], 
                     email=user['email'], 
                     password=user['password'], 
-                    confirmed=user['confirmed']
+                    confirmed=user['confirmed'],
+                    profile_image=user.get('profile_image')
                 )
                 login_user(user_obj)
                 next_page = request.form.get('next')
@@ -295,8 +336,73 @@ def api_search():
 @app.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
+    # Log per debug
+    app.logger.info(f"Cartella upload: {app.config['UPLOAD_FOLDER']}")
+    app.logger.info(f"Cartella esiste: {os.path.exists(app.config['UPLOAD_FOLDER'])}")
+    
     if request.method == 'POST':
-        # Aggiorna il profilo dell'utente
+        # Controlla se è una richiesta di aggiornamento immagine
+        if 'profile_image' in request.files:
+            file = request.files['profile_image']
+            app.logger.info(f"File ricevuto: {file.filename}")
+            
+            # Verifica che il file esista e sia valido
+            if file and file.filename != '':
+                if allowed_file(file.filename):
+                    try:
+                        # Genera un nome di file sicuro e univoco
+                        filename = secure_filename(file.filename)
+                        file_ext = os.path.splitext(filename)[1]
+                        unique_filename = f"{current_user.id}_{uuid.uuid4().hex[:8]}{file_ext}"
+                        
+                        # Assicurati che la cartella esista
+                        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+                        
+                        # Percorso completo del file
+                        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        app.logger.info(f"Percorso file: {file_path}")
+                        
+                        # Salva il file
+                        file.save(file_path)
+                        app.logger.info(f"File salvato in: {file_path}")
+                        
+                        # Verifica che il file sia stato effettivamente salvato
+                        if os.path.exists(file_path):
+                            app.logger.info(f"File trovato nel percorso: {file_path}")
+                        else:
+                            app.logger.error(f"File NON trovato nel percorso: {file_path}")
+                        
+                        # Percorso relativo per il database
+                        relative_path = f"profile_images/{unique_filename}"
+                        
+                        # Aggiorna il database
+                        with db_cursor() as (cursor, conn):
+                            cursor.execute('UPDATE users SET profile_image = %s WHERE id = %s', 
+                                          (relative_path, current_user.id))
+                            conn.commit()
+                            app.logger.info(f"Database aggiornato per l'utente {current_user.id} con path: {relative_path}")
+                        
+                        # Verifica che il percorso sia stato salvato nel database
+                        with db_cursor(dictionary=True) as (cursor, conn):
+                            cursor.execute('SELECT profile_image FROM users WHERE id = %s', (current_user.id,))
+                            result = cursor.fetchone()
+                            app.logger.info(f"Immagine nel database: {result}")
+                        
+                        return jsonify(success=True, message='Immagine del profilo aggiornata!', image_path=relative_path)
+                    
+                    except Exception as e:
+                        app.logger.error(f"Errore nel salvataggio dell'immagine: {str(e)}")
+                        app.logger.error(f"Dettagli errore: {type(e).__name__}")
+                        import traceback
+                        app.logger.error(traceback.format_exc())
+                        return jsonify(success=False, message=f'Errore nel salvataggio dell\'immagine: {str(e)}')
+                else:
+                    app.logger.warning(f"Tipo di file non supportato: {file.filename}")
+                    return jsonify(success=False, message='Tipo di file non supportato. Utilizza .png, .jpg, .jpeg o .gif')
+            else:
+                app.logger.warning("Nessun file selezionato")
+                return jsonify(success=False, message='Nessun file selezionato')
+        
         try:
             username = request.form['username']
             email = request.form['email']
@@ -314,7 +420,7 @@ def profile():
                 
                 # Aggiorna i dati dell'utente
                 cursor.execute('UPDATE users SET username = %s, email = %s WHERE id = %s',
-                               (username, email, current_user.id))
+                              (username, email, current_user.id))
                 
             # Aggiorna l'oggetto current_user
             current_user.username = username

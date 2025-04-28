@@ -4,56 +4,199 @@
 
 {% block content %}
 <div class="profile-container">
-    <h1>Profilo Utente</h1>
-    <div class="profile-content">
-        <div class="profile-section">
-            <h2>Informazioni Personali</h2>
-            <form id="profileForm" method="POST">
-                <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" value="{{ user.username }}" required>
-                </div>
-                <div class="form-group">
-                    <label for="email">Email:</label>
-                    <input type="email" id="email" name="email" value="{{ user.email }}" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Aggiorna Profilo</button>
-            </form>
-            <div id="profileResult" class="alert" style="display: none;"></div>
+    <div class="profile-header">
+        <div class="profile-details">
+            <h1>{{ user.username }}</h1>
+            <p>{{ user.email }}</p>
         </div>
+    </div>
+    
+    <div class="profile-section">
+        <h2>Immagine Profilo</h2>
+        <div class="profile-image-preview">
+            {% if user.profile_image %}
+                <img src="{{ url_for('static', filename=user.profile_image) }}" alt="Immagine profilo" class="profile-small-image" id="currentProfileImage">
+            {% else %}
+                <div class="default-profile-small-image" id="defaultProfileImage">
+                    <i class="fas fa-user"></i>
+                </div>
+                <img src="" alt="Immagine profilo" class="profile-small-image" id="currentProfileImage" style="display: none;">
+            {% endif %}
+        </div>
+        <form id="profileImageForm" enctype="multipart/form-data">
+            <div class="image-upload-container">
+                <label for="profile_image" class="custom-file-upload">
+                    <i class="fas fa-upload"></i> Scegli un'immagine
+                </label>
+                <input type="file" id="profile_image" name="profile_image" style="display:none" accept="image/*">
+                <button type="submit" class="btn-primary" style="margin-top: 10px;">
+                    <i class="fas fa-save"></i> Salva immagine
+                </button>
+            </div>
+        </form>
+    </div>
 
-        <div class="profile-section">
-            <h2>Cambio Password</h2>
-            <form id="passwordForm" action="{{ url_for('change_password') }}" method="POST">
-                <div class="form-group">
-                    <label for="current_password">Password Attuale:</label>
-                    <input type="password" id="current_password" name="current_password" required>
-                </div>
-                <div class="form-group">
-                    <label for="new_password">Nuova Password:</label>
-                    <input type="password" id="new_password" name="new_password" required>
-                </div>
-                <div class="form-group">
-                    <label for="confirm_password">Conferma Nuova Password:</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required>
-                </div>
-                <button type="submit" class="btn btn-warning">Cambia Password</button>
-            </form>
-            <div id="passwordResult" class="alert" style="display: none;"></div>
-        </div>
+    <div class="profile-section">
+        <h2>Informazioni Personali</h2>
+        <form id="profileForm" method="POST">
+            <div class="form-group">
+                <label for="username">Username:</label>
+                <input type="text" id="username" name="username" value="{{ user.username }}" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" value="{{ user.email }}" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Aggiorna Profilo</button>
+        </form>
+        <div id="profileResult" class="alert" style="display: none;"></div>
+    </div>
 
-        <div class="profile-section">
-            <h2>I tuoi Preferiti</h2>
-            <a href="{{ url_for('favorites') }}" class="btn btn-info">Visualizza Auto Preferite</a>
-        </div>
+    <div class="profile-section">
+        <h2>Cambio Password</h2>
+        <form id="passwordForm" action="{{ url_for('change_password') }}" method="POST">
+            <div class="form-group">
+                <label for="current_password">Password Attuale:</label>
+                <input type="password" id="current_password" name="current_password" required>
+            </div>
+            <div class="form-group">
+                <label for="new_password">Nuova Password:</label>
+                <input type="password" id="new_password" name="new_password" required>
+            </div>
+            <div class="form-group">
+                <label for="confirm_password">Conferma Nuova Password:</label>
+                <input type="password" id="confirm_password" name="confirm_password" required>
+            </div>
+            <button type="submit" class="btn btn-warning">Cambia Password</button>
+        </form>
+        <div id="passwordResult" class="alert" style="display: none;"></div>
+    </div>
+
+    <div class="profile-section">
+        <h2>I tuoi Preferiti</h2>
+        <a href="{{ url_for('favorites') }}" class="btn btn-info">Visualizza Auto Preferite</a>
     </div>
 </div>
 {% endblock %}
 
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<style>
+.profile-image-preview {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.profile-small-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #fff;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+.default-profile-small-image {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid #fff;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+.default-profile-small-image i {
+    color: #666;
+    font-size: 40px;
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+<script>
+    // Gestione anteprima immagine
+    document.getElementById('profile_image').addEventListener('change', function() {
+        const file = this.files[0];
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                // Usa l'immagine del profilo esistente come anteprima
+                const currentImage = document.getElementById('currentProfileImage');
+                currentImage.src = e.target.result;
+                currentImage.style.display = 'block';
+                
+                // Nascondi l'immagine di default se presente
+                const defaultImage = document.getElementById('defaultProfileImage');
+                if (defaultImage) {
+                    defaultImage.style.display = 'none';
+                }
+            }
+            
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Upload immagine profilo
+    document.getElementById('profileImageForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        // Verifica che ci sia un'immagine da caricare
+        const fileInput = document.getElementById('profile_image');
+        if (fileInput.files.length === 0) {
+            alert('Seleziona un\'immagine da caricare');
+            return;
+        }
+        
+        // Mostra un messaggio di caricamento
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Caricamento...';
+        submitBtn.disabled = true;
+        
+        fetch('/profile', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+            
+            if (data.success) {
+                alert(data.message);
+                
+                // Aggiorna l'immagine del profilo corrente
+                if (data.image_path) {
+                    const currentImage = document.getElementById('currentProfileImage');
+                    currentImage.src = '/static/' + data.image_path;
+                    currentImage.style.display = 'block';
+                    
+                    // Nascondi l'immagine di default se presente
+                    const defaultImage = document.getElementById('defaultProfileImage');
+                    if (defaultImage) {
+                        defaultImage.style.display = 'none';
+                    }
+                }
+            } else {
+                alert(data.message || 'Errore durante il caricamento dell\'immagine');
+            }
+        })
+        .catch(error => {
+            console.error('Errore:', error);
+            alert('Si è verificato un errore durante l\'upload dell\'immagine');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+</script>
 {% endblock %}
