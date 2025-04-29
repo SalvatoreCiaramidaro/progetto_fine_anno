@@ -1,54 +1,13 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dettagli Auto - {{ car.name }}</title>
-  
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/car_detail.css') }}">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon/favicon.png') }}">
-</head>
-<body>
+{% extends 'base.html' %}
 
-<header>
-  <h1>Dettagli Auto</h1>
-  <nav>
-    <div class="nav-left">
-      <a href="{{ url_for('index') }}"><i class="fas fa-home"></i></a>
-    </div>
-    <div class="nav-right">
-      <button class="menu-toggle" onclick="toggleMenu()">
-        <i class="fas fa-user"></i>
-      </button>
-      <div class="dropdown-menu" id="dropdownMenu">
-        <ul>
-          <a href="{{ url_for('favorites') }}">Preferiti</a>
-          {% if current_user.is_authenticated %}
-              <a href="{{ url_for('logout') }}">Logout</a>
-          {% else %}
-              <a href="{{ url_for('login', next=request.path) }}">Login</a>
-              <a href="{{ url_for('register') }}">Registrati</a>
-          {% endif %}
-        </ul>
-      </div>
-    </div>
-  </nav>
-</header>
+{% block title %}{{ car.name }} - WikiSportCars{% endblock %}
 
-<div class="container">
-  <!-- Blocco per visualizzare i messaggi flash -->
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="flash-message {{ category }}">
-          {{ message }}
-        </div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+{% block styles %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/car_detail.css') }}">
+{% endblock %}
 
+{% block content %}
   <h2>{{ car.name }}</h2>
 
   <div class="image-container">
@@ -82,30 +41,25 @@
   {% else %}
       <p><a href="{{ url_for('login', next=request.path) }}">Accedi</a> per aggiungere ai preferiti.</p>
   {% endif %}
-</div>
+{% endblock %}
 
-<br><br>
+{% block scripts %}
+    {{ super() }}
+    <script>
+        let images = {{ ([car.image] + car.images)|tojson }};  
 
-<script>
-let images = {{ ([car.image] + car.images)|tojson }};  
-function toggleMenu() {
-  document.getElementById('dropdownMenu').classList.toggle('open');
-}
-
-// Auto-chiusura dei messaggi flash dopo alcuni secondi
-document.addEventListener('DOMContentLoaded', function() {
-  const flashMessages = document.querySelectorAll('.flash-message');
-  flashMessages.forEach(function(message) {
-    setTimeout(function() {
-      message.style.opacity = '0';
-      setTimeout(function() {
-        message.style.display = 'none';
-      }, 600); // tempo di transizione
-    }, 3000); // 3 secondi prima della chiusura
-  });
-});
-</script>
-<script src="{{ url_for('static', filename='js/car_detail.js') }}"></script>
-
-</body>
-</html>
+        // Auto-chiusura dei messaggi flash dopo alcuni secondi
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(message) {
+                setTimeout(function() {
+                    message.style.opacity = '0';
+                    setTimeout(function() {
+                        message.style.display = 'none';
+                    }, 600); // tempo di transizione
+                }, 3000); // 3 secondi prima della chiusura
+            });
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/car_detail.js') }}"></script>
+{% endblock %}

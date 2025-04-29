@@ -2,11 +2,15 @@
 
 {% block title %}Profilo Utente{% endblock %}
 
+{% block search_bar %}
+<!-- Barra di ricerca rimossa dalla pagina profilo -->
+{% endblock %}
+
 {% block content %}
 <div class="profile-container">
     <div class="profile-header">
         <div class="profile-details">
-            <h1>{{ user.username }}</h1>
+            <h1> Ciao {{ user.username }}</h1>
             <p>{{ user.email }}</p>
         </div>
     </div>

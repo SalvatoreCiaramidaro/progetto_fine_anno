@@ -1,47 +1,30 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <title>Preferiti - WikiSportCars</title>
-</head>
-<body>
-    <header>
-        <h1>I tuoi Preferiti</h1>
-        <nav>
-            <a href="{{ url_for('index') }}" class="left">Home</a>
-            <a href="{{ url_for('logout') }}" class="right" action="/index">Logout</a>
-        </nav>
-    </header>
-    <main>
-        <br>
-        <br>
-        {% if cars %}
-            <div class="car-list">
-                {% for car in cars %}
-                    <div class="small-car-container">
-                        <div class="small-car-image">
-                            {% if car.image[0:4] == 'http' %}
-                                <img src="{{ car.image }}" alt="{{ car.name }}">
-                            {% else %}
-                                <img src="{{ url_for('static', filename='images/' ~ car.image) }}" alt="{{ car.name }}">
-                            {% endif %}
-                        </div>
-                        <div class="small-car-info">
-                            <h3>{{ car.name }}</h3>
-                            <p>{{ car.small_description }}</p>
-                            <a href="{{ url_for('car_detail', car_id=car.id) }}">Dettagli</a>
-                        </div>
+{% extends 'base.html' %}
+
+{% block title %}I Tuoi Preferiti - WikiSportCars{% endblock %}
+
+{% block content %}
+    <h1>I tuoi Preferiti</h1>
+    <br>
+    {% if cars %}
+        <div class="car-list">
+            {% for car in cars %}
+                <div class="small-car-container">
+                    <div class="small-car-image">
+                        {% if car.image[0:4] == 'http' %}
+                            <img src="{{ car.image }}" alt="{{ car.name }}">
+                        {% else %}
+                            <img src="{{ url_for('static', filename='images/' ~ car.image) }}" alt="{{ car.name }}">
+                        {% endif %}
                     </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>Non hai ancora salvato nessun preferito.</p>
-        {% endif %}
-    </main>
-    <footer>
-        <p>&copy; 2023 WikiSportCars</p>
-    </footer>
-</body>
-</html>
+                    <div class="small-car-info">
+                        <h3>{{ car.name }}</h3>
+                        <p>{{ car.small_description }}</p>
+                        <a href="{{ url_for('car_detail', car_id=car.id) }}">Dettagli</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Non hai ancora salvato nessun preferito.</p>
+    {% endif %}
+{% endblock %}

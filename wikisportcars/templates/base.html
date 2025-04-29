@@ -12,66 +12,65 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- CSS principale del sito -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     
     {% block styles %}{% endblock %}
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">
-                <i class="fas fa-car"></i> WikiSportCars
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <form class="d-flex" action="{{ url_for('search') }}" method="get">
-                            <input class="form-control me-2" type="search" name="query" placeholder="Cerca auto" aria-label="Search">
-                            <button class="btn btn-outline-light" type="submit">Cerca</button>
-                        </form>
-                    </li>
-                </ul>
-                
-                <ul class="navbar-nav">
-                    {% if current_user.is_authenticated %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('favorites') }}">
-                            <i class="fas fa-heart"></i> Preferiti
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('profile') }}">
-                            <i class="fas fa-user"></i> {{ current_user.username }}
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('logout') }}">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </a>
-                    </li>
-                    {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('login') }}">
-                            <i class="fas fa-sign-in-alt"></i> Login
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('register') }}">
-                            <i class="fas fa-user-plus"></i> Registrati
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
+    <header>
+        <h1>Benvenuti su WikiSportCars</h1>
+        <nav>
+            <div class="nav-left">
+                <a href="{{ url_for('index') }}"><i class="fas fa-home"></i></a>
             </div>
-        </div>
-    </nav>
+            
+            {% block search_bar %}
+            <div class="nav-center">
+                <div class="search-container">
+                    <input type="text" id="search-input" placeholder="Cerca auto...">
+                    <button id="search-button"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+            {% endblock %}
+            
+            <div class="nav-right">
+                {% if current_user.is_authenticated %}
+                    <span class="greeting">Ciao, {{ current_user.username }}!</span>
+                    <div class="profile-image-container" id="profileImageContainer">
+                        <!-- Debug info: user_profile_image = {{ user_profile_image|default('None') }} -->
+                        {% if user_profile_image %}
+                            <img src="{{ url_for('static', filename=user_profile_image) }}" alt="Profilo" class="profile-image">
+                        {% else %}
+                            <div class="default-profile-image">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        {% endif %}
+                        <div class="profile-dropdown" id="profileDropdown">
+                            {% if request.endpoint != 'profile' %}
+                                <a href="{{ url_for('profile') }}">Profilo</a>
+                            {% endif %}
+                            {% if request.endpoint != 'favorites' %}
+                                <a href="{{ url_for('favorites') }}">Preferiti</a>
+                            {% endif %}
+                            {% if request.endpoint != 'index' %}
+                                <a href="{{ url_for('index') }}">Home</a>
+                            {% endif %}
+                            <a href="{{ url_for('logout') }}">Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="dropdown">
+                        <button class="dropbtn">Menu</button>
+                        <div class="dropdown-content">
+                            <a href="{{ url_for('favorites') }}">Preferiti</a>
+                            <a href="{{ url_for('login', next=request.path) }}">Login</a>
+                            <a href="{{ url_for('register') }}">Registrati</a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
 
     <!-- Flash Messages -->
     <div class="container mt-3">
@@ -93,34 +92,7 @@
 
     <!-- Footer -->
     <footer class="bg-dark text-white mt-5 py-4">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <h5>WikiSportCars</h5>
-                    <p>La tua enciclopedia online di auto sportive.</p>
-                </div>
-                <div class="col-md-3">
-                    <h5>Links</h5>
-                    <ul class="list-unstyled">
-                        <li><a href="{{ url_for('index') }}" class="text-white">Home</a></li>
-                        <li><a href="{{ url_for('search') }}?query=" class="text-white">Ricerca Auto</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-3">
-                    <h5>Social</h5>
-                    <div class="social-icons">
-                        <a href="#" class="text-white me-2"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>
-                        <a href="#" class="text-white me-2"><i class="fab fa-instagram"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="row mt-3">
-                <div class="col-12 text-center">
-                    <p class="mb-0">&copy; 2023 WikiSportCars. Tutti i diritti riservati.</p>
-                </div>
-            </div>
-        </div>
+        <p>&copy; 2025 WikiSportCars. Tutti i diritti riservati.</p>
     </footer>
 
     <!-- Bootstrap Bundle con Popper -->
@@ -128,7 +100,30 @@
     
     <!-- Script principale del sito -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    
+
+    <!-- Script per il menu a tendina dell'immagine profilo -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileImageContainer = document.getElementById('profileImageContainer');
+            const profileDropdown = document.getElementById('profileDropdown');
+            
+            if (profileImageContainer) {
+                // Mostra il dropdown quando si clicca sull'immagine del profilo
+                profileImageContainer.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    profileDropdown.classList.toggle('show');
+                });
+                
+                // Chiudi il dropdown quando si clicca da un'altra parte
+                document.addEventListener('click', function(e) {
+                    if (!profileImageContainer.contains(e.target)) {
+                        profileDropdown.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>
