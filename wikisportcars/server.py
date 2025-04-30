@@ -388,6 +388,7 @@ def profile():
                             result = cursor.fetchone()
                             app.logger.info(f"Immagine nel database: {result}")
                         
+                        flash('Immagine del profilo aggiornata con successo!', 'success')
                         return jsonify(success=True, message='Immagine del profilo aggiornata!', image_path=relative_path)
                     
                     except Exception as e:
@@ -395,12 +396,15 @@ def profile():
                         app.logger.error(f"Dettagli errore: {type(e).__name__}")
                         import traceback
                         app.logger.error(traceback.format_exc())
+                        flash(f'Errore nel salvataggio dell\'immagine: {str(e)}', 'danger')
                         return jsonify(success=False, message=f'Errore nel salvataggio dell\'immagine: {str(e)}')
                 else:
                     app.logger.warning(f"Tipo di file non supportato: {file.filename}")
+                    flash('Tipo di file non supportato. Utilizza .png, .jpg, .jpeg o .gif', 'warning')
                     return jsonify(success=False, message='Tipo di file non supportato. Utilizza .png, .jpg, .jpeg o .gif')
             else:
                 app.logger.warning("Nessun file selezionato")
+                flash('Nessun file selezionato', 'warning')
                 return jsonify(success=False, message='Nessun file selezionato')
         
         try:
@@ -411,11 +415,13 @@ def profile():
                 # Verifica se il username è disponibile
                 cursor.execute('SELECT id FROM users WHERE username = %s AND id != %s', (username, current_user.id))
                 if cursor.fetchone():
+                    flash('Username già in uso', 'danger')
                     return jsonify(success=False, message='Username già in uso')
                 
                 # Verifica se l'email è disponibile
                 cursor.execute('SELECT id FROM users WHERE email = %s AND id != %s', (email, current_user.id))
                 if cursor.fetchone():
+                    flash('Email già in uso', 'danger')
                     return jsonify(success=False, message='Email già in uso')
                 
                 # Aggiorna i dati dell'utente
@@ -426,8 +432,10 @@ def profile():
             current_user.username = username
             current_user.email = email
             
+            flash('Profilo aggiornato con successo!', 'success')
             return jsonify(success=True, message='Profilo aggiornato con successo!')
         except Exception as e:
+            flash(f'Errore: {str(e)}', 'danger')
             return jsonify(success=False, message=f'Errore: {str(e)}')
     
     return render_template('profile.html', user=current_user)
@@ -443,6 +451,7 @@ def change_password():
         
         # Verifica che la nuova password e la conferma corrispondano
         if new_password != confirm_password:
+            flash('La nuova password e la conferma non corrispondono', 'danger')
             return jsonify(success=False, message='La nuova password e la conferma non corrispondono')
         
         with db_cursor(dictionary=True) as (cursor, conn):
@@ -451,14 +460,17 @@ def change_password():
             user_data = cursor.fetchone()
             
             if not check_password_hash(user_data['password'], current_password):
+                flash('Password attuale non corretta', 'danger')
                 return jsonify(success=False, message='Password attuale non corretta')
             
             # Aggiorna la password
             new_password_hash = generate_password_hash(new_password)
             cursor.execute('UPDATE users SET password = %s WHERE id = %s', (new_password_hash, current_user.id))
             
+        flash('Password modificata con successo!', 'success')
         return jsonify(success=True, message='Password modificata con successo!')
     except Exception as e:
+        flash(f'Errore: {str(e)}', 'danger')
         return jsonify(success=False, message=f'Errore: {str(e)}')
 
 @app.route('/logout')

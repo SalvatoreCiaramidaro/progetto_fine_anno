@@ -81,6 +81,7 @@
         <a href="{{ url_for('favorites') }}" class="btn btn-info">Visualizza Auto Preferite</a>
     </div>
 </div>
+<div id="alerts"></div>
 {% endblock %}
 
 {% block styles %}
@@ -177,7 +178,8 @@
             submitBtn.disabled = false;
             
             if (data.success) {
-                alert(data.message);
+                // Mostra messaggio di successo
+                showAlert('success', data.message);
                 
                 // Aggiorna l'immagine del profilo corrente
                 if (data.image_path) {
@@ -192,15 +194,125 @@
                     }
                 }
             } else {
-                alert(data.message || 'Errore durante il caricamento dell\'immagine');
+                showAlert('danger', data.message || 'Errore durante il caricamento dell\'immagine');
             }
         })
         .catch(error => {
             console.error('Errore:', error);
-            alert('Si è verificato un errore durante l\'upload dell\'immagine');
+            showAlert('danger', 'Si è verificato un errore durante l\'upload dell\'immagine');
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
         });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Gestione del form profilo
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch('/profile', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mostra il messaggio di successo direttamente nella pagina
+                    showAlert('success', 'Profilo aggiornato con successo!');
+                } else {
+                    showAlert('danger', data.message || 'Si è verificato un errore');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', 'Si è verificato un errore durante l\'aggiornamento del profilo');
+            });
+        });
+
+        // Gestione del form cambio password
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch('/change_password', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Mostra il messaggio di successo direttamente nella pagina
+                    showAlert('success', 'Password modificata con successo!');
+                    // Reset del form
+                    this.reset();
+                } else {
+                    showAlert('danger', data.message || 'Si è verificato un errore');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', 'Si è verificato un errore durante il cambio della password');
+            });
+        });
+
+        // Gestione del form upload immagine profilo
+        document.getElementById('imageForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            fetch('/profile', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Aggiorna l'immagine del profilo nella pagina
+                    const profileImage = document.getElementById('profileImage');
+                    profileImage.src = '/static/' + data.image_path + '?t=' + new Date().getTime();
+                    
+                    // Mostra messaggio di successo
+                    showAlert('success', 'Immagine del profilo aggiornata con successo!');
+                } else {
+                    showAlert('danger', data.message || 'Si è verificato un errore');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlert('danger', 'Si è verificato un errore durante l\'aggiornamento dell\'immagine');
+            });
+        });
+
+        // Funzione per mostrare un messaggio di alert
+        function showAlert(type, message) {
+            const alertsContainer = document.getElementById('alerts');
+            
+            // Crea l'elemento alert
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.role = 'alert';
+            
+            // Aggiungi il messaggio
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            `;
+            
+            // Aggiungi l'alert al container
+            alertsContainer.appendChild(alertDiv);
+            
+            // Scroll fino all'alert
+            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Rimuovi automaticamente l'alert dopo 5 secondi
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.classList.remove('show');
+                    setTimeout(() => alertDiv.remove(), 150);
+                }
+            }, 5000);
+        }
     });
 </script>
 {% endblock %}
