@@ -2,7 +2,7 @@ import sys
 import os
 
 # Aggiungi la directory del progetto al sys.path
-project_dir = '/home/Ciaramid06/wikisportcars'
+project_dir = '/home/Ciaramid06/progetto_fine_anno'
 if project_dir not in sys.path:
     sys.path.insert(0, project_dir)
 
