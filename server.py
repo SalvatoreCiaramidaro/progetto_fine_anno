@@ -7,17 +7,31 @@ from werkzeug.utils import secure_filename
 from mysql.connector.errors import IntegrityError
 import os
 import uuid
+import sys
 
 # Importazioni dai moduli personalizzati
 from db_config import db_cursor
-from email_service import email_service, mail
+from email_service import email_service
+
+# Rileva l'ambiente di esecuzione
+is_pythonanywhere = 'PYTHONANYWHERE_SITE' in os.environ
 
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 app.config['SECURITY_PASSWORD_SALT'] = 'your_security_password_salt'
-app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/profile_images')
+
+# Configurazione diversa in base all'ambiente
+if is_pythonanywhere:
+    # Configurazione per PythonAnywhere
+    app.config['UPLOAD_FOLDER'] = '/home/Ciaramid06/wikisportcars/static/profile_images'
+    app.debug = False
+else:
+    # Configurazione per ambiente locale
+    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/profile_images')
+    app.debug = True
+
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 
 # Assicurati che la cartella per il caricamento delle immagini esista
@@ -54,9 +68,9 @@ def load_user(user_id):
 
         if user:
             return User(
-                id=user['id'], 
-                username=user['username'], 
-                email=user['email'], 
+                id=user['id'],
+                username=user['username'],
+                email=user['email'],
                 password=user['password'],
                 confirmed=user['confirmed'],
                 profile_image=user.get('profile_image')
@@ -99,20 +113,20 @@ def confirm_email(token):
         if email is None:
             flash('Il link di conferma è scaduto.', 'danger')
             return redirect(url_for('login'))
-        
+
         with db_cursor(dictionary=True) as (cursor, conn):
             cursor.execute("SELECT * FROM users WHERE email = %s", (email,))
             user = cursor.fetchone()
             if not user:
                 flash('Utente non trovato.', 'danger')
                 return redirect(url_for('login'))
-            
+
             if user.get('confirmed'):
                 flash('Il tuo account è già stato confermato.', 'info')
             else:
                 cursor.execute("UPDATE users SET confirmed = 1 WHERE email = %s", (email,))
                 flash('Il tuo account è stato confermato con successo!', 'success')
-        
+
         return redirect(url_for('login'))
     except Exception as e:
         logging.error(f"Errore nella conferma dell'email: {str(e)}")
@@ -133,21 +147,21 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        
+
         try:
             with db_cursor(dictionary=True) as (cursor, conn):
                 cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
                 user = cursor.fetchone()
-            
+
             if user and check_password_hash(user['password'], password):
                 if not user['confirmed']:
                     return jsonify(success=False, message='Per favore conferma il tuo account via email prima di accedere')
-                
+
                 user_obj = User(
-                    id=user['id'], 
-                    username=user['username'], 
-                    email=user['email'], 
-                    password=user['password'], 
+                    id=user['id'],
+                    username=user['username'],
+                    email=user['email'],
+                    password=user['password'],
                     confirmed=user['confirmed'],
                     profile_image=user.get('profile_image')
                 )
@@ -237,7 +251,7 @@ def add_to_favorites(car_id):
                 flash('Auto aggiunta ai preferiti!', 'success')
     except Exception as e:
         flash(f'Errore: {str(e)}', 'danger')
-    
+
     return redirect(request.referrer or url_for('index'))
 
 
@@ -251,7 +265,7 @@ def remove_from_favorites(car_id):
             flash('Auto rimossa dai preferiti.', 'info')
     except Exception as e:
         flash(f'Errore: {str(e)}', 'danger')
-    
+
     return redirect(request.referrer or url_for('index'))
 
 
@@ -259,7 +273,7 @@ def remove_from_favorites(car_id):
 @login_required
 def is_favorite(car_id):
     user_id = current_user.id
-    
+
     try:
         with db_cursor() as (cursor, conn):
             cursor.execute('SELECT * FROM favorites WHERE user_id = %s AND car_id = %s', (user_id, car_id))
@@ -271,13 +285,13 @@ def is_favorite(car_id):
 @app.route('/search', methods=['GET', 'POST'])
 def search():
     query = request.args.get('query', '')
-    
+
     if not query:
         return render_template('search.html', cars=[])
-    
+
     # Usa il carattere % per la ricerca parziale
     search_term = f'%{query}%'
-    
+
     try:
         with db_cursor(dictionary=True) as (cursor, conn):
             # Cerca corrispondenze in vari campi
@@ -286,7 +300,7 @@ def search():
                 (search_term, search_term, search_term)
             )
             cars = cursor.fetchall()
-        
+
         return render_template('search.html', cars=cars, query=query)
     except Exception as e:
         flash(f'Errore nella ricerca: {str(e)}', 'danger')
@@ -297,14 +311,14 @@ def search():
 def api_search():
     query = request.args.get('query', '')
     start_with = request.args.get('start_with', 'false').lower() == 'true'
-    
+
     if not query:
         return jsonify({"cars": []})
-    
+
     # Se start_with è true, cerca solo all'inizio dei campi (senza % all'inizio)
     # altrimenti usa la corrispondenza parziale ovunque nel campo
     search_term = f'{query}%' if start_with else f'%{query}%'
-    
+
     try:
         with db_cursor(dictionary=True) as (cursor, conn):
             # Cerca corrispondenze solo in brand, model e name
@@ -313,7 +327,7 @@ def api_search():
                 (search_term, search_term, search_term)
             )
             cars = cursor.fetchall()
-        
+
         # Assicurati che i risultati siano serializzabili in JSON
         safe_cars = []
         for car in cars:
@@ -326,7 +340,7 @@ def api_search():
                     # Converti altri tipi in stringhe
                     safe_car[key] = str(value)
             safe_cars.append(safe_car)
-        
+
         return jsonify({"cars": safe_cars})
     except Exception as e:
         logging.error(f"Errore API ricerca: {str(e)}")
@@ -339,13 +353,13 @@ def profile():
     # Log per debug
     app.logger.info(f"Cartella upload: {app.config['UPLOAD_FOLDER']}")
     app.logger.info(f"Cartella esiste: {os.path.exists(app.config['UPLOAD_FOLDER'])}")
-    
+
     if request.method == 'POST':
         # Controlla se è una richiesta di aggiornamento immagine
         if 'profile_image' in request.files:
             file = request.files['profile_image']
             app.logger.info(f"File ricevuto: {file.filename}")
-            
+
             # Verifica che il file esista e sia valido
             if file and file.filename != '':
                 if allowed_file(file.filename):
@@ -354,90 +368,82 @@ def profile():
                         filename = secure_filename(file.filename)
                         file_ext = os.path.splitext(filename)[1]
                         unique_filename = f"{current_user.id}_{uuid.uuid4().hex[:8]}{file_ext}"
-                        
+
                         # Assicurati che la cartella esista
                         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-                        
+
                         # Percorso completo del file
                         file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
                         app.logger.info(f"Percorso file: {file_path}")
-                        
+
                         # Salva il file
                         file.save(file_path)
                         app.logger.info(f"File salvato in: {file_path}")
-                        
+
                         # Verifica che il file sia stato effettivamente salvato
                         if os.path.exists(file_path):
                             app.logger.info(f"File trovato nel percorso: {file_path}")
                         else:
                             app.logger.error(f"File NON trovato nel percorso: {file_path}")
-                        
+
                         # Percorso relativo per il database
                         relative_path = f"profile_images/{unique_filename}"
-                        
+
                         # Aggiorna il database
                         with db_cursor() as (cursor, conn):
-                            cursor.execute('UPDATE users SET profile_image = %s WHERE id = %s', 
+                            cursor.execute('UPDATE users SET profile_image = %s WHERE id = %s',
                                           (relative_path, current_user.id))
                             conn.commit()
                             app.logger.info(f"Database aggiornato per l'utente {current_user.id} con path: {relative_path}")
-                        
+
                         # Verifica che il percorso sia stato salvato nel database
                         with db_cursor(dictionary=True) as (cursor, conn):
                             cursor.execute('SELECT profile_image FROM users WHERE id = %s', (current_user.id,))
                             result = cursor.fetchone()
                             app.logger.info(f"Immagine nel database: {result}")
-                        
-                        flash('Immagine del profilo aggiornata con successo!', 'success')
+
                         return jsonify(success=True, message='Immagine del profilo aggiornata!', image_path=relative_path)
-                    
+
                     except Exception as e:
                         app.logger.error(f"Errore nel salvataggio dell'immagine: {str(e)}")
                         app.logger.error(f"Dettagli errore: {type(e).__name__}")
                         import traceback
                         app.logger.error(traceback.format_exc())
-                        flash(f'Errore nel salvataggio dell\'immagine: {str(e)}', 'danger')
                         return jsonify(success=False, message=f'Errore nel salvataggio dell\'immagine: {str(e)}')
                 else:
                     app.logger.warning(f"Tipo di file non supportato: {file.filename}")
-                    flash('Tipo di file non supportato. Utilizza .png, .jpg, .jpeg o .gif', 'warning')
                     return jsonify(success=False, message='Tipo di file non supportato. Utilizza .png, .jpg, .jpeg o .gif')
             else:
                 app.logger.warning("Nessun file selezionato")
-                flash('Nessun file selezionato', 'warning')
                 return jsonify(success=False, message='Nessun file selezionato')
-        
+
         try:
             username = request.form['username']
             email = request.form['email']
-            
+
             with db_cursor() as (cursor, conn):
                 # Verifica se il username è disponibile
                 cursor.execute('SELECT id FROM users WHERE username = %s AND id != %s', (username, current_user.id))
                 if cursor.fetchone():
-                    flash('Username già in uso', 'danger')
                     return jsonify(success=False, message='Username già in uso')
-                
+
                 # Verifica se l'email è disponibile
                 cursor.execute('SELECT id FROM users WHERE email = %s AND id != %s', (email, current_user.id))
                 if cursor.fetchone():
-                    flash('Email già in uso', 'danger')
                     return jsonify(success=False, message='Email già in uso')
-                
+
                 # Aggiorna i dati dell'utente
                 cursor.execute('UPDATE users SET username = %s, email = %s WHERE id = %s',
                               (username, email, current_user.id))
-                
+
             # Aggiorna l'oggetto current_user
             current_user.username = username
             current_user.email = email
-            
-            flash('Profilo aggiornato con successo!', 'success')
+
             return jsonify(success=True, message='Profilo aggiornato con successo!')
         except Exception as e:
-            flash(f'Errore: {str(e)}', 'danger')
             return jsonify(success=False, message=f'Errore: {str(e)}')
-    
+
     return render_template('profile.html', user=current_user)
 
 
@@ -448,29 +454,25 @@ def change_password():
         current_password = request.form['current_password']
         new_password = request.form['new_password']
         confirm_password = request.form['confirm_password']
-        
+
         # Verifica che la nuova password e la conferma corrispondano
         if new_password != confirm_password:
-            flash('La nuova password e la conferma non corrispondono', 'danger')
             return jsonify(success=False, message='La nuova password e la conferma non corrispondono')
-        
+
         with db_cursor(dictionary=True) as (cursor, conn):
             # Ottieni la password attuale dell'utente
             cursor.execute('SELECT password FROM users WHERE id = %s', (current_user.id,))
             user_data = cursor.fetchone()
-            
+
             if not check_password_hash(user_data['password'], current_password):
-                flash('Password attuale non corretta', 'danger')
                 return jsonify(success=False, message='Password attuale non corretta')
-            
+
             # Aggiorna la password
             new_password_hash = generate_password_hash(new_password)
             cursor.execute('UPDATE users SET password = %s WHERE id = %s', (new_password_hash, current_user.id))
-            
-        flash('Password modificata con successo!', 'success')
+
         return jsonify(success=True, message='Password modificata con successo!')
     except Exception as e:
-        flash(f'Errore: {str(e)}', 'danger')
         return jsonify(success=False, message=f'Errore: {str(e)}')
 
 @app.route('/logout')
@@ -480,5 +482,4 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    # app.run(debug=True, host='0.0.0.0')
-    app.run(debug=True, host='localhost')
+    app.run()

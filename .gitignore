@@ -3,4 +3,3 @@ __pycache__/
 profile_images/
 db_config.cpython-310.pyc
 myvenv
-db_config.*
