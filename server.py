@@ -102,33 +102,13 @@ def inject_profile_image():
                 app.logger.info(f"Immagine profilo recuperata: {result}")
                 
                 if result and result['profile_image']:
-                    # Estrai il percorso dell'immagine dal database
-                    db_path = result['profile_image']
-                    app.logger.info(f"Percorso originale dal DB: {db_path}")
-                    
-                    # Rimuovi completamente ogni riferimento a 'static' o '/static/'
-                    clean_path = db_path
-                    if clean_path.startswith('static/'):
-                        clean_path = clean_path[7:]
-                    if clean_path.startswith('/static/'):
-                        clean_path = clean_path[8:]
-                    
-                    # Su PythonAnywhere potrebbe essere necessario un percorso diverso
-                    if is_pythonanywhere:
-                        app.logger.info("Ambiente PythonAnywhere rilevato: modifica percorso")
-                        # Costruisci un URL completo invece di un percorso relativo
-                        # Questo potrebbe essere necessario se i file statici sono serviti da un URL diverso
-                        site_url = "https://ciaramid06.pythonanywhere.com"
-                        final_path = f"{site_url}/static/{clean_path}"
-                        app.logger.info(f"Percorso PythonAnywhere: {final_path}")
-                        return {'user_profile_image': final_path, 'is_external_url': True}
-                    else:
-                        # In ambiente locale, usa il percorso normale
-                        app.logger.info(f"Percorso locale: {clean_path}")
-                        return {'user_profile_image': clean_path, 'is_external_url': False}
+                    # Percorso semplice senza manipolazioni complesse
+                    image_path = result['profile_image']
+                    app.logger.info(f"Percorso immagine: {image_path}")
+                    return {'user_profile_image': image_path}
         except Exception as e:
             app.logger.error(f"Errore nel recupero dell'immagine del profilo: {str(e)}")
-    return {'user_profile_image': None, 'is_external_url': False}
+    return {'user_profile_image': None}
 
 @app.route('/confirm/<token>')
 def confirm_email(token):
