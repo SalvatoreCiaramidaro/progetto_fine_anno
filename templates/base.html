@@ -65,13 +65,13 @@
         </nav>
     </header>
 
-    <!-- Flash Messages -->
-    <div class="container mt-3">
+    <!-- Flash Messages con migliore visualizzazione -->
+    <div class="flash-messages">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">
-                        {{ message }}
+                    <div class="flash-message {{ category }}" role="alert">
+                        <strong>{{ category|capitalize }}:</strong> {{ message }}
                     </div>
                 {% endfor %}
             {% endif %}
