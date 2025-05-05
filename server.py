@@ -101,7 +101,13 @@ def inject_profile_image():
                 result = cursor.fetchone()
                 app.logger.info(f"Immagine profilo recuperata: {result}")
                 if result and result['profile_image']:
-                    return {'user_profile_image': result['profile_image']}
+                    # Assicurati che il percorso sia corretto per l'ambiente
+                    image_path = result['profile_image']
+                    if is_pythonanywhere and not image_path.startswith('/'):
+                        # Percorso relativo su PythonAnywhere
+                        image_path = f"/static/{image_path}"
+                    app.logger.info(f"Percorso immagine finale: {image_path}")
+                    return {'user_profile_image': image_path}
         except Exception as e:
             app.logger.error(f"Errore nel recupero dell'immagine del profilo: {str(e)}")
     return {'user_profile_image': None}
