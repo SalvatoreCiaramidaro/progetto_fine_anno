@@ -25,7 +25,7 @@ app.config['SECURITY_PASSWORD_SALT'] = 'your_security_password_salt'
 # Configurazione diversa in base all'ambiente
 if is_pythonanywhere:
     # Configurazione per PythonAnywhere
-    app.config['UPLOAD_FOLDER'] = '/home/Ciaramid06/wikisportcars/static/profile_images'
+    app.config['UPLOAD_FOLDER'] = '/home/Ciaramid06/progetto_fine_anno/static/profile_images'
     app.debug = False
 else:
     # Configurazione per ambiente locale
