@@ -32,7 +32,7 @@ else:
     app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/profile_images')
     app.debug = True
 
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif','svg'}
 
 # Assicurati che la cartella per il caricamento delle immagini esista
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)

@@ -528,8 +528,7 @@ button:hover {
     object-fit: cover;
     border: 2px solid #fff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    background-color: #f0f0f0; /* Aggiunto sfondo chiaro */
-    display: block; /* Assicura che l'immagine sia visualizzata come blocco */
+    background-color: #f0f0f0; /* Colore di sfondo per quando l'immagine non si carica */
 }
 
 .default-profile-image {

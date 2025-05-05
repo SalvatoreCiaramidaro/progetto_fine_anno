@@ -43,9 +43,7 @@
                         {% if user_profile_image %}
                             <img src="{{ url_for('static', filename=user_profile_image) }}" alt="Profilo" class="profile-image">
                         {% else %}
-                            <div class="default-profile-image">
-                                <i class="fas fa-user"></i>
-                            </div>
+                            <img src="{{ url_for('static', filename='images/default-profile.png') }}" alt="Profilo" class="profile-image">
                         {% endif %}
                         <div class="profile-dropdown" id="profileDropdown">
                             <a href="{{ url_for('profile') }}">Profilo</a>
