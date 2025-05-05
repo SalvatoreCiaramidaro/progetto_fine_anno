@@ -529,6 +529,8 @@ button:hover {
     border: 2px solid #fff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     background-color: #f0f0f0; /* Colore di sfondo per quando l'immagine non si carica */
+    /* Previene la distorsione per le immagini SVG */
+    aspect-ratio: 1/1;
 }
 
 .default-profile-image {
