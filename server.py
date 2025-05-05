@@ -100,14 +100,22 @@ def inject_profile_image():
                 cursor.execute('SELECT profile_image FROM users WHERE id = %s', (current_user.id,))
                 result = cursor.fetchone()
                 app.logger.info(f"Immagine profilo recuperata: {result}")
+                
                 if result and result['profile_image']:
-                    # Assicurati che il percorso sia corretto per l'ambiente
-                    image_path = result['profile_image']
-                    if is_pythonanywhere and not image_path.startswith('/'):
-                        # Percorso relativo su PythonAnywhere
-                        image_path = f"/static/{image_path}"
-                    app.logger.info(f"Percorso immagine finale: {image_path}")
-                    return {'user_profile_image': image_path}
+                    # Estrai il percorso dell'immagine dal database
+                    db_path = result['profile_image']
+                    app.logger.info(f"Percorso originale dal DB: {db_path}")
+                    
+                    # Rimuovi completamente ogni riferimento a 'static' o '/static/'
+                    clean_path = db_path
+                    if clean_path.startswith('static/'):
+                        clean_path = clean_path[7:]
+                    if clean_path.startswith('/static/'):
+                        clean_path = clean_path[8:]
+                    
+                    # Assicurati che il percorso sia coerente in tutte le pagine
+                    app.logger.info(f"Percorso immagine finale corretto: {clean_path}")
+                    return {'user_profile_image': clean_path}
         except Exception as e:
             app.logger.error(f"Errore nel recupero dell'immagine del profilo: {str(e)}")
     return {'user_profile_image': None}
@@ -488,4 +496,4 @@ def logout():
     return redirect(url_for('index'))
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0')
