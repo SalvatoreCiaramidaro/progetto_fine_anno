@@ -7,6 +7,10 @@
 {% endblock %}
 
 {% block content %}
+<div class="flash-messages-container" id="flashMessages">
+    <!-- I messaggi flash verranno mostrati qui -->
+</div>
+
 <div class="profile-container">
     <div class="profile-header">
         <div class="profile-details">
@@ -87,45 +91,69 @@
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-
-<style>
-.profile-image-preview {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 15px;
-}
-
-.profile-small-image {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid #fff;
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
-}
-
-.default-profile-small-image {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background-color: #ccc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid #fff;
-    box-shadow: 0 0 5px rgba(0,0,0,0.2);
-}
-
-.default-profile-small-image i {
-    color: #666;
-    font-size: 40px;
-}
-</style>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/profile.js') }}"></script>
 <script>
+    // Funzione per mostrare un messaggio flash
+    function showFlashMessage(type, message) {
+        const flashContainer = document.getElementById('flashMessages');
+        
+        // Determina icona e tipo di messaggio
+        let icon = '';
+        switch(type) {
+            case 'success':
+                icon = '<i class="fas fa-check-circle message-icon"></i>';
+                break;
+            case 'error':
+            case 'danger':
+                type = 'error'; // Normalizza il tipo
+                icon = '<i class="fas fa-exclamation-circle message-icon"></i>';
+                break;
+            case 'info':
+                icon = '<i class="fas fa-info-circle message-icon"></i>';
+                break;
+            default:
+                icon = '<i class="fas fa-bell message-icon"></i>';
+        }
+        
+        // Crea l'elemento flash
+        const flashMessage = document.createElement('div');
+        flashMessage.className = `flash-message ${type}`;
+        flashMessage.innerHTML = `
+            ${icon}
+            <div class="message-content">${message}</div>
+            <button class="close-button" aria-label="Chiudi">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        // Aggiungi il messaggio al container
+        flashContainer.appendChild(flashMessage);
+        
+        // Aggiungi event listener per il pulsante di chiusura
+        const closeButton = flashMessage.querySelector('.close-button');
+        closeButton.addEventListener('click', function() {
+            removeFlashMessage(flashMessage);
+        });
+        
+        // Rimuovi automaticamente il messaggio dopo 5 secondi
+        setTimeout(() => {
+            removeFlashMessage(flashMessage);
+        }, 5000);
+    }
+    
+    // Funzione per rimuovere un messaggio flash con animazione
+    function removeFlashMessage(messageElement) {
+        messageElement.style.animation = 'fadeOut 0.3s forwards';
+        setTimeout(() => {
+            if (messageElement.parentNode) {
+                messageElement.parentNode.removeChild(messageElement);
+            }
+        }, 300);
+    }
+
     // Gestione anteprima immagine
     document.getElementById('profile_image').addEventListener('change', function() {
         const file = this.files[0];
@@ -158,7 +186,7 @@
         // Verifica che ci sia un'immagine da caricare
         const fileInput = document.getElementById('profile_image');
         if (fileInput.files.length === 0) {
-            alert('Seleziona un\'immagine da caricare');
+            showFlashMessage('error', 'Seleziona un\'immagine da caricare');
             return;
         }
         
@@ -179,7 +207,7 @@
             
             if (data.success) {
                 // Mostra messaggio di successo
-                showAlert('success', data.message);
+                showFlashMessage('success', data.message || 'Immagine profilo aggiornata con successo');
                 
                 // Aggiorna l'immagine del profilo corrente
                 if (data.image_path) {
@@ -194,12 +222,12 @@
                     }
                 }
             } else {
-                showAlert('danger', data.message || 'Errore durante il caricamento dell\'immagine');
+                showFlashMessage('error', data.message || 'Errore durante il caricamento dell\'immagine');
             }
         })
         .catch(error => {
             console.error('Errore:', error);
-            showAlert('danger', 'Si è verificato un errore durante l\'upload dell\'immagine');
+            showFlashMessage('error', 'Si è verificato un errore durante l\'upload dell\'immagine');
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
         });
@@ -218,15 +246,14 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Mostra il messaggio di successo direttamente nella pagina
-                    showAlert('success', 'Profilo aggiornato con successo!');
+                    showFlashMessage('success', data.message || 'Profilo aggiornato con successo!');
                 } else {
-                    showAlert('danger', data.message || 'Si è verificato un errore');
+                    showFlashMessage('error', data.message || 'Si è verificato un errore');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('danger', 'Si è verificato un errore durante l\'aggiornamento del profilo');
+                showFlashMessage('error', 'Si è verificato un errore durante l\'aggiornamento del profilo');
             });
         });
 
@@ -242,77 +269,18 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Mostra il messaggio di successo direttamente nella pagina
-                    showAlert('success', 'Password modificata con successo!');
+                    showFlashMessage('success', data.message || 'Password modificata con successo!');
                     // Reset del form
                     this.reset();
                 } else {
-                    showAlert('danger', data.message || 'Si è verificato un errore');
+                    showFlashMessage('error', data.message || 'Si è verificato un errore');
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                showAlert('danger', 'Si è verificato un errore durante il cambio della password');
+                showFlashMessage('error', 'Si è verificato un errore durante il cambio della password');
             });
         });
-
-        // Gestione del form upload immagine profilo
-        document.getElementById('imageForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            
-            fetch('/profile', {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Aggiorna l'immagine del profilo nella pagina
-                    const profileImage = document.getElementById('profileImage');
-                    profileImage.src = '/static/' + data.image_path + '?t=' + new Date().getTime();
-                    
-                    // Mostra messaggio di successo
-                    showAlert('success', 'Immagine del profilo aggiornata con successo!');
-                } else {
-                    showAlert('danger', data.message || 'Si è verificato un errore');
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showAlert('danger', 'Si è verificato un errore durante l\'aggiornamento dell\'immagine');
-            });
-        });
-
-        // Funzione per mostrare un messaggio di alert
-        function showAlert(type, message) {
-            const alertsContainer = document.getElementById('alerts');
-            
-            // Crea l'elemento alert
-            const alertDiv = document.createElement('div');
-            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-            alertDiv.role = 'alert';
-            
-            // Aggiungi il messaggio
-            alertDiv.innerHTML = `
-                ${message}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            `;
-            
-            // Aggiungi l'alert al container
-            alertsContainer.appendChild(alertDiv);
-            
-            // Scroll fino all'alert
-            alertDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            // Rimuovi automaticamente l'alert dopo 5 secondi
-            setTimeout(() => {
-                if (alertDiv.parentNode) {
-                    alertDiv.classList.remove('show');
-                    setTimeout(() => alertDiv.remove(), 150);
-                }
-            }, 5000);
-        }
     });
 </script>
 {% endblock %}

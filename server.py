@@ -352,76 +352,103 @@ def api_search():
 
 
 @app.route('/profile', methods=['GET', 'POST'])
+@login_required
 def profile():
-    if not current_user.is_authenticated:
-        flash('Devi accedere per visualizzare il profilo.', 'danger')
-        return redirect(url_for('login', next=url_for('profile')))
+    # Log per debug
+    app.logger.info(f"Cartella upload: {app.config['UPLOAD_FOLDER']}")
+    app.logger.info(f"Cartella esiste: {os.path.exists(app.config['UPLOAD_FOLDER'])}")
 
     if request.method == 'POST':
-        form_data = request.form.to_dict()
-        
-        # Gestione dell'upload dell'immagine
-        if 'profile_image' in request.files and request.files['profile_image'].filename:
-            try:
-                file = request.files['profile_image']
-                # Verifica se l'estensione è consentita
-                if file and allowed_file(file.filename):
-                    # Crea un nome file sicuro con timestamp per evitare cache
-                    timestamp = hashlib.md5(str(time.time()).encode()).hexdigest()[:8]
-                    filename = f"{current_user.id}_{timestamp}.{file.filename.rsplit('.', 1)[1].lower()}"
-                    
-                    # Salva il file
-                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    file.save(filepath)
-                    
-                    # Aggiorna il database
-                    with db_cursor() as (cursor, conn):
-                        cursor.execute(
-                            'UPDATE users SET profile_image = %s WHERE id = %s',
-                            (f"profile_images/{filename}", current_user.id)
-                        )
-                        conn.commit()
-                    
-                    flash('Immagine del profilo aggiornata con successo!', 'success')
-                    return jsonify({'success': True, 'message': 'Immagine profilo aggiornata con successo!', 'image_path': f"profile_images/{filename}"})
+        # Controlla se è una richiesta di aggiornamento immagine
+        if 'profile_image' in request.files:
+            file = request.files['profile_image']
+            app.logger.info(f"File ricevuto: {file.filename}")
+
+            # Verifica che il file esista e sia valido
+            if file and file.filename != '':
+                if allowed_file(file.filename):
+                    try:
+                        # Genera un nome di file sicuro e univoco
+                        filename = secure_filename(file.filename)
+                        file_ext = os.path.splitext(filename)[1]
+                        unique_filename = f"{current_user.id}_{uuid.uuid4().hex[:8]}{file_ext}"
+
+                        # Assicurati che la cartella esista
+                        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+                        # Percorso completo del file
+                        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        app.logger.info(f"Percorso file: {file_path}")
+
+                        # Salva il file
+                        file.save(file_path)
+                        app.logger.info(f"File salvato in: {file_path}")
+
+                        # Verifica che il file sia stato effettivamente salvato
+                        if os.path.exists(file_path):
+                            app.logger.info(f"File trovato nel percorso: {file_path}")
+                        else:
+                            app.logger.error(f"File NON trovato nel percorso: {file_path}")
+
+                        # Percorso relativo per il database
+                        relative_path = f"profile_images/{unique_filename}"
+
+                        # Aggiorna il database
+                        with db_cursor() as (cursor, conn):
+                            cursor.execute('UPDATE users SET profile_image = %s WHERE id = %s',
+                                          (relative_path, current_user.id))
+                            conn.commit()
+                            app.logger.info(f"Database aggiornato per l'utente {current_user.id} con path: {relative_path}")
+
+                        # Verifica che il percorso sia stato salvato nel database
+                        with db_cursor(dictionary=True) as (cursor, conn):
+                            cursor.execute('SELECT profile_image FROM users WHERE id = %s', (current_user.id,))
+                            result = cursor.fetchone()
+                            app.logger.info(f"Immagine nel database: {result}")
+
+                        return jsonify(success=True, message='Immagine del profilo aggiornata!', image_path=relative_path)
+
+                    except Exception as e:
+                        app.logger.error(f"Errore nel salvataggio dell'immagine: {str(e)}")
+                        app.logger.error(f"Dettagli errore: {type(e).__name__}")
+                        import traceback
+                        app.logger.error(traceback.format_exc())
+                        return jsonify(success=False, message=f'Errore nel salvataggio dell\'immagine: {str(e)}')
                 else:
-                    flash('Formato file non supportato. Utilizza JPG, PNG, GIF o SVG.', 'danger')
-                    return jsonify({'success': False, 'message': 'Formato file non supportato. Utilizza JPG, PNG, GIF o SVG.'})
-            except Exception as e:
-                app.logger.error(f"Errore nell'upload dell'immagine: {str(e)}")
-                flash('Si è verificato un errore durante il caricamento dell\'immagine.', 'danger')
-                return jsonify({'success': False, 'message': 'Si è verificato un errore durante il caricamento dell\'immagine.'})
-        
-        # Aggiornamento dati del profilo
-        elif 'username' in form_data and 'email' in form_data:
-            username = form_data.get('username')
-            email = form_data.get('email')
-            
-            try:
-                with db_cursor() as (cursor, conn):
-                    cursor.execute(
-                        'UPDATE users SET username = %s, email = %s WHERE id = %s',
-                        (username, email, current_user.id)
-                    )
-                    conn.commit()
-                
-                # Aggiorna anche la sessione corrente
-                current_user.username = username
-                current_user.email = email
-                
-                flash('Dati del profilo aggiornati con successo!', 'success')
-                return jsonify({'success': True, 'message': 'Dati profilo aggiornati con successo!'})
-            except Exception as e:
-                app.logger.error(f"Errore nell'aggiornamento profilo: {str(e)}")
-                flash('Si è verificato un errore durante l\'aggiornamento del profilo.', 'danger')
-                return jsonify({'success': False, 'message': 'Si è verificato un errore durante l\'aggiornamento del profilo.'})
-    
-    # GET request
-    with db_cursor(dictionary=True) as (cursor, conn):
-        cursor.execute('SELECT * FROM users WHERE id = %s', (current_user.id,))
-        user = cursor.fetchone()
-    
-    return render_template('profile.html', user=user)
+                    app.logger.warning(f"Tipo di file non supportato: {file.filename}")
+                    return jsonify(success=False, message='Tipo di file non supportato. Utilizza .png, .jpg, .jpeg o .gif')
+            else:
+                app.logger.warning("Nessun file selezionato")
+                return jsonify(success=False, message='Nessun file selezionato')
+
+        try:
+            username = request.form['username']
+            email = request.form['email']
+
+            with db_cursor() as (cursor, conn):
+                # Verifica se il username è disponibile
+                cursor.execute('SELECT id FROM users WHERE username = %s AND id != %s', (username, current_user.id))
+                if cursor.fetchone():
+                    return jsonify(success=False, message='Username già in uso')
+
+                # Verifica se l'email è disponibile
+                cursor.execute('SELECT id FROM users WHERE email = %s AND id != %s', (email, current_user.id))
+                if cursor.fetchone():
+                    return jsonify(success=False, message='Email già in uso')
+
+                # Aggiorna i dati dell'utente
+                cursor.execute('UPDATE users SET username = %s, email = %s WHERE id = %s',
+                              (username, email, current_user.id))
+
+            # Aggiorna l'oggetto current_user
+            current_user.username = username
+            current_user.email = email
+
+            return jsonify(success=True, message='Profilo aggiornato con successo!')
+        except Exception as e:
+            return jsonify(success=False, message=f'Errore: {str(e)}')
+
+    return render_template('profile.html', user=current_user)
 
 
 @app.route('/change_password', methods=['POST'])
@@ -434,7 +461,6 @@ def change_password():
 
         # Verifica che la nuova password e la conferma corrispondano
         if new_password != confirm_password:
-            flash('La nuova password e la conferma non corrispondono', 'danger')
             return jsonify(success=False, message='La nuova password e la conferma non corrispondono')
 
         with db_cursor(dictionary=True) as (cursor, conn):
@@ -443,17 +469,14 @@ def change_password():
             user_data = cursor.fetchone()
 
             if not check_password_hash(user_data['password'], current_password):
-                flash('Password attuale non corretta', 'danger')
                 return jsonify(success=False, message='Password attuale non corretta')
 
             # Aggiorna la password
             new_password_hash = generate_password_hash(new_password)
             cursor.execute('UPDATE users SET password = %s WHERE id = %s', (new_password_hash, current_user.id))
 
-        flash('Password modificata con successo!', 'success')
         return jsonify(success=True, message='Password modificata con successo!')
     except Exception as e:
-        flash(f'Errore: {str(e)}', 'danger')
         return jsonify(success=False, message=f'Errore: {str(e)}')
 
 @app.route('/logout')
