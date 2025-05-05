@@ -41,7 +41,11 @@
                     <span class="greeting">Ciao, {{ current_user.username }}!</span>
                     <div class="profile-image-container" id="profileImageContainer">
                         {% if user_profile_image %}
-                            <img src="{{ url_for('static', filename=user_profile_image) }}" alt="Profilo" class="profile-image">
+                            {% if is_external_url %}
+                                <img src="{{ user_profile_image }}" alt="Profilo" class="profile-image">
+                            {% else %}
+                                <img src="{{ url_for('static', filename=user_profile_image) }}" alt="Profilo" class="profile-image">
+                            {% endif %}
                         {% else %}
                             <div class="default-profile-image">
                                 <i class="fas fa-user"></i>

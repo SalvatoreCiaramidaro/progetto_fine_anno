@@ -113,12 +113,22 @@ def inject_profile_image():
                     if clean_path.startswith('/static/'):
                         clean_path = clean_path[8:]
                     
-                    # Assicurati che il percorso sia coerente in tutte le pagine
-                    app.logger.info(f"Percorso immagine finale corretto: {clean_path}")
-                    return {'user_profile_image': clean_path}
+                    # Su PythonAnywhere potrebbe essere necessario un percorso diverso
+                    if is_pythonanywhere:
+                        app.logger.info("Ambiente PythonAnywhere rilevato: modifica percorso")
+                        # Costruisci un URL completo invece di un percorso relativo
+                        # Questo potrebbe essere necessario se i file statici sono serviti da un URL diverso
+                        site_url = "https://ciaramid06.pythonanywhere.com"
+                        final_path = f"{site_url}/static/{clean_path}"
+                        app.logger.info(f"Percorso PythonAnywhere: {final_path}")
+                        return {'user_profile_image': final_path, 'is_external_url': True}
+                    else:
+                        # In ambiente locale, usa il percorso normale
+                        app.logger.info(f"Percorso locale: {clean_path}")
+                        return {'user_profile_image': clean_path, 'is_external_url': False}
         except Exception as e:
             app.logger.error(f"Errore nel recupero dell'immagine del profilo: {str(e)}")
-    return {'user_profile_image': None}
+    return {'user_profile_image': None, 'is_external_url': False}
 
 @app.route('/confirm/<token>')
 def confirm_email(token):
