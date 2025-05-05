@@ -105,25 +105,6 @@
     background-color: #2980b9;
 }
 
-.alert {
-    padding: 15px;
-    margin-top: 15px;
-    border-radius: 4px;
-}
-
-.alert-success {
-    background-color: #dff0d8;
-    border: 1px solid #d6e9c6;
-    color: #3c763d;
-}
-
-.alert-danger {
-    background-color: #f2dede;
-    border: 1px solid #ebccd1;
-    color: #a94442;
-    
-}
-
 /* Stili per i messaggi flash */
 .flash-messages-container {
     position: fixed;
