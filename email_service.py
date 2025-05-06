@@ -20,9 +20,9 @@ class EmailService:
         app.config['MAIL_PORT'] = 587
         app.config['MAIL_USE_SSL'] = False
         app.config['MAIL_USE_TLS'] = True
-        app.config['MAIL_USERNAME'] = 'stefaniagitto71@gmail.com'
-        app.config['MAIL_PASSWORD'] = 'gkry vbeu brft vuue'
-        app.config['MAIL_DEFAULT_SENDER'] = 'stefaniagitto71@gmail.com'
+        app.config['MAIL_USERNAME'] = 'wikisportcars@gmail.com'
+        app.config['MAIL_PASSWORD'] = 'jwcy xkmh pgsi zbug'
+        app.config['MAIL_DEFAULT_SENDER'] = 'wikisportcars@gmail.com'
         app.config['MAIL_DEBUG'] = True  # Abilita debug
         
         # Inizializza Flask-Mail
