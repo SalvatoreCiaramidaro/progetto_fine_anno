@@ -1,40 +1,28 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.querySelector('form');
-    const messageContainer = document.querySelector('#message-container');
+document.addEventListener('DOMContentLoaded', function() {
+    const loginForm = document.querySelector('form');
+    const messageContainer = document.getElementById('message-container');
 
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault(); // Previene il ricaricamento della pagina
-
-        const formData = new FormData(form);
-        const response = await fetch(form.action, {
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(loginForm);
+        
+        fetch('/login', {
             method: 'POST',
-            body: formData,
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                messageContainer.innerHTML = '<div class="success-message">Accesso effettuato! Reindirizzamento...</div>';
+                window.location.href = data.next;
+            } else {
+                messageContainer.innerHTML = `<div class="error-message">${data.message}</div>`;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            messageContainer.innerHTML = '<div class="error-message">Si è verificato un errore. Riprova più tardi.</div>';
         });
-
-        const result = await response.json();
-
-        if (result.success) {
-            showMessage('Login successful!', 'success');
-            
-            // Svuota i campi del form
-            form.reset();
-
-            // Prendi il valore del campo nascosto "next"
-            const nextUrl = result.next || '/';
-
-            setTimeout(() => {
-                window.location.href = nextUrl;
-            }, 3000);
-        } else {
-            showMessage(result.message || 'Errore durante il login', 'danger');
-        }
     });
-
-    function showMessage(message, category) {
-        messageContainer.innerHTML = ''; // Pulisce i messaggi precedenti
-        const messageElement = document.createElement('div');
-        messageElement.textContent = message;
-        messageElement.classList.add('message', category);
-        messageContainer.appendChild(messageElement);
-    }
 });

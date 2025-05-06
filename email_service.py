@@ -1,89 +1,70 @@
+import os
 from flask import url_for
 from flask_mail import Mail, Message
 import logging
-from itsdangerous import URLSafeTimedSerializer, SignatureExpired
+from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
 
 # Configura logging dettagliato
 logging.basicConfig(level=logging.DEBUG)
 
-mail = Mail()
-
 class EmailService:
-    def __init__(self, app=None):
-        self.app = None
-        if app is not None:
-            self.init_app(app)
+    def __init__(self):
+        self.mail = None
+        self.serializer = None
+        self.security_password_salt = None
 
     def init_app(self, app):
-        # Configura Flask-Mail
-        app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-        app.config['MAIL_PORT'] = 587
-        app.config['MAIL_USE_SSL'] = False
-        app.config['MAIL_USE_TLS'] = True
-        app.config['MAIL_USERNAME'] = 'wikisportcars@gmail.com'
-        app.config['MAIL_PASSWORD'] = 'jwcy xkmh pgsi zbug'
-        app.config['MAIL_DEFAULT_SENDER'] = 'wikisportcars@gmail.com'
-        app.config['MAIL_DEBUG'] = True  # Abilita debug
-        
-        # Inizializza Flask-Mail
-        mail.init_app(app)
-        
-        # Salva riferimenti per il token
-        self.app = app
+        app.config.setdefault('MAIL_SERVER', 'smtp.gmail.com')
+        app.config.setdefault('MAIL_PORT', 587)
+        app.config.setdefault('MAIL_USE_TLS', True)
+        app.config.setdefault('MAIL_USERNAME', os.environ.get('EMAIL_USER', 'wikisportcars@gmail.com'))
+        app.config.setdefault('MAIL_PASSWORD', os.environ.get('EMAIL_PASSWORD', 'jwcy xkmh pgsi zbug'))
+        app.config.setdefault('MAIL_DEFAULT_SENDER', os.environ.get('EMAIL_USER', 'wikisportcars@gmail.com'))
 
-    def generate_confirmation_token(self, email):
-        """
-        Genera un token di conferma per l'email fornita
-        """
-        serializer = URLSafeTimedSerializer(self.app.secret_key)
-        return serializer.dumps(email, salt=self.app.config['SECURITY_PASSWORD_SALT'])
+        self.mail = Mail(app)
+        self.serializer = URLSafeTimedSerializer(app.secret_key)
+        self.security_password_salt = app.config['SECURITY_PASSWORD_SALT']
+
+    def _generate_token(self, email):
+        return self.serializer.dumps(email, salt=self.security_password_salt)
 
     def confirm_token(self, token, expiration=3600):
-        """
-        Verifica un token e restituisce l'email associata se valido
-        """
-        serializer = URLSafeTimedSerializer(self.app.secret_key)
         try:
-            email = serializer.loads(
-                token,
-                salt=self.app.config['SECURITY_PASSWORD_SALT'],
-                max_age=expiration
-            )
+            email = self.serializer.loads(token, salt=self.security_password_salt, max_age=expiration)
             return email
-        except Exception as e:
-            logging.error(f"Errore nella conferma del token: {str(e)}", exc_info=True)
+        except (SignatureExpired, BadSignature):
             return None
 
-    def send_confirmation_email(self, user_email):
-        """
-        Invia un'email di conferma all'utente
-        """
-        if not self.app:
-            raise RuntimeError("Flask app non inizializzata per il servizio email")
-            
-        token = self.generate_confirmation_token(user_email)
+    def send_confirmation_email(self, email):
+        token = self._generate_token(email)
+        confirm_url = f"http://localhost:5000/confirm/{token}"
         
-        # Usa il percorso corretto che corrisponde al route nel server.py
-        confirm_url = url_for('confirm_email', token=token, _external=True)
-        
-        html = f'''
-        <h1>Conferma il tuo account WikiSportCars</h1>
-        <p>Grazie per esserti registrato! Per confermare il tuo account, clicca sul link qui sotto:</p>
+        subject = "Conferma la tua email - WikiSportCars"
+        body = f"""
+        <p>Benvenuto in WikiSportCars!</p>
+        <p>Per confermare il tuo account, clicca sul seguente link:</p>
         <p><a href="{confirm_url}">Conferma il tuo account</a></p>
-        <p>Il link sarà valido per un'ora.</p>
-        <p>Se non sei stato tu a registrarti, ignora questa email.</p>
-        '''
+        <p>Se non hai richiesto la registrazione su WikiSportCars, ignora questa email.</p>
+        <p>Saluti,<br>Il team di WikiSportCars</p>
+        """
         
-        msg = Message('Conferma il tuo account WikiSportCars', 
-                     recipients=[user_email], 
-                     html=html)
-        try:
-            logging.info(f"Tentativo di invio email a {user_email}")
-            mail.send(msg)
-            logging.info("Email inviata con successo")
-        except Exception as e:
-            logging.error(f"Errore nell'invio dell'email: {str(e)}", exc_info=True)
-            raise
+        msg = Message(subject=subject, recipients=[email], html=body)
+        self.mail.send(msg)
 
-# Istanza dell'oggetto per essere importato
+    def send_password_reset_email(self, email):
+        token = self._generate_token(email)
+        reset_url = f"http://localhost:5000/reset_password/{token}"
+        
+        subject = "Recupero Password - WikiSportCars"
+        body = f"""
+        <p>Hai richiesto il recupero della tua password su WikiSportCars.</p>
+        <p>Per reimpostare la tua password, clicca sul seguente link:</p>
+        <p><a href="{reset_url}">Reimposta la tua password</a></p>
+        <p>Se non hai richiesto il recupero della password, ignora questa email.</p>
+        <p>Saluti,<br>Il team di WikiSportCars</p>
+        """
+        
+        msg = Message(subject=subject, recipients=[email], html=body)
+        self.mail.send(msg)
+
 email_service = EmailService()

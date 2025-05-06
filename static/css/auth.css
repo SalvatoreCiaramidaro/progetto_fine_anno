@@ -480,7 +480,8 @@ button:hover {
 }
 
 /* Miglioramento degli input */
-.login-card input[type="text"],
+.login-card input[type="email"],
+.login-card input[type="username"],
 .login-card input[type="password"] {
     width: 90%;
     padding: 10px;

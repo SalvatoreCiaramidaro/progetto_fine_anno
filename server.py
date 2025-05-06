@@ -140,6 +140,62 @@ def confirm_email(token):
         status = 'danger'
         return render_template('confirmation_result.html', message=message, status=status)
 
+@app.route('/forgot_password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        
+        # Verifica se l'email esiste nel database
+        with db_cursor(dictionary=True) as (cursor, conn):
+            cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
+            user = cursor.fetchone()
+            
+            if user:
+                try:
+                    # Invia email con il link per reimpostare la password
+                    email_service.send_password_reset_email(email)
+                    return jsonify(success=True, message='Ti abbiamo inviato un\'email con le istruzioni per reimpostare la password. Controlla anche la cartella spam.')
+                except Exception as e:
+                    logging.error(f"Errore nell'invio dell'email di reset: {str(e)}")
+                    return jsonify(success=False, message=f'Errore nell\'invio dell\'email: {str(e)}')
+            else:
+                # Per motivi di sicurezza, non rivelare se l'email esiste o meno
+                return jsonify(success=True, message='Se l\'email è registrata, riceverai le istruzioni per reimpostare la password.')
+    
+    return render_template('forgot_password.html')
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    # Verifica la validità del token
+    email = email_service.confirm_token(token)
+    
+    if email is None:
+        flash('Il link per reimpostare la password è scaduto o non è valido.', 'danger')
+        return redirect(url_for('forgot_password'))
+    
+    if request.method == 'POST':
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if password != confirm_password:
+            flash('Le password non corrispondono.', 'danger')
+            return render_template('reset_password.html', token=token)
+        
+        # Aggiorna la password nel database
+        password_hash = generate_password_hash(password)
+        
+        try:
+            with db_cursor() as (cursor, conn):
+                cursor.execute('UPDATE users SET password = %s WHERE email = %s', (password_hash, email))
+                
+            flash('La tua password è stata reimpostata con successo! Ora puoi accedere.', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            logging.error(f"Errore nel reset della password: {str(e)}")
+            flash(f'Si è verificato un errore: {str(e)}', 'danger')
+            return render_template('reset_password.html', token=token)
+    
+    return render_template('reset_password.html', token=token)
 
 @app.route('/')
 def index():
@@ -152,12 +208,12 @@ def index():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
 
         try:
             with db_cursor(dictionary=True) as (cursor, conn):
-                cursor.execute('SELECT * FROM users WHERE username = %s', (username,))
+                cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
                 user = cursor.fetchone()
 
             if user and check_password_hash(user['password'], password):
