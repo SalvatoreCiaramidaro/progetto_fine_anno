@@ -25,6 +25,7 @@
   </div>
 
   {% if current_user.is_authenticated %}
+    <div class="favorite-container">
       {% if is_favorite %}
           <form action="{{ url_for('remove_from_favorites', car_id=car.id) }}" method="post">
               <button type="submit" class="remove-favorite">
@@ -38,8 +39,9 @@
               </button>
           </form>
       {% endif %}
+    </div>
   {% else %}
-      <p><a href="{{ url_for('login', next=request.path) }}">Accedi</a> per aggiungere ai preferiti.</p>
+      <p class="login-message"><a href="{{ url_for('login', next=request.path) }}">Accedi</a> per aggiungere ai preferiti.</p>
   {% endif %}
 {% endblock %}
 

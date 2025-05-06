@@ -109,3 +109,44 @@
 .dropdown-menu ul li a:hover {
     background: rgba(255,255,255,0.2);
 }
+
+/* Aggiunta di spazio sotto il bottone dei preferiti */
+.favorite-container {
+    margin-bottom: 60px; /* Spazio tra il bottone e il footer */
+}
+
+.add-favorite, .remove-favorite {
+    margin-bottom: 20px;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-favorite {
+    background-color: #28a745;
+    color: white;
+    border: none;
+}
+
+.add-favorite:hover {
+    background-color: #218838;
+}
+
+.remove-favorite {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
+
+.remove-favorite:hover {
+    background-color: #c82333;
+}
+
+.login-message {
+    margin-bottom: 60px;
+}

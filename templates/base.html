@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}WikiSportCars{% endblock %}</title>
     
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     
     <!-- CSS principale del sito -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    
+    <!-- CSS per i messaggi flash -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/flash_messages.css') }}">
     
     <!-- Icona della pagina -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon/favicon.png') }}">
@@ -65,13 +65,28 @@
         </nav>
     </header>
 
-    <!-- Flash Messages con migliore visualizzazione -->
-    <div class="flash-messages">
+    <!-- Contenitore per i messaggi flash -->
+    <div class="flash-messages-container" id="flashMessages">
+        <!-- I messaggi flash verranno inseriti qui tramite JavaScript -->
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
-                    <div class="flash-message {{ category }}" role="alert">
-                        <strong>{{ category|capitalize }}:</strong> {{ message }}
+                    <div class="flash-message {{ category }}" data-flash-message>
+                        {% if category == 'success' %}
+                            <i class="fas fa-check-circle message-icon"></i>
+                        {% elif category == 'error' or category == 'danger' %}
+                            <i class="fas fa-exclamation-circle message-icon"></i>
+                        {% elif category == 'info' %}
+                            <i class="fas fa-info-circle message-icon"></i>
+                        {% elif category == 'warning' %}
+                            <i class="fas fa-exclamation-triangle message-icon"></i>
+                        {% else %}
+                            <i class="fas fa-bell message-icon"></i>
+                        {% endif %}
+                        <div class="message-content">{{ message }}</div>
+                        <button class="close-button" aria-label="Chiudi">
+                            <i class="fas fa-times"></i>
+                        </button>
                     </div>
                 {% endfor %}
             {% endif %}
@@ -93,7 +108,142 @@
     
     <!-- Script principale del sito -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
+    
+    <!-- Script per i messaggi flash -->
+    <script>
+    // Funzione per mostrare un messaggio flash
+    function showFlashMessage(type, message) {
+        const flashContainer = document.getElementById('flashMessages');
+        
+        if (!flashContainer) {
+            console.error('Container dei messaggi flash non trovato!');
+            return;
+        }
+        
+        // Determina icona e tipo di messaggio
+        let icon = '';
+        switch(type) {
+            case 'success':
+                icon = '<i class="fas fa-check-circle message-icon"></i>';
+                break;
+            case 'error':
+            case 'danger':
+                type = 'error'; // Normalizza il tipo
+                icon = '<i class="fas fa-exclamation-circle message-icon"></i>';
+                break;
+            case 'info':
+                icon = '<i class="fas fa-info-circle message-icon"></i>';
+                break;
+            default:
+                icon = '<i class="fas fa-bell message-icon"></i>';
+        }
+        
+        // Crea l'elemento flash
+        const flashMessage = document.createElement('div');
+        flashMessage.className = `flash-message ${type}`;
+        flashMessage.innerHTML = `
+            ${icon}
+            <div class="message-content">${message}</div>
+            <button class="close-button" aria-label="Chiudi">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        // Aggiungi il messaggio al container
+        flashContainer.appendChild(flashMessage);
+        
+        // Aggiungi event listener per il pulsante di chiusura
+        const closeButton = flashMessage.querySelector('.close-button');
+        closeButton.addEventListener('click', function() {
+            removeFlashMessage(flashMessage);
+        });
+        
+        // Rimuovi automaticamente il messaggio dopo 5 secondi
+        setTimeout(() => {
+            removeFlashMessage(flashMessage);
+        }, 5000);
+        
+        return flashMessage;
+    }
+    
+    // Funzione per rimuovere un messaggio flash con animazione
+    function removeFlashMessage(messageElement) {
+        messageElement.style.animation = 'fadeOut 0.3s forwards';
+        setTimeout(() => {
+            if (messageElement && messageElement.parentNode) {
+                messageElement.parentNode.removeChild(messageElement);
+            }
+        }, 300);
+    }
+    
+    // Quando il documento è pronto, configura i messaggi flash esistenti
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configura i pulsanti di chiusura per i messaggi esistenti
+        setupExistingFlashMessages();
+        
+        // Converti i vecchi messaggi flash in nuovi messaggi flash
+        convertOldFlashMessages();
+    });
+    
+    // Configurazione dei messaggi flash esistenti
+    function setupExistingFlashMessages() {
+        const flashMessages = document.querySelectorAll('.flash-message');
+        
+        flashMessages.forEach(message => {
+            // Aggiungi event listener per il pulsante di chiusura
+            const closeButton = message.querySelector('.close-button');
+            if (closeButton) {
+                closeButton.addEventListener('click', function() {
+                    removeFlashMessage(message);
+                });
+            }
+            
+            // Imposta un timer per rimuovere il messaggio
+            setTimeout(() => {
+                removeFlashMessage(message);
+            }, 5000);
+        });
+    }
+    
+    // Converti i vecchi messaggi flash in nuovi messaggi flash
+    function convertOldFlashMessages() {
+        // Verifica se ci sono messaggi flash da Flask
+        const flaskMessages = document.querySelectorAll('.flash-messages, .flashes, #alerts');
+        
+        flaskMessages.forEach(container => {
+            if (container && container.id !== 'flashMessages' && container.textContent.trim()) {
+                // Estrai il messaggio
+                let message = container.textContent.trim();
+                let type = 'info';
+                
+                // Cerca di determinare il tipo dal messaggio
+                if (message.includes('success') || message.includes('successo')) {
+                    type = 'success';
+                } else if (message.includes('error') || message.includes('errore')) {
+                    type = 'error';
+                }
+                
+                // Per i messaggi di auth, determina dal contenuto
+                if (message.includes('Auth:')) {
+                    message = message.replace('Auth:', '').trim();
+                    if (message.includes('Logout')) {
+                        type = 'success';
+                    }
+                }
+                
+                // Ignora messaggi vuoti o che contengono solo spazi
+                if (message.trim()) {
+                    // Mostra il messaggio nel nuovo formato
+                    showFlashMessage(type, message);
+                }
+                
+                // Nascondi il messaggio originale
+                container.style.display = 'none';
+            }
+        });
+    }
+    </script>
+    
     <!-- Script per il menu a tendina dell'immagine profilo -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
