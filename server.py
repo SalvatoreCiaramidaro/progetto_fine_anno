@@ -126,16 +126,19 @@ def confirm_email(token):
                 return redirect(url_for('login'))
 
             if user.get('confirmed'):
-                flash('Il tuo account è già stato confermato.', 'info')
+                message = 'Il tuo account è già stato confermato.'
+                status = 'info'
             else:
                 cursor.execute("UPDATE users SET confirmed = 1 WHERE email = %s", (email,))
-                flash('Il tuo account è stato confermato con successo!', 'success')
+                message = 'Il tuo account è stato confermato con successo!'
+                status = 'success'
 
-        return redirect(url_for('login'))
+        return render_template('confirmation_result.html', message=message, status=status)
     except Exception as e:
         logging.error(f"Errore nella conferma dell'email: {str(e)}")
-        flash('Si è verificato un errore durante la conferma dell\'account.', 'danger')
-        return redirect(url_for('login'))
+        message = 'Si è verificato un errore durante la conferma dell\'account.'
+        status = 'danger'
+        return render_template('confirmation_result.html', message=message, status=status)
 
 
 @app.route('/')
@@ -197,7 +200,7 @@ def register():
             # Invia l'email di conferma usando il nuovo servizio
             email_service.send_confirmation_email(email)
 
-            return jsonify(success=True, message='Registrazione avvenuta con successo! Controlla la tua email per confermare il tuo account.')
+            return jsonify(success=True, message='Registrazione avvenuta con successo! Controlla la tua email per confermare il tuo account, se non vedi nessuna email controlla pure nella spam.')
         except IntegrityError:
             return jsonify(success=False, message='L\'email è già associata a un account. Per favore, usa un\'altra email.')
 

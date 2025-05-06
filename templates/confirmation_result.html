@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Conferma Email{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="text-center mb-0">Conferma Email</h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-{{ status }}" role="alert">
+                        <h4 class="alert-heading">{{ message }}</h4>
+                        {% if status == 'success' %}
+                            <p>Il tuo account è stato attivato con successo. Ora puoi accedere alla piattaforma e utilizzare tutte le funzionalità disponibili.</p>
+                        {% elif status == 'info' %}
+                            <p>Il tuo account è già attivo. Puoi utilizzare tutte le funzionalità della piattaforma.</p>
+                        {% else %}
+                            <p>Si è verificato un problema durante la conferma dell'account. Prova a richiedere un nuovo link di conferma.</p>
+                        {% endif %}
+                    </div>
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('login') }}" class="btn btn-primary">Vai alla pagina di accesso</a>
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary ml-2">Torna alla home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
