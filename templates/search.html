@@ -1,15 +1,19 @@
 {% extends 'base.html' %}
 
-{% block title %}WikiSportCars - I miei Preferiti{% endblock %}
+{% block title %}WikiSportCars - Ricerca{% endblock %}
 
 {% block content %}
-<h2>Le Mie Auto Preferite</h2>
+<h2>Risultati della ricerca</h2>
+
+<form action="{{ url_for('search') }}" method="get" class="search-form">
+    <input type="text" name="query" value="{{ query }}" placeholder="Cerca auto per brand, modello o tipo..." required>
+    <button type="submit">Cerca</button>
+</form>
 
 {% if not cars %}
-    <p>Non hai ancora aggiunto auto ai preferiti.</p>
-    <a href="{{ url_for('index') }}" class="btn btn-primary">Sfoglia Auto</a>
+    <p>Nessun risultato trovato.</p>
 {% else %}
-    <div class="car-list" id="favorite-cars">
+    <div class="car-list" id="search-results">
         {% for car in cars %}
             <div class="small-car-container" onclick="window.location='{{ url_for('car_detail', car_id=car.id) }}';" style="cursor: pointer;">
                 <div class="small-car-image">
@@ -22,9 +26,7 @@
                 <div class="small-car-info">
                     <h3>{{ car.name }}</h3>
                     <p>{{ car.small_description }}</p>
-                    <div class="car-actions">
-                        <a href="{{ url_for('car_detail', car_id=car.id) }}" onclick="event.stopPropagation();">Dettagli</a>
-                    </div>
+                    <a href="{{ url_for('car_detail', car_id=car.id) }}" onclick="event.stopPropagation();">Dettagli</a>
                 </div>
             </div>
         {% endfor %}

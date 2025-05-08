@@ -18,7 +18,7 @@
     {% else %}
         <div class="car-list" id="all-cars">
             {% for car in cars %}
-                <div class="small-car-container">
+                <div class="small-car-container" onclick="window.location='{{ url_for('car_detail', car_id=car.id) }}'" style="cursor: pointer;">
                     <div class="small-car-image">
                         {% if car.image[0:4] == 'http' %}
                             <img src="{{ car.image }}" alt="{{ car.name }}">
@@ -29,7 +29,7 @@
                     <div class="small-car-info">
                         <h3>{{ car.name }}</h3>
                         <p>{{ car.small_description }}</p>
-                        <a href="{{ url_for('car_detail', car_id=car.id) }}">Dettagli</a>
+                        <a href="{{ url_for('car_detail', car_id=car.id) }}" onclick="event.stopPropagation();">Dettagli</a>
                     </div>
                 </div>
             {% endfor %}
@@ -80,6 +80,10 @@
                     data.cars.forEach(car => {
                         const carElement = document.createElement('div');
                         carElement.className = 'small-car-container';
+                        carElement.style.cursor = 'pointer';
+                        carElement.onclick = function() {
+                            window.location = `/car/${car.id}`;
+                        };
                         
                         const imgSrc = car.image.startsWith('http') 
                             ? car.image 
@@ -92,7 +96,7 @@
                             <div class="small-car-info">
                                 <h3>${car.name}</h3>
                                 <p>${car.small_description}</p>
-                                <a href="/car/${car.id}">Dettagli</a>
+                                <a href="/car/${car.id}" onclick="event.stopPropagation();">Dettagli</a>
                             </div>
                         `;
                         
