@@ -8,6 +8,7 @@ from mysql.connector.errors import IntegrityError
 import os
 import uuid
 import sys
+from functools import wraps
 
 # Importazioni dai moduli personalizzati
 from db_config import db_cursor
@@ -47,13 +48,14 @@ login_manager.login_message_category = "info"
 email_service.init_app(app)
 
 class User(UserMixin):
-    def __init__(self, id, username, email, password, confirmed=False, profile_image=None):
+    def __init__(self, id, username, email, password, confirmed=False, profile_image=None, is_admin=False):
         self.id = id
         self.username = username
         self.email = email
         self.password = password
         self.confirmed = confirmed
         self.profile_image = profile_image
+        self.is_admin = is_admin
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -73,7 +75,8 @@ def load_user(user_id):
                 email=user['email'],
                 password=user['password'],
                 confirmed=user['confirmed'],
-                profile_image=user.get('profile_image')
+                profile_image=user.get('profile_image'),
+                is_admin=user.get('is_admin', 0)
             )
     except Exception as e:
         logging.error(f"Errore durante il caricamento dell'utente: {str(e)}")
@@ -226,7 +229,8 @@ def login():
                     email=user['email'],
                     password=user['password'],
                     confirmed=user['confirmed'],
-                    profile_image=user.get('profile_image')
+                    profile_image=user.get('profile_image'),
+                    is_admin=user.get('is_admin', 0)
                 )
                 login_user(user_obj)
                 next_page = request.form.get('next')
@@ -544,5 +548,166 @@ def logout():
     flash("Logout eseguito!", category="auth")
     return redirect(url_for('index'))
 
+# Decoratore per proteggere le rotte admin
+def admin_required(f):
+    @login_required
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_admin:
+            flash("Accesso non autorizzato. È richiesto un account amministratore.", "danger")
+            return redirect(url_for('index'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Rotte di amministrazione
+@app.route('/admin')
+@admin_required
+def admin_dashboard():
+    with db_cursor(dictionary=True) as (cursor, conn):
+        cursor.execute('SELECT * FROM cars')
+        cars = cursor.fetchall()
+    return render_template('admin/dashboard.html', cars=cars)
+
+@app.route('/admin/car/add', methods=['GET', 'POST'])
+@admin_required
+def admin_add_car():
+    if request.method == 'POST':
+        try:
+            # Ottieni i dati della macchina dal form
+            name = request.form['name']
+            small_description = request.form['small_description']
+            description = request.form['description']
+            brand = request.form['brand']
+            model = request.form['model']
+            year = request.form['year']
+            engine = request.form['engine']
+            
+            # Ottieni l'URL dell'immagine principale
+            main_image_url = request.form.get('main_image_url', '')
+            
+            # Verifica che l'URL dell'immagine sia stato fornito
+            if not main_image_url:
+                return jsonify(success=False, message='URL dell\'immagine principale mancante')
+            
+            # Inserisci la macchina nel database
+            with db_cursor() as (cursor, conn):
+                cursor.execute('''
+                    INSERT INTO cars (name, small_description, description, image, brand, model, year, engine)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ''', (name, small_description, description, main_image_url, brand, model, year, engine))
+                conn.commit()
+                
+                # Ottieni l'ID della macchina appena inserita
+                car_id = cursor.lastrowid
+                
+                # Gestisci le immagini aggiuntive
+                additional_image_urls = request.form.getlist('additional_image_urls[]')
+                for img_url in additional_image_urls:
+                    if img_url and img_url.strip():
+                        # Inserisci l'URL dell'immagine nella tabella car_images
+                        cursor.execute('''
+                            INSERT INTO car_images (car_id, image)
+                            VALUES (%s, %s)
+                        ''', (car_id, img_url.strip()))
+                conn.commit()
+                
+                app.logger.info(f"Auto aggiunta con successo: {name}, Immagine: {main_image_url}")
+            
+            return jsonify(success=True, message='Auto aggiunta con successo!', redirect=url_for('admin_dashboard'))
+            
+        except Exception as e:
+            app.logger.error(f"Errore nell'aggiunta dell'auto: {str(e)}")
+            return jsonify(success=False, message=f'Errore: {str(e)}')
+            
+    return render_template('admin/add_car.html')
+
+@app.route('/admin/car/edit/<int:car_id>', methods=['GET', 'POST'])
+@admin_required
+def admin_edit_car(car_id):
+    # Ottieni i dati dell'auto esistente
+    with db_cursor(dictionary=True) as (cursor, conn):
+        cursor.execute('SELECT * FROM cars WHERE id = %s', (car_id,))
+        car = cursor.fetchone()
+        
+        # Ottieni le immagini aggiuntive
+        cursor.execute('SELECT * FROM car_images WHERE car_id = %s', (car_id,))
+        additional_images = cursor.fetchall()
+    
+    if not car:
+        flash('Auto non trovata', 'danger')
+        return redirect(url_for('admin_dashboard'))
+    
+    if request.method == 'POST':
+        try:
+            # Ottieni i dati aggiornati dal form
+            name = request.form['name']
+            small_description = request.form['small_description']
+            description = request.form['description']
+            brand = request.form['brand']
+            model = request.form['model']
+            year = request.form['year']
+            engine = request.form['engine']
+            
+            # Aggiorna l'URL dell'immagine principale
+            main_image_url = request.form.get('main_image_url')
+            if main_image_url is not None:
+                main_image_url = main_image_url.strip()
+                with db_cursor() as (cursor, conn):
+                    cursor.execute('UPDATE cars SET image = %s WHERE id = %s', (main_image_url, car_id))
+                    conn.commit()
+            
+            # Dopo l'aggiornamento, ricarica i dati aggiornati
+            with db_cursor(dictionary=True) as (cursor, conn):
+                cursor.execute('SELECT * FROM cars WHERE id = %s', (car_id,))
+                car = cursor.fetchone()
+                cursor.execute('SELECT * FROM car_images WHERE car_id = %s', (car_id,))
+                additional_images = cursor.fetchall()
+            return render_template('admin/edit_car.html', car=car, additional_images=additional_images)
+        except Exception as e:
+            app.logger.error(f"Errore nell'aggiornamento dell'immagine: {str(e)}")
+            import traceback
+            app.logger.error(traceback.format_exc())
+            return jsonify(success=False, message=f'Errore: {str(e)}')
+    
+    return render_template('admin/edit_car.html', car=car, additional_images=additional_images)
+
+@app.route('/admin/car/delete/<int:car_id>', methods=['POST'])
+@admin_required
+def admin_delete_car(car_id):
+    try:
+        with db_cursor() as (cursor, conn):
+            # Prima elimina le immagini aggiuntive
+            cursor.execute('DELETE FROM car_images WHERE car_id = %s', (car_id,))
+            # Poi elimina i possibili preferiti
+            cursor.execute('DELETE FROM favorites WHERE car_id = %s', (car_id,))
+            # Infine elimina l'auto
+            cursor.execute('DELETE FROM cars WHERE id = %s', (car_id,))
+            
+        return jsonify(success=True, message='Auto eliminata con successo!')
+    except Exception as e:
+        app.logger.error(f"Errore nell'eliminazione dell'auto: {str(e)}")
+        return jsonify(success=False, message=f'Errore: {str(e)}')
+
+@app.route('/admin/car/update_image/<int:car_id>', methods=['POST'])
+@admin_required
+def admin_update_car_image(car_id):
+    # ...existing code...
+    image_url = request.form.get('image_url', '').strip()
+    if not image_url:
+        return jsonify(success=False, message='URL immagine mancante')
+    try:
+        with db_cursor() as (cursor, conn):
+            cursor.execute('UPDATE cars SET image = %s WHERE id = %s', (image_url, car_id))
+            conn.commit()
+        return jsonify(success=True, message='Immagine aggiornata con successo!', image_url=image_url)
+    except Exception as e:
+        return jsonify(success=False, message=f'Errore: {str(e)}')
+
 if __name__ == '__main__':
+    # Genera l'hash della password per l'admin (utilizzare solo una volta per generare l'hash)
+    if '--generate-admin-hash' in sys.argv:
+        admin_password = 'admin123'
+        hashed_password = generate_password_hash(admin_password)
+        print(f"Hash per la password admin 'admin123': {hashed_password}")
+    
     app.run(host='0.0.0.0')

@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Aggiungi Auto - Wiki Sport Cars{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Aggiungi Nuova Auto</h1>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Torna alla Dashboard
+                </a>
+            </div>
+            
+            <div class="card">
+                <div class="card-body">
+                    <form id="addCarForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="name" class="form-label">Nome*</label>
+                                    <input type="text" class="form-control" id="name" name="name" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="brand" class="form-label">Marca*</label>
+                                    <input type="text" class="form-control" id="brand" name="brand" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="model" class="form-label">Modello*</label>
+                                    <input type="text" class="form-control" id="model" name="model" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="year" class="form-label">Anno</label>
+                                    <input type="number" class="form-control" id="year" name="year" min="1900" max="2100">
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="engine" class="form-label">Motore*</label>
+                                    <input type="text" class="form-control" id="engine" name="engine" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="small_description" class="form-label">Breve Descrizione*</label>
+                                    <input type="text" class="form-control" id="small_description" name="small_description" maxlength="100" required>
+                                    <small class="text-muted">Max 100 caratteri</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Descrizione Completa*</label>
+                                    <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="mb-3">
+                                    <label for="main_image_url" class="form-label">URL Immagine Principale*</label>
+                                    <input type="url" class="form-control" id="main_image_url" name="main_image_url" required>
+                                    <small class="text-muted">Inserisci l'URL completo dell'immagine (es. https://example.com/image.jpg)</small>
+                                    <div class="mt-2" id="main_image_preview"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Immagini Aggiuntive</label>
+                                    <div id="additional_images_container">
+                                        <div class="input-group mb-2">
+                                            <input type="url" class="form-control" name="additional_image_urls[]" placeholder="URL immagine">
+                                            <button type="button" class="btn btn-outline-danger remove-image" disabled>
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="add_image_field">
+                                        <i class="fas fa-plus"></i> Aggiungi altra immagine
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-end mt-3">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Salva Auto
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // Anteprima immagine principale
+        $('#main_image_url').on('input', function() {
+            const url = $(this).val();
+            if (url) {
+                $('#main_image_preview').html(`<img src="${url}" class="img-thumbnail mt-2" style="max-height: 200px;">`);
+            } else {
+                $('#main_image_preview').empty();
+            }
+        });
+        
+        // Gestione campi immagini aggiuntive
+        $('#add_image_field').click(function() {
+            const newField = `
+                <div class="input-group mb-2">
+                    <input type="url" class="form-control" name="additional_image_urls[]" placeholder="URL immagine">
+                    <button type="button" class="btn btn-outline-danger remove-image">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            $('#additional_images_container').append(newField);
+        });
+        
+        // Rimozione campi immagini aggiuntive
+        $(document).on('click', '.remove-image', function() {
+            $(this).closest('.input-group').remove();
+        });
+        
+        // Gestione invio form
+        $('#addCarForm').submit(function(e) {
+            e.preventDefault();
+            
+            // Disabilita il pulsante di invio per evitare invii multipli
+            const submitBtn = $(this).find('button[type="submit"]');
+            submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Salvataggio...');
+            
+            // Invia i dati al server
+            $.ajax({
+                url: "{{ url_for('admin_add_car') }}",
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                        // Reindirizza alla dashboard dopo un breve ritardo
+                        setTimeout(function() {
+                            window.location.href = response.redirect;
+                        }, 1500);
+                    } else {
+                        toastr.error(response.message);
+                        submitBtn.prop('disabled', false).html('<i class="fas fa-save"></i> Salva Auto');
+                    }
+                },
+                error: function() {
+                    toastr.error('Si è verificato un errore durante il salvataggio dell\'auto.');
+                    submitBtn.prop('disabled', false).html('<i class="fas fa-save"></i> Salva Auto');
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -11,9 +11,14 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` VARCHAR(100) UNIQUE NOT NULL,
   `password` VARCHAR(255) NOT NULL,
   `confirmed` BOOLEAN DEFAULT 0,
-  `profile_image` VARCHAR(255) DEFAULT NULL
+  `profile_image` VARCHAR(255) DEFAULT NULL,
+  `is_admin` BOOLEAN DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+-- Inserisco un utente admin predefinito
+INSERT INTO `users` (`username`, `email`, `password`, `confirmed`, `is_admin`) VALUES 
+('admin', 'admin@example.com', 'scrypt:32768:8:1$E0pvHmjfuH3b1awv$5e4589cce9ad48548b5213e13804f05f223b3a77b8cf97590a5d7c7a691de4c0ac7d1cb06bbefc17097554aa5756919bd27468defca450c7c0686afa60f8d0b2', 1, 1);
+-- Password: admin123
 
 DROP TABLE IF EXISTS `cars`;
 CREATE TABLE cars (

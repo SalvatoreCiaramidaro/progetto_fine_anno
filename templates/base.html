@@ -48,6 +48,9 @@
                         <div class="profile-dropdown" id="profileDropdown">
                             <a href="{{ url_for('profile') }}">Profilo</a>
                             <a href="{{ url_for('favorites') }}">Preferiti</a>
+                            {% if current_user.is_authenticated and current_user.is_admin %}
+                                <a href="{{ url_for('admin_dashboard') }}">Amministrazione</a>
+                            {% endif %}
                             <a href="{{ url_for('logout') }}">Logout</a>
                         </div>
                     </div>
