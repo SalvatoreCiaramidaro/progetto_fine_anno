@@ -12,84 +12,65 @@
                     <i class="fas fa-arrow-left"></i> Torna alla Dashboard
                 </a>
             </div>
-            <div class="card">
-                <div class="card-body">
-                    <!-- SEZIONE SOLO PER L'IMMAGINE PRINCIPALE -->
-                    <div class="mb-3">
-                        <label for="main_image_url" class="form-label">URL Immagine Principale</label>
-                        <div class="input-group">
-                            <input type="url" class="form-control" id="main_image_url" name="main_image_url" value="{{ car.image }}">
-                            <button type="button" class="btn btn-success" id="update_image_btn" onclick="updateImageOnly(event, {{ car.id }})">
-                                <i class="fas fa-sync"></i> Aggiorna
-                            </button>
-                        </div>
-                        <small class="text-muted">Inserisci l'URL completo dell'immagine e premi "Aggiorna"</small>
-                        <div class="mt-2" id="main_image_preview">
-                            <img src="{{ car.image }}" class="img-thumbnail" style="max-height: 200px;">
+
+            <form id="editCarForm" method="POST" action="{{ url_for('admin_edit_car', car_id=car.id) }}">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Immagine Principale</h5>
+                        <div class="mb-3">
+                            <div class="input-group">
+                                <input type="url" class="form-control" id="main_image_url" name="main_image_url" value="{{ car.image }}">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-sync"></i> Aggiorna
+                                </button>
+                            </div>
+                            <small class="text-muted">Inserisci l'URL completo dell'immagine e premi "Aggiorna" o Invio</small>
+                            <div class="mt-2" id="main_image_preview">
+                                <img src="{{ car.image }}" class="img-thumbnail" style="max-height: 200px;">
+                            </div>
                         </div>
                     </div>
-                    <!-- FORM PRINCIPALE PER GLI ALTRI DATI AUTO -->
-                    <form id="editCarForm">
+                </div>
+
+                <!-- Campi form -->
+                <div class="card">
+                    <div class="card-body">
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Nome*</label>
                                     <input type="text" class="form-control" id="name" name="name" value="{{ car.name }}" required>
                                 </div>
-                                
                                 <div class="mb-3">
                                     <label for="brand" class="form-label">Marca*</label>
                                     <input type="text" class="form-control" id="brand" name="brand" value="{{ car.brand }}" required>
                                 </div>
-                                
                                 <div class="mb-3">
                                     <label for="model" class="form-label">Modello*</label>
                                     <input type="text" class="form-control" id="model" name="model" value="{{ car.model }}" required>
                                 </div>
-                                
                                 <div class="mb-3">
                                     <label for="year" class="form-label">Anno</label>
                                     <input type="number" class="form-control" id="year" name="year" value="{{ car.year }}" min="1900" max="2100">
                                 </div>
                             </div>
-                            
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label for="engine" class="form-label">Motore*</label>
                                     <input type="text" class="form-control" id="engine" name="engine" value="{{ car.engine }}" required>
                                 </div>
-                                
                                 <div class="mb-3">
                                     <label for="small_description" class="form-label">Breve Descrizione*</label>
                                     <input type="text" class="form-control" id="small_description" name="small_description" maxlength="100" value="{{ car.small_description }}" required>
                                     <small class="text-muted">Max 100 caratteri</small>
                                 </div>
-                                
                                 <div class="mb-3">
                                     <label for="description" class="form-label">Descrizione Completa*</label>
                                     <textarea class="form-control" id="description" name="description" rows="4" required>{{ car.description }}</textarea>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="mb-3">
-                                    <label for="main_image_url" class="form-label">URL Immagine Principale</label>
-                                    <div class="input-group">
-                                        <input type="url" class="form-control" id="main_image_url" name="main_image_url" value="{{ car.image }}">
-                                        <button type="button" class="btn btn-success" id="update_image_btn" onclick="updateImageOnly(event, {{ car.id }})">
-                                            <i class="fas fa-sync"></i> Aggiorna
-                                        </button>
-                                    </div>
-                                    <small class="text-muted">Inserisci l'URL completo dell'immagine e premi "Aggiorna"</small>
-                                    <div class="mt-2" id="main_image_preview">
-                                        <img src="{{ car.image }}" class="img-thumbnail" style="max-height: 200px;">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
+
                         <!-- Immagini aggiuntive esistenti -->
                         <div class="row mt-4">
                             <div class="col-12">
@@ -109,14 +90,14 @@
                                         </div>
                                     </div>
                                     {% endfor %}
-                                    
+
                                     {% if not additional_images %}
                                     <p class="text-muted">Nessuna immagine aggiuntiva presente.</p>
                                     {% endif %}
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Aggiungi nuove immagini -->
                         <div class="row mt-3">
                             <div class="col-12">
@@ -136,15 +117,15 @@
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="text-end mt-3">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Salva Modifiche
                             </button>
                         </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 </div>
@@ -152,99 +133,22 @@
 
 {% block scripts %}
 <script>
-// Funzione globale per aggiornare solo l'immagine
-function updateImageOnly(event, carId) {
-    event.preventDefault();
-    const imageUrl = $('#main_image_url').val();
-    if (!imageUrl) {
-        toastr.error('Inserisci un URL valido per l\'immagine');
-        return;
-    }
-    const updateButton = $('#update_image_btn');
-    updateButton.prop('disabled', true);
-    updateButton.html('<i class="fas fa-spinner fa-spin"></i> Aggiornamento...');
-    $.ajax({
-        url: "/admin/car/update_image/" + carId,
-        type: 'POST',
-        data: { image_url: imageUrl },
-        success: function(response) {
-            if (response.success) {
-                toastr.success(response.message);
-                // Aggiorna l'anteprima senza refresh
-                $('#main_image_preview img').attr('src', imageUrl);
-            } else {
-                toastr.error(response.message);
-            }
-        },
-        error: function(xhr, status, error) {
-            toastr.error('Si è verificato un errore durante l\'aggiornamento dell\'immagine');
-        },
-        complete: function() {
-            updateButton.prop('disabled', false);
-            updateButton.html('<i class="fas fa-sync"></i> Aggiorna');
-        }
-    });
-}
 $(document).ready(function() {
-    // Anteprima live mentre scrivi
-    $('#main_image_url').on('input', function() {
-        const url = $(this).val();
-        if (url) {
-            $('#main_image_preview').html(`<img src="${url}" class="img-thumbnail" style="max-height: 200px;">`);
-        } else {
-            $('#main_image_preview').html(`<img src="{{ car.image }}" class="img-thumbnail" style="max-height: 200px;">`);
-        }
-    });
-    // Gestione campi immagini aggiuntive
-    $('#add_image_field').click(function() {
+    // Aggiungi nuovo campo immagine
+    $('#add_image_field').on('click', function() {
         const newField = `
             <div class="input-group mb-2">
                 <input type="url" class="form-control" name="additional_image_urls[]" placeholder="URL immagine">
                 <button type="button" class="btn btn-outline-danger remove-image">
                     <i class="fas fa-times"></i>
                 </button>
-            </div>
-        `;
+            </div>`;
         $('#additional_images_container').append(newField);
     });
-    
-    // Rimozione campi immagini aggiuntive
-    $(document).on('click', '.remove-image', function() {
-        if (!$(this).prop('disabled')) {
-            $(this).closest('.input-group').remove();
-        }
-    });
-    
-    // Gestione invio form
-    $('#editCarForm').submit(function(e) {
-        e.preventDefault();
-        
-        // Disabilita il pulsante di invio per evitare invii multipli
-        const submitBtn = $(this).find('button[type="submit"]');
-        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Salvataggio...');
-        
-        // Invia i dati al server
-        $.ajax({
-            url: "{{ url_for('admin_edit_car', car_id=car.id) }}",
-            type: 'POST',
-            data: $(this).serialize(),
-            success: function(response) {
-                if (response.success) {
-                    toastr.success(response.message);
-                    // Reindirizza alla dashboard dopo un breve ritardo
-                    setTimeout(function() {
-                        window.location.href = response.redirect;
-                    }, 1500);
-                } else {
-                    toastr.error(response.message);
-                    submitBtn.prop('disabled', false).html('<i class="fas fa-save"></i> Salva Modifiche');
-                }
-            },
-            error: function() {
-                toastr.error('Si è verificato un errore durante il salvataggio dell\'auto.');
-                submitBtn.prop('disabled', false).html('<i class="fas fa-save"></i> Salva Modifiche');
-            }
-        });
+
+    // Rimuovi campo immagine
+    $('#additional_images_container').on('click', '.remove-image', function() {
+        $(this).closest('.input-group').remove();
     });
 });
 </script>

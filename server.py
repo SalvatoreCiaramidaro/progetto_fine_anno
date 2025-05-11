@@ -581,43 +581,34 @@ def admin_add_car():
             model = request.form['model']
             year = request.form['year']
             engine = request.form['engine']
-            
-            # Ottieni l'URL dell'immagine principale
             main_image_url = request.form.get('main_image_url', '')
             
-            # Verifica che l'URL dell'immagine sia stato fornito
             if not main_image_url:
-                return jsonify(success=False, message='URL dell\'immagine principale mancante')
+                flash('URL dell\'immagine principale mancante', 'danger')
+                return redirect(url_for('admin_add_car'))
             
-            # Inserisci la macchina nel database
             with db_cursor() as (cursor, conn):
                 cursor.execute('''
                     INSERT INTO cars (name, small_description, description, image, brand, model, year, engine)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ''', (name, small_description, description, main_image_url, brand, model, year, engine))
-                conn.commit()
                 
-                # Ottieni l'ID della macchina appena inserita
                 car_id = cursor.lastrowid
                 
                 # Gestisci le immagini aggiuntive
                 additional_image_urls = request.form.getlist('additional_image_urls[]')
                 for img_url in additional_image_urls:
                     if img_url and img_url.strip():
-                        # Inserisci l'URL dell'immagine nella tabella car_images
-                        cursor.execute('''
-                            INSERT INTO car_images (car_id, image)
-                            VALUES (%s, %s)
-                        ''', (car_id, img_url.strip()))
+                        cursor.execute('INSERT INTO car_images (car_id, image) VALUES (%s, %s)', 
+                                     (car_id, img_url.strip()))
                 conn.commit()
-                
-                app.logger.info(f"Auto aggiunta con successo: {name}, Immagine: {main_image_url}")
             
-            return jsonify(success=True, message='Auto aggiunta con successo!', redirect=url_for('admin_dashboard'))
+            flash('Auto aggiunta con successo!', 'success')
+            return redirect(url_for('admin_dashboard'))
             
         except Exception as e:
-            app.logger.error(f"Errore nell'aggiunta dell'auto: {str(e)}")
-            return jsonify(success=False, message=f'Errore: {str(e)}')
+            flash(f'Errore: {str(e)}', 'danger')
+            return redirect(url_for('admin_add_car'))
             
     return render_template('admin/add_car.html')
 
@@ -628,48 +619,59 @@ def admin_edit_car(car_id):
     with db_cursor(dictionary=True) as (cursor, conn):
         cursor.execute('SELECT * FROM cars WHERE id = %s', (car_id,))
         car = cursor.fetchone()
-        
-        # Ottieni le immagini aggiuntive
         cursor.execute('SELECT * FROM car_images WHERE car_id = %s', (car_id,))
         additional_images = cursor.fetchall()
-    
+
     if not car:
         flash('Auto non trovata', 'danger')
         return redirect(url_for('admin_dashboard'))
-    
+
     if request.method == 'POST':
         try:
             # Ottieni i dati aggiornati dal form
-            name = request.form['name']
-            small_description = request.form['small_description']
-            description = request.form['description']
-            brand = request.form['brand']
-            model = request.form['model']
-            year = request.form['year']
-            engine = request.form['engine']
-            
-            # Aggiorna l'URL dell'immagine principale
+            name = request.form.get('name')
+            small_description = request.form.get('small_description')
+            description = request.form.get('description')
+            brand = request.form.get('brand')
+            model = request.form.get('model')
+            year = request.form.get('year')
+            engine = request.form.get('engine')
             main_image_url = request.form.get('main_image_url')
-            if main_image_url is not None:
-                main_image_url = main_image_url.strip()
-                with db_cursor() as (cursor, conn):
-                    cursor.execute('UPDATE cars SET image = %s WHERE id = %s', (main_image_url, car_id))
-                    conn.commit()
-            
-            # Dopo l'aggiornamento, ricarica i dati aggiornati
-            with db_cursor(dictionary=True) as (cursor, conn):
-                cursor.execute('SELECT * FROM cars WHERE id = %s', (car_id,))
-                car = cursor.fetchone()
-                cursor.execute('SELECT * FROM car_images WHERE car_id = %s', (car_id,))
-                additional_images = cursor.fetchall()
-            return render_template('admin/edit_car.html', car=car, additional_images=additional_images)
+
+            # Aggiorna l'auto nel database
+            with db_cursor() as (cursor, conn):
+                cursor.execute('''
+                    UPDATE cars SET name = %s, small_description = %s, description = %s,
+                    image = %s, brand = %s, model = %s, year = %s, engine = %s WHERE id = %s
+                ''', (name, small_description, description, main_image_url,
+                      brand, model, year, engine, car_id))
+
+                # Elimina immagini selezionate
+                image_ids_to_delete = request.form.getlist('delete_image')
+                if image_ids_to_delete:
+                    format_strings = ','.join(['%s'] * len(image_ids_to_delete))
+                    cursor.execute(f"DELETE FROM car_images WHERE id IN ({format_strings})", tuple(image_ids_to_delete))
+
+                # Aggiungi nuove immagini
+                additional_image_urls = request.form.getlist('additional_image_urls[]')
+                for img_url in additional_image_urls:
+                    if img_url.strip():
+                        cursor.execute('INSERT INTO car_images (car_id, image) VALUES (%s, %s)', (car_id, img_url.strip()))
+
+                conn.commit()
+
+            flash('Auto aggiornata con successo!', 'success')
+            return redirect(url_for('admin_dashboard'))
+
         except Exception as e:
-            app.logger.error(f"Errore nell'aggiornamento dell'immagine: {str(e)}")
+            app.logger.error(f"Errore nell'aggiornamento dell'auto: {str(e)}")
             import traceback
             app.logger.error(traceback.format_exc())
-            return jsonify(success=False, message=f'Errore: {str(e)}')
-    
+            flash('Errore durante l\'aggiornamento', 'danger')
+
     return render_template('admin/edit_car.html', car=car, additional_images=additional_images)
+
+
 
 @app.route('/admin/car/delete/<int:car_id>', methods=['POST'])
 @admin_required
@@ -691,16 +693,21 @@ def admin_delete_car(car_id):
 @app.route('/admin/car/update_image/<int:car_id>', methods=['POST'])
 @admin_required
 def admin_update_car_image(car_id):
-    # ...existing code...
-    image_url = request.form.get('image_url', '').strip()
-    if not image_url:
-        return jsonify(success=False, message='URL immagine mancante')
     try:
+        image_url = request.form.get('image_url', '').strip()
+        if not image_url:
+            return jsonify(success=False, message='URL dell\'immagine mancante')
+        
         with db_cursor() as (cursor, conn):
             cursor.execute('UPDATE cars SET image = %s WHERE id = %s', (image_url, car_id))
             conn.commit()
+            
         return jsonify(success=True, message='Immagine aggiornata con successo!', image_url=image_url)
+        
     except Exception as e:
+        app.logger.error(f"Errore nell'aggiornamento dell'immagine: {str(e)}")
+        import traceback
+        app.logger.error(f"Traceback completo: {traceback.format_exc()}")
         return jsonify(success=False, message=f'Errore: {str(e)}')
 
 if __name__ == '__main__':

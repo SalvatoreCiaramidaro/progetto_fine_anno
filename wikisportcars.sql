@@ -25,7 +25,7 @@ CREATE TABLE cars (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     small_description VARCHAR(100) NOT NULL,
-    description VARCHAR(1000) NOT NULL,
+    description VARCHAR(10000) NOT NULL,
     image VARCHAR(200) NOT NULL,
     brand VARCHAR(100) NOT NULL,
     model VARCHAR(100) NOT NULL,
