@@ -30,7 +30,7 @@
                             </thead>
                             <tbody>
                                 {% for car in cars %}
-                                <tr id="car-row-{{ car.id }}">
+                                <tr>
                                     <td>
                                         <img src="{{ car.image }}" alt="{{ car.name }}" class="img-thumbnail" style="max-width: 100px;">
                                     </td>
@@ -65,7 +65,7 @@ $(document).ready(function() {
     $('.delete-car').on('click', function() {
         const btn = $(this);
         const carId = btn.data('car-id');
-        const row = $('#car-row-' + carId);
+        const row = btn.closest('tr');
         const originalIcon = btn.html();
 
         if (confirm('Sei sicuro di voler eliminare questa auto?')) {
@@ -76,9 +76,10 @@ $(document).ready(function() {
                 type: 'POST',
                 dataType: 'json',
                 success: function(response) {
-                    console.log('Response:', response);
-                    if (response.success === true || response.success === "true") {
-                        toastr.success(response.message);
+                    console.log('DEBUG RESPONSE:', response);
+
+                    if (response.success) {
+                        toastr.success(response.message || 'Auto eliminata');
                         row.fadeOut(300, function() {
                             $(this).remove();
                         });
@@ -88,7 +89,7 @@ $(document).ready(function() {
                     }
                 },
                 error: function() {
-                    toastr.error('Errore durante l\'eliminazione dell\'auto');
+                    toastr.error('Errore nella richiesta al server');
                     btn.prop('disabled', false).html(originalIcon);
                 }
             });
