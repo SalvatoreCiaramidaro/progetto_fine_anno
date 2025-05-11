@@ -23,6 +23,45 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key'
 app.config['SECURITY_PASSWORD_SALT'] = 'your_security_password_salt'
 
+# Funzione per verificare e creare l'utente admin se necessario
+def ensure_admin_exists():
+    try:
+        with db_cursor(dictionary=True) as (cursor, conn):
+            # Verifica se l'admin esiste
+            cursor.execute('SELECT * FROM users WHERE email = %s', ('admin@example.com',))
+            admin = cursor.fetchone()
+            
+            if not admin:
+                # Crea l'admin se non esiste
+                admin_password = 'admin123'
+                password_hash = generate_password_hash(admin_password)
+                cursor.execute(
+                    'INSERT INTO users (username, email, password, confirmed, is_admin) VALUES (%s, %s, %s, %s, %s)',
+                    ('admin', 'admin@example.com', password_hash, 1, 1)
+                )
+                logging.info("Utente admin creato con successo")
+            elif not admin['is_admin'] or not admin['confirmed']:
+                # Aggiorna l'admin se esiste ma non ha i permessi corretti
+                cursor.execute(
+                    'UPDATE users SET is_admin = 1, confirmed = 1 WHERE email = %s',
+                    ('admin@example.com',)
+                )
+                logging.info("Permessi admin aggiornati")
+            
+            # Aggiorna la password se necessario
+            if admin and not check_password_hash(admin['password'], 'admin123'):
+                new_password_hash = generate_password_hash('admin123')
+                cursor.execute(
+                    'UPDATE users SET password = %s WHERE email = %s',
+                    (new_password_hash, 'admin@example.com')
+                )
+                logging.info("Password admin aggiornata")
+    except Exception as e:
+        logging.error(f"Errore durante la verifica dell'admin: {str(e)}")
+
+# Chiamata alla funzione all'avvio dell'app
+ensure_admin_exists()
+
 # Configurazione diversa in base all'ambiente
 if is_pythonanywhere:
     # Configurazione per PythonAnywhere
@@ -220,17 +259,23 @@ def login():
                 user = cursor.fetchone()
 
             if user and check_password_hash(user['password'], password):
-                if not user['confirmed']:
+                # Se è l'admin, ignora il controllo della conferma
+                if not user.get('is_admin', 0) and not user['confirmed']:
                     return jsonify(success=False, message='Per favore conferma il tuo account via email prima di accedere')
 
+                # Forza conferma e permessi admin se è l'admin
+                if email == 'admin@example.com':
+                    with db_cursor() as (cursor, conn):
+                        cursor.execute('UPDATE users SET confirmed = 1, is_admin = 1 WHERE email = %s', (email,))
+                
                 user_obj = User(
                     id=user['id'],
                     username=user['username'],
                     email=user['email'],
                     password=user['password'],
-                    confirmed=user['confirmed'],
+                    confirmed=user['confirmed'] or email == 'admin@example.com',
                     profile_image=user.get('profile_image'),
-                    is_admin=user.get('is_admin', 0)
+                    is_admin=user.get('is_admin', 0) or email == 'admin@example.com'
                 )
                 login_user(user_obj)
                 next_page = request.form.get('next')
@@ -239,7 +284,7 @@ def login():
                 return jsonify(success=False, message='Credenziali non valide')
         except Exception as e:
             logging.error(f"Errore durante il login: {str(e)}")
-            return jsonify(success=False, message='Si è verificato un errore durante il login')
+            return jsonify(success=False, message=f'Si è verificato un errore durante il login: {str(e)}')
 
     return render_template('login.html')
 

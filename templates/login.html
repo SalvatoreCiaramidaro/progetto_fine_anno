@@ -41,6 +41,38 @@
             <div class="car-animation"></div>
         </div>
     </div>
-    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const loginForm = document.querySelector('form');
+            const messageContainer = document.getElementById('message-container');
+            
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Ottieni i dati dal form
+                const formData = new FormData(loginForm);
+                
+                // Esegui la richiesta di login
+                fetch('{{ url_for("login") }}', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Redirect alla pagina successiva
+                        window.location.href = data.next || '{{ url_for("index") }}';
+                    } else {
+                        // Mostra il messaggio di errore
+                        messageContainer.innerHTML = `<p class="error-message">${data.message}</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Errore:', error);
+                    messageContainer.innerHTML = '<p class="error-message">Si è verificato un errore durante l\'accesso</p>';
+                });
+            });
+        });
+    </script>
 </body>
 </html>

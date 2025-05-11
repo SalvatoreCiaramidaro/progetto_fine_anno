@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 -- Inserisco un utente admin predefinito
 INSERT INTO `users` (`username`, `email`, `password`, `confirmed`, `is_admin`) VALUES 
-('admin', 'admin@example.com', 'scrypt:32768:8:1$E0pvHmjfuH3b1awv$5e4589cce9ad48548b5213e13804f05f223b3a77b8cf97590a5d7c7a691de4c0ac7d1cb06bbefc17097554aa5756919bd27468defca450c7c0686afa60f8d0b2', 1, 1);
+('admin', 'admin@example.com', 'pbkdf2:sha256:260000$7prJAiX6jHkAr75C$b0d3ff8cc49e3d1e1f2e9d0a80d8341c9d3f3c86ab0ca66c15c9f1e6a7c6b4f4', 1, 1);
 -- Password: admin123
 
 DROP TABLE IF EXISTS `cars`;
