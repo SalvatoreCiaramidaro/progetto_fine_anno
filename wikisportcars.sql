@@ -103,32 +103,8 @@ VALUES
 
 (2, 'https://www.autoscout24.it/cms-content-assets/2kNB9B2UWSOJMfdLiCsn7u-0f66f5f33762f0ffbfee88bef76a5cfb-ferrari-458-italia-back-1100.jpeg'),
 (2, 'https://www.autoscout24.it/cms-content-assets/6WYtZ8Kj5mO5QNBwcnCFpv-e23737ee3525530297d8ff37ec60840b-ferrari-458-italia-interior-1100.jpeg'),
-(2, 'https://upload.wikimedia.org/wikipedia/commons/6/63/Ferrari_458_Italia_engine.jpg'),
+(2, 'https://upload.wikimedia.org/wikipedia/commons/6/63/Ferrari_458_Italia_engine.jpg');
 
-
-(3, 'https://example.com/image6.jpg'),
-(3, 'https://example.com/image7.jpg'),
-
-(4, 'https://example.com/image8.jpg'),
-(4, 'https://example.com/image9.jpg'),
-
-(5, 'https://example.com/image10.jpg'),
-(5, 'https://example.com/image11.jpg'),
-
-(6, 'https://example.com/image12.jpg'),
-(6, 'https://example.com/image13.jpg'),
-
-(7, 'https://example.com/image14.jpg'),
-(7, 'https://example.com/image15.jpg'),
-
-(8, 'https://example.com/image16.jpg'),
-(8, 'https://example.com/image17.jpg'),
-
-(9, 'https://example.com/image18.jpg'),
-(9, 'https://example.com/image19.jpg'),
-
-(10, 'https://example.com/image20.jpg'),
-(10, 'https://example.com/image21.jpg');
 
 
 DROP TABLE IF EXISTS `favorites`;
