@@ -36,34 +36,32 @@ class EmailService:
             return None
 
     def send_confirmation_email(self, email):
+        from flask import current_app, url_for
         token = self._generate_token(email)
-        confirm_url = f"http://localhost:5000/confirm/{token}"
-        
+        confirm_url = url_for('confirm_email', token=token, _external=True, _scheme=current_app.config.get('PREFERRED_URL_SCHEME', 'http'))
         subject = "Conferma la tua email - WikiSportCars"
         body = f"""
         <p>Benvenuto in WikiSportCars!</p>
         <p>Per confermare il tuo account, clicca sul seguente link:</p>
-        <p><a href="{confirm_url}">Conferma il tuo account</a></p>
+        <p><a href=\"{confirm_url}\">Conferma il tuo account</a></p>
         <p>Se non hai richiesto la registrazione su WikiSportCars, ignora questa email.</p>
         <p>Saluti,<br>Il team di WikiSportCars</p>
         """
-        
         msg = Message(subject=subject, recipients=[email], html=body)
         self.mail.send(msg)
 
     def send_password_reset_email(self, email):
+        from flask import current_app, url_for
         token = self._generate_token(email)
-        reset_url = f"http://localhost:5000/reset_password/{token}"
-        
+        reset_url = url_for('reset_password', token=token, _external=True, _scheme=current_app.config.get('PREFERRED_URL_SCHEME', 'http'))
         subject = "Recupero Password - WikiSportCars"
         body = f"""
         <p>Hai richiesto il recupero della tua password su WikiSportCars.</p>
         <p>Per reimpostare la tua password, clicca sul seguente link:</p>
-        <p><a href="{reset_url}">Reimposta la tua password</a></p>
+        <p><a href=\"{reset_url}\">Reimposta la tua password</a></p>
         <p>Se non hai richiesto il recupero della password, ignora questa email.</p>
         <p>Saluti,<br>Il team di WikiSportCars</p>
         """
-        
         msg = Message(subject=subject, recipients=[email], html=body)
         self.mail.send(msg)
 
