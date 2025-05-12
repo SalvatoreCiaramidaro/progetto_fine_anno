@@ -67,10 +67,14 @@ if is_pythonanywhere:
     # Configurazione per PythonAnywhere
     app.config['UPLOAD_FOLDER'] = '/home/Ciaramid06/progetto_fine_anno/static/profile_images'
     app.debug = False
+    app.config['SERVER_NAME'] = 'ciaramid06.pythonanywhere.com'
+    app.config['PREFERRED_URL_SCHEME'] = 'https'
 else:
     # Configurazione per ambiente locale
     app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/profile_images')
     app.debug = True
+    app.config['SERVER_NAME'] = 'localhost:5000'
+    app.config['PREFERRED_URL_SCHEME'] = 'http'
 
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif','svg'}
 
