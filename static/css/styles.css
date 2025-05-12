@@ -399,19 +399,20 @@ button:hover {
     overflow: hidden;
     transition: max-height 0.3s ease-out;
     max-height: 0;
+    right: 0;
+    left: auto;
 }
 
 .dropdown-content a {
-    color: black;
-    padding: 12px 16px;
-    text-decoration: none;
     display: block;
-    border-radius: 5px;
-    transition: background 0.3s, padding-left 0.3s;
+    padding: 12px 16px; /* Stessa spaziatura interna degli elementi del menu */
+    text-decoration: none;
+    color: #ffffff;
+    transition: background-color 0.2s, padding-left 0.3s;
 }
 
 .dropdown-content a:hover {
-    background-color: #f1f1f1;
+    background-color: #45a049;
     padding-left: 20px;
 }
 

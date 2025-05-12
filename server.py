@@ -314,28 +314,73 @@ def register():
 @app.route('/car/<int:car_id>')
 def car_detail(car_id):
     with db_cursor(dictionary=True) as (cursor, conn):
-        # Ottieni i dettagli della macchina
         cursor.execute('SELECT * FROM cars WHERE id = %s', (car_id,))
         car = cursor.fetchone()
-
-        # Ottieni le immagini extra dalla tabella 'car_images'
+    with db_cursor(dictionary=True) as (cursor, conn):
         cursor.execute('SELECT image FROM car_images WHERE car_id = %s', (car_id,))
         images = cursor.fetchall()
-
+    with db_cursor(dictionary=True) as (cursor, conn):
+        cursor.execute('SELECT AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE car_id = %s', (car_id,))
+        rating_data = cursor.fetchone()
+    with db_cursor(dictionary=True) as (cursor, conn):
+        cursor.execute('''SELECT r.*, u.username, u.profile_image FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.car_id = %s ORDER BY r.created_at DESC''', (car_id,))
+        reviews = cursor.fetchall()
+    user_review = None
+    if current_user.is_authenticated:
+        with db_cursor(dictionary=True) as (cursor, conn):
+            cursor.execute('SELECT * FROM reviews WHERE user_id = %s AND car_id = %s', (current_user.id, car_id))
+            user_review = cursor.fetchone()
     if car:
-        # Converti in lista semplice di link
         car['images'] = [img['image'] for img in images]
-
-    # Controllo se la macchina è già nei preferiti
+    avg_rating = round(rating_data['avg_rating'], 1) if rating_data['avg_rating'] else 0
+    review_count = rating_data['review_count'] or 0
     is_favorite = False
     if current_user.is_authenticated:
         with db_cursor() as (cursor, conn):
             cursor.execute('SELECT * FROM favorites WHERE user_id = %s AND car_id = %s', (current_user.id, car_id))
             if cursor.fetchone():
                 is_favorite = True
+    return render_template('car_detail.html', car=car, is_favorite=is_favorite, avg_rating=avg_rating, review_count=review_count, reviews=reviews, user_review=user_review)
 
-    return render_template('car_detail.html', car=car, is_favorite=is_favorite)
 
+@app.route('/add_review/<int:car_id>', methods=['POST'])
+@login_required
+def add_review(car_id):
+    try:
+        rating = int(request.form.get('rating', 0))
+        comment = request.form.get('comment', '').strip()
+        if rating < 1 or rating > 5:
+            return jsonify(success=False, message='La valutazione deve essere tra 1 e 5')
+        with db_cursor() as (cursor, conn):
+            cursor.execute('SELECT id FROM reviews WHERE user_id = %s AND car_id = %s', (current_user.id, car_id))
+            existing = cursor.fetchone()
+            if existing:
+                cursor.execute('UPDATE reviews SET rating = %s, comment = %s, created_at = CURRENT_TIMESTAMP WHERE user_id = %s AND car_id = %s', (rating, comment, current_user.id, car_id))
+                msg = 'Recensione aggiornata!'
+            else:
+                cursor.execute('INSERT INTO reviews (car_id, user_id, rating, comment) VALUES (%s, %s, %s, %s)', (car_id, current_user.id, rating, comment))
+                msg = 'Recensione aggiunta!'
+            conn.commit()
+        return jsonify(success=True, message=msg)
+    except Exception as e:
+        return jsonify(success=False, message=f'Errore: {str(e)}')
+
+@app.route('/delete_review/<int:review_id>', methods=['POST'])
+@login_required
+def delete_review(review_id):
+    try:
+        with db_cursor(dictionary=True) as (cursor, conn):
+            cursor.execute('SELECT * FROM reviews WHERE id = %s', (review_id,))
+            review = cursor.fetchone()
+            if not review:
+                return jsonify(success=False, message='Recensione non trovata')
+            if review['user_id'] != current_user.id and not current_user.is_admin:
+                return jsonify(success=False, message='Non hai il permesso di eliminare questa recensione')
+            cursor.execute('DELETE FROM reviews WHERE id = %s', (review_id,))
+            conn.commit()
+        return jsonify(success=True, message='Recensione eliminata')
+    except Exception as e:
+        return jsonify(success=False, message=f'Errore: {str(e)}')
 
 
 @app.route('/favorites')

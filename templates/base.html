@@ -135,6 +135,35 @@
         });
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.flash-message .close-button').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    const flashMsg = btn.closest('.flash-message');
+                    if (flashMsg) flashMsg.remove();
+                });
+            });
+
+            // Dropdown per il menu non autenticato
+            const menuDropdown = document.querySelector('.dropdown');
+            const menuDropdownContent = document.querySelector('.dropdown-content');
+            const menuBtn = document.querySelector('.dropbtn');
+            if (menuDropdown && menuDropdownContent && menuBtn) {
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    menuDropdownContent.style.display = (menuDropdownContent.style.display === 'block') ? 'none' : 'block';
+                    menuDropdownContent.style.maxHeight = (menuDropdownContent.style.display === 'block') ? '500px' : '0';
+                });
+                document.addEventListener('click', function(e) {
+                    if (!menuDropdown.contains(e.target)) {
+                        menuDropdownContent.style.display = 'none';
+                        menuDropdownContent.style.maxHeight = '0';
+                    }
+                });
+            }
+        });
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -5,6 +5,19 @@
 {% block styles %}
     {{ super() }}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/car_detail.css') }}">
+    <style>
+        .rating-input {
+            display: flex;
+            flex-direction: row; /* Cambiato da row-reverse a row */
+            justify-content: flex-start;
+        }
+        .rating-input input { display: none; }
+        .rating-input label { cursor: pointer; margin-right: 5px; font-size: 24px; }
+        .rating-input label i { color: #f8ce0b; }
+        .stars-container { color: #f8ce0b; font-size: 18px; }
+        .review-card { transition: transform 0.2s; }
+        .review-card:hover { transform: translateY(-2px); }
+    </style>
 {% endblock %}
 
 {% block content %}
@@ -39,15 +52,124 @@
   {% else %}
       <p class="login-message"><a href="{{ url_for('login', next=request.path) }}">Accedi</a> per aggiungere ai preferiti.</p>
   {% endif %}
+
+  {% if car %}
+  <div class="container mt-5">
+    <div class="row">
+      <div class="col-md-12">
+        <h3>Recensioni</h3>
+        <div class="d-flex align-items-center mb-4">
+          <div class="me-3">
+            <span class="fs-2 fw-bold">{{ avg_rating }}</span>
+            <span class="text-muted">/5</span>
+          </div>
+          <div>
+            <div class="stars-container">
+              {% for i in range(1, 6) %}
+                {% if i <= avg_rating %}
+                  <i class="fas fa-star text-warning"></i>
+                {% elif i <= avg_rating + 0.5 %}
+                  <i class="fas fa-star-half-alt text-warning"></i>
+                {% else %}
+                  <i class="far fa-star text-warning"></i>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <span class="text-muted">{{ review_count }} recensioni</span>
+          </div>
+        </div>
+        {% if current_user.is_authenticated and not user_review %}
+        <div class="card mb-4">
+          <div class="card-header">Lascia una recensione</div>
+          <div class="card-body">
+            <form id="reviewForm" method="POST" action="{{ url_for('add_review', car_id=car.id) }}">
+              <div class="mb-3">
+                <label>Valutazione</label>
+                <div class="rating-input">
+                  {% for i in range(1, 6) %}
+                    <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" />
+                    <label for="star{{ i }}"><i class="far fa-star"></i></label>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="mb-3">
+                <label for="comment" class="form-label">Commento</label>
+                <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">Invia Recensione</button>
+            </form>
+          </div>
+        </div>
+        {% elif current_user.is_authenticated and user_review %}
+        <div class="alert alert-info">Hai già recensito questa auto. Puoi modificare o eliminare la tua recensione qui sotto.</div>
+        {% else %}
+        <div class="alert alert-info">
+          <a href="{{ url_for('login') }}">Accedi</a> per lasciare una recensione.
+        </div>
+        {% endif %}
+        <div id="reviewsList">
+          {% if reviews %}
+            {% for review in reviews %}
+            <div class="card mb-3 review-card" data-review-id="{{ review.id }}">
+              <div class="card-body">
+                <div class="d-flex mb-3">
+                  <div class="flex-shrink-0">
+                    {% if review.profile_image %}
+                      <img src="{{ url_for('static', filename=review.profile_image) }}" class="rounded-circle" width="50" height="50" alt="Profile">
+                    {% else %}
+                      <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; color: white;">
+                        {{ review.username[0] | upper }}
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div class="ms-3">
+                    <h5 class="mb-0">{{ review.username }}</h5>
+                    <div class="stars-container">
+                      {% for i in range(1, 6) %}
+                        {% if i <= review.rating %}
+                          <i class="fas fa-star text-warning"></i>
+                        {% else %}
+                          <i class="far fa-star text-warning"></i>
+                        {% endif %}
+                      {% endfor %}
+                    </div>
+                    <p class="text-muted small">
+                      {{ review.created_at.strftime('%d/%m/%Y %H:%M') if review.created_at else '' }}
+                    </p>
+                  </div>
+                </div>
+                <div class="review-content">
+                  <p class="card-text">{{ review.comment }}</p>
+                  <br>
+                </div>
+                {% if current_user.is_authenticated and (current_user.id == review.user_id or current_user.is_admin) %}
+                <div class="review-actions">
+                  <button type="button" class="btn btn-sm btn-outline-primary edit-review-btn" data-review-id="{{ review.id }}" data-rating="{{ review.rating }}" data-comment="{{ review.comment|escape }}">
+                    <i class="fas fa-edit"></i> Modifica
+                  </button>
+                  <button type="button" class="btn btn-sm btn-outline-danger delete-review-btn" data-review-id="{{ review.id }}">
+                    <i class="fas fa-trash-alt"></i> Elimina
+                  </button>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+          <div class="alert alert-light">Nessuna recensione disponibile per questa auto.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 {% endblock %}
 
 {% block scripts %}
     {{ super() }}
     <script>
-        let images = {{ ([car.image] + car.images)|tojson }};  
-        
-        // Variabile per tenere traccia dello stato preferito
-        let isFavorite = {% if is_favorite %}true{% else %}false{% endif %};
+    var images = {{ ([car.image] + car.images)|tojson|safe }};
+    var isFavorite = {{ is_favorite|tojson }};
 
         document.addEventListener('DOMContentLoaded', function() {
             // Gestione toggle preferiti con AJAX
@@ -146,6 +268,281 @@
                     }
                 }, 3000);
             }
+
+            // Sistema di valutazione con stelle
+            const ratingInputs = document.querySelectorAll('.rating-input input');
+            const ratingLabels = document.querySelectorAll('.rating-input label i');
+
+            function updateStars(count) {
+              ratingLabels.forEach((label, i) => {
+                if (i < count) {
+                  label.classList.remove('far');
+                  label.classList.add('fas');
+                } else {
+                  label.classList.remove('fas');
+                  label.classList.add('far');
+                }
+              });
+            }
+            function previewStars(count) {
+              ratingLabels.forEach((label, i) => {
+                if (i < count) {
+                  label.classList.remove('far');
+                  label.classList.add('fas');
+                } else {
+                  label.classList.remove('fas');
+                  label.classList.add('far');
+                }
+              });
+            }
+            ratingInputs.forEach((input, index) => {
+              input.addEventListener('click', function() { updateStars(index + 1); });
+              input.addEventListener('mouseenter', function() { previewStars(index + 1); });
+              input.addEventListener('mouseleave', function() {
+                const checkedIndex = Array.from(ratingInputs).findIndex(input => input.checked);
+                updateStars(checkedIndex !== -1 ? checkedIndex + 1 : 0);
+              });
+            });
+            const initialRating = Array.from(ratingInputs).findIndex(input => input.checked);
+            if (initialRating !== -1) { updateStars(initialRating + 1); }
+
+            // Invio recensione AJAX
+            const reviewForm = document.getElementById('reviewForm');
+            if (reviewForm) {
+                reviewForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    fetch(this.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showFlashMessage(data.message, 'success');
+                            // Aggiorna la lista recensioni senza reload
+                            fetchReviews();
+                            // Nascondi il form di aggiunta
+                            reviewForm.closest('.card').style.display = 'none';
+                        } else {
+                            showFlashMessage(data.message, 'danger');
+                        }
+                    })
+                    .catch(error => {
+                        showFlashMessage('Si è verificato un errore durante l\'invio della recensione', 'danger');
+                    });
+                });
+            }
+
+            // Funzione per aggiornare dinamicamente la lista recensioni
+            function fetchReviews() {
+                fetch(window.location.pathname + '?ajax=1')
+                .then(response => response.text())
+                .then(html => {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    const newReviewsList = tempDiv.querySelector('#reviewsList');
+                    if (newReviewsList) {
+                        document.getElementById('reviewsList').innerHTML = newReviewsList.innerHTML;
+                        bindReviewButtons();
+                    }
+                });
+            }
+
+            // Elimina/modifica recensione AJAX
+            function bindReviewButtons() {
+                document.querySelectorAll('.delete-review-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        if (confirm('Sei sicuro di voler eliminare questa recensione?')) {
+                            const reviewId = this.getAttribute('data-review-id');
+                            fetch(`/delete_review/${reviewId}`, {
+                                method: 'POST',
+                                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    showFlashMessage(data.message, 'success');
+                                    fetchReviews();
+                                    // Mostra di nuovo il form di aggiunta se era la propria recensione
+                                    if (reviewForm) reviewForm.closest('.card').style.display = '';
+                                } else {
+                                    showFlashMessage(data.message, 'danger');
+                                }
+                            })
+                            .catch(error => {
+                                showFlashMessage('Si è verificato un errore durante l\'eliminazione della recensione', 'danger');
+                            });
+                        }
+                    });
+                });
+                // Modifica inline
+                document.querySelectorAll('.edit-review-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const reviewId = this.getAttribute('data-review-id');
+                        const rating = parseInt(this.getAttribute('data-rating'));
+                        const comment = this.getAttribute('data-comment');
+                        const card = document.querySelector(`.review-card[data-review-id='${reviewId}']`);
+                        renderEditForm(card, reviewId, rating, comment);
+                        // Gestione submit
+                        card.querySelector('.edit-review-form').addEventListener('submit', function(e) {
+                            e.preventDefault();
+                            const newRating = card.querySelector('input[name=edit-rating]:checked')?.value;
+                            const newComment = card.querySelector('textarea[name=edit-comment]').value;
+                            if (!newRating) { showFlashMessage('Seleziona una valutazione', 'danger'); return; }
+                            fetch("{{ url_for('add_review', car_id=car.id) }}", {
+                                method: 'POST',
+                                body: new URLSearchParams({ rating: newRating, comment: newComment }),
+                                headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    showFlashMessage(data.message, 'success');
+                                    fetchReviews();
+                                } else {
+                                    showFlashMessage(data.message, 'danger');
+                                }
+                            })
+                            .catch(() => showFlashMessage('Errore durante la modifica', 'danger'));
+                        });
+                        // Annulla modifica
+                        card.querySelector('.cancel-edit-btn').addEventListener('click', function() {
+                            fetchReviews();
+                        });
+                    });
+                });
+            }
+            // Inizializza i pulsanti dopo il primo caricamento
+            bindReviewButtons();
+
+            // Elimina recensione
+            const deleteReviewBtn = document.getElementById('deleteReviewBtn');
+            if (deleteReviewBtn) {
+                deleteReviewBtn.addEventListener('click', function() {
+                    if (confirm('Sei sicuro di voler eliminare questa recensione?')) {
+                        const reviewId = this.getAttribute('data-review-id');
+                        fetch(`/delete_review/${reviewId}`, {
+                            method: 'POST',
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showFlashMessage(data.message, 'success');
+                                setTimeout(() => { window.location.reload(); }, 1500);
+                            } else {
+                                showFlashMessage(data.message, 'danger');
+                            }
+                        })
+                        .catch(error => {
+                            showFlashMessage('Si è verificato un errore durante l\'eliminazione della recensione', 'danger');
+                        });
+                    }
+                });
+            }
+
+            document.querySelectorAll('.delete-review-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (confirm('Sei sicuro di voler eliminare questa recensione?')) {
+                        const reviewId = this.getAttribute('data-review-id');
+                        fetch(`/delete_review/${reviewId}`, {
+                            method: 'POST',
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                showFlashMessage(data.message, 'success');
+                                const reviewCard = this.closest('.review-card');
+                                if (reviewCard) { reviewCard.remove(); } else { window.location.reload(); }
+                            } else {
+                                showFlashMessage(data.message, 'danger');
+                            }
+                        })
+                        .catch(error => {
+                            showFlashMessage('Si è verificato un errore durante l\'eliminazione della recensione', 'danger');
+                        });
+                    }
+                });
+            });
+
+            // Modifica recensione inline
+            function renderEditForm(card, reviewId, rating, comment) {
+              const starsHtml = Array.from({length: 5}, (_, i) => `
+                <input type="radio" id="edit-star${i+1}-${reviewId}" name="edit-rating" value="${i+1}" ${rating == i+1 ? 'checked' : ''} style="display:none;">
+                <label for="edit-star${i+1}-${reviewId}"><i class="${i < rating ? 'fas' : 'far'} fa-star"></i></label>
+              `).join('');
+              card.querySelector('.review-content').innerHTML = `
+                <form class="edit-review-form" data-review-id="${reviewId}">
+                  <div class="mb-2 rating-input">${starsHtml}</div>
+                  <textarea class="form-control mb-2" name="edit-comment" rows="3">${comment.replace(/&quot;/g, '"')}</textarea>
+                  <button type="submit" class="btn btn-success btn-sm">Salva</button>
+                  <button type="button" class="btn btn-secondary btn-sm cancel-edit-btn ms-2">Annulla</button>
+                </form>
+                <br>
+              `;
+              // Stelle dinamiche
+              const editInputs = card.querySelectorAll('.edit-review-form input[type=radio]');
+              const editLabels = card.querySelectorAll('.edit-review-form label i');
+              editInputs.forEach((input, idx) => {
+                input.addEventListener('click', function() {
+                  editLabels.forEach((l, i) => {
+                    if (i < idx + 1) { l.classList.remove('far'); l.classList.add('fas'); }
+                    else { l.classList.remove('fas'); l.classList.add('far'); }
+                  });
+                });
+                input.addEventListener('mouseenter', function() {
+                  editLabels.forEach((l, i) => {
+                    if (i < idx + 1) { l.classList.remove('far'); l.classList.add('fas'); }
+                    else { l.classList.remove('fas'); l.classList.add('far'); }
+                  });
+                });
+                input.addEventListener('mouseleave', function() {
+                  const checkedIndex = Array.from(editInputs).findIndex(input => input.checked);
+                  editLabels.forEach((l, i) => {
+                    if (i < checkedIndex + 1) { l.classList.remove('far'); l.classList.add('fas'); }
+                    else { l.classList.remove('fas'); l.classList.add('far'); }
+                  });
+                });
+              });
+            }
+            document.querySelectorAll('.edit-review-btn').forEach(btn => {
+              btn.addEventListener('click', function() {
+                const reviewId = this.getAttribute('data-review-id');
+                const rating = parseInt(this.getAttribute('data-rating'));
+                const comment = this.getAttribute('data-comment');
+                const card = document.querySelector(`.review-card[data-review-id='${reviewId}']`);
+                renderEditForm(card, reviewId, rating, comment);
+                // Gestione submit
+                card.querySelector('.edit-review-form').addEventListener('submit', function(e) {
+                  e.preventDefault();
+                  const newRating = card.querySelector('input[name=edit-rating]:checked')?.value;
+                  const newComment = card.querySelector('textarea[name=edit-comment]').value;
+                  if (!newRating) { showFlashMessage('Seleziona una valutazione', 'danger'); return; }
+                  fetch("{{ url_for('add_review', car_id=car.id) }}", {
+                    method: 'POST',
+                    body: new URLSearchParams({ rating: newRating, comment: newComment }),
+                    headers: { 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/x-www-form-urlencoded' }
+                  })
+                  .then(response => response.json())
+                  .then(data => {
+                    if (data.success) {
+                      showFlashMessage(data.message, 'success');
+                      setTimeout(() => { window.location.reload(); }, 1200);
+                    } else {
+                      showFlashMessage(data.message, 'danger');
+                    }
+                  })
+                  .catch(() => showFlashMessage('Errore durante la modifica', 'danger'));
+                });
+                // Annulla modifica
+                card.querySelector('.cancel-edit-btn').addEventListener('click', function() {
+                  window.location.reload();
+                });
+              });
+            });
         });
     </script>
     <script src="{{ url_for('static', filename='js/car_detail.js') }}"></script>
