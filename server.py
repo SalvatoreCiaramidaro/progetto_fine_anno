@@ -356,14 +356,23 @@ def add_to_favorites(car_id):
             # Verifica se l'auto è già nei preferiti
             cursor.execute('SELECT * FROM favorites WHERE user_id = %s AND car_id = %s', (user_id, car_id))
             if cursor.fetchone():
+                # Se è una richiesta AJAX, restituisci JSON
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify(success=True, message='Auto già presente nei preferiti!')
                 flash('Auto già presente nei preferiti!', 'info')
             else:
                 # Aggiunge l'auto ai preferiti
                 cursor.execute('INSERT INTO favorites (user_id, car_id) VALUES (%s, %s)', (user_id, car_id))
+                # Se è una richiesta AJAX, restituisci JSON
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify(success=True, message='Auto aggiunta ai preferiti!')
                 flash('Auto aggiunta ai preferiti!', 'success')
     except Exception as e:
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message=f'Errore: {str(e)}')
         flash(f'Errore: {str(e)}', 'danger')
 
+    # Se non è una richiesta AJAX, reindirizza
     return redirect(request.referrer or url_for('index'))
 
 
@@ -374,10 +383,20 @@ def remove_from_favorites(car_id):
     try:
         with db_cursor() as (cursor, conn):
             cursor.execute('DELETE FROM favorites WHERE user_id = %s AND car_id = %s', (user_id, car_id))
+            
+            # Se è una richiesta AJAX, restituisci JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify(success=True, message='Auto rimossa dai preferiti!')
+            
             flash('Auto rimossa dai preferiti.', 'info')
     except Exception as e:
+        # Se è una richiesta AJAX, restituisci errore JSON
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message=f'Errore: {str(e)}')
+            
         flash(f'Errore: {str(e)}', 'danger')
 
+    # Solo per richieste non-AJAX, reindirizza
     return redirect(request.referrer or url_for('index'))
 
 
@@ -613,6 +632,7 @@ def admin_dashboard():
         cars = cursor.fetchall()
     return render_template('admin/dashboard.html', cars=cars)
 
+
 @app.route('/admin/car/add', methods=['GET', 'POST'])
 @admin_required
 def admin_add_car():
@@ -626,6 +646,7 @@ def admin_add_car():
             model = request.form['model']
             year = request.form['year']
             engine = request.form['engine']
+            car_type = request.form['car_type']
             main_image_url = request.form.get('main_image_url', '')
             
             if not main_image_url:
@@ -634,9 +655,9 @@ def admin_add_car():
             
             with db_cursor() as (cursor, conn):
                 cursor.execute('''
-                    INSERT INTO cars (name, small_description, description, image, brand, model, year, engine)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                ''', (name, small_description, description, main_image_url, brand, model, year, engine))
+                    INSERT INTO cars (name, small_description, description, image, brand, model, year, engine, car_type)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                ''', (name, small_description, description, main_image_url, brand, model, year, engine, car_type))
                 
                 car_id = cursor.lastrowid
                 
@@ -681,15 +702,16 @@ def admin_edit_car(car_id):
             model = request.form.get('model')
             year = request.form.get('year')
             engine = request.form.get('engine')
+            car_type = request.form.get('car_type')
             main_image_url = request.form.get('main_image_url')
 
             # Aggiorna l'auto nel database
             with db_cursor() as (cursor, conn):
                 cursor.execute('''
                     UPDATE cars SET name = %s, small_description = %s, description = %s,
-                    image = %s, brand = %s, model = %s, year = %s, engine = %s WHERE id = %s
+                    image = %s, brand = %s, model = %s, year = %s, engine = %s, car_type = %s WHERE id = %s
                 ''', (name, small_description, description, main_image_url,
-                      brand, model, year, engine, car_id))
+                      brand, model, year, engine, car_type, car_id))
 
                 # Elimina immagini selezionate
                 image_ids_to_delete = request.form.getlist('delete_image')

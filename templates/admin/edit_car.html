@@ -60,6 +60,18 @@
                                     <input type="text" class="form-control" id="engine" name="engine" value="{{ car.engine }}" required>
                                 </div>
                                 <div class="mb-3">
+                                    <label for="car_type" class="form-label">Tipo/Categoria*</label>
+                                    <select class="form-control" id="car_type" name="car_type" required>
+                                        <option value="Sportiva" {% if car.car_type == 'Sportiva' %}selected{% endif %}>Sportiva</option>
+                                        <option value="Supercar" {% if car.car_type == 'Supercar' %}selected{% endif %}>Supercar</option>
+                                        <option value="Hypercar" {% if car.car_type == 'Hypercar' %}selected{% endif %}>Hypercar</option>
+                                        <option value="Berlina" {% if car.car_type == 'Berlina' %}selected{% endif %}>Berlina</option>
+                                        <option value="Muscle Car" {% if car.car_type == 'Muscle Car' %}selected{% endif %}>Muscle Car</option>
+                                        <option value="GT" {% if car.car_type == 'GT' %}selected{% endif %}>GT</option>
+                                        <option value="Utilitaria" {% if car.car_type == 'Utilitaria' %}selected{% endif %}>Utilitaria</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
                                     <label for="small_description" class="form-label">Breve Descrizione*</label>
                                     <input type="text" class="form-control" id="small_description" name="small_description" maxlength="100" value="{{ car.small_description }}" required>
                                     <small class="text-muted">Max 100 caratteri</small>

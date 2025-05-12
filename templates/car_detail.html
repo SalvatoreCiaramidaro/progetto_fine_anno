@@ -25,19 +25,15 @@
   </div>
 
   {% if current_user.is_authenticated %}
-    <div class="favorite-container">
+    <div class="favorite-container" id="favoriteContainer" data-car-id="{{ car.id }}">
       {% if is_favorite %}
-          <form action="{{ url_for('remove_from_favorites', car_id=car.id) }}" method="post">
-              <button type="submit" class="remove-favorite">
-                  <i class="fas fa-heart"></i> Rimuovi dai Preferiti
-              </button>
-          </form>
+          <button type="button" class="remove-favorite" id="toggleFavoriteBtn">
+              <i class="fas fa-heart"></i> Rimuovi dai Preferiti
+          </button>
       {% else %}
-          <form action="{{ url_for('add_to_favorites', car_id=car.id) }}" method="post">
-              <button type="submit" class="add-favorite">
-                  <i class="fas fa-heart"></i> Aggiungi ai Preferiti
-              </button>
-          </form>
+          <button type="button" class="add-favorite" id="toggleFavoriteBtn">
+              <i class="fas fa-heart"></i> Aggiungi ai Preferiti
+          </button>
       {% endif %}
     </div>
   {% else %}
@@ -49,18 +45,107 @@
     {{ super() }}
     <script>
         let images = {{ ([car.image] + car.images)|tojson }};  
+        
+        // Variabile per tenere traccia dello stato preferito
+        let isFavorite = {% if is_favorite %}true{% else %}false{% endif %};
 
-        // Auto-chiusura dei messaggi flash dopo alcuni secondi
         document.addEventListener('DOMContentLoaded', function() {
-            const flashMessages = document.querySelectorAll('.flash-message');
-            flashMessages.forEach(function(message) {
+            // Gestione toggle preferiti con AJAX
+            const toggleFavoriteBtn = document.getElementById('toggleFavoriteBtn');
+            const favoriteContainer = document.getElementById('favoriteContainer');
+            
+            if (toggleFavoriteBtn && favoriteContainer) {
+                const carId = favoriteContainer.dataset.carId;
+                
+                toggleFavoriteBtn.addEventListener('click', function(e) {
+                    e.preventDefault(); // Previene il comportamento predefinito
+                    
+                    const url = isFavorite 
+                        ? "{{ url_for('remove_from_favorites', car_id=0) }}".replace('0', carId)
+                        : "{{ url_for('add_to_favorites', car_id=0) }}".replace('0', carId);
+                    
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        credentials: 'same-origin'
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Errore nella richiesta al server');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            isFavorite = !isFavorite;
+                            updateFavoriteButton();
+                            
+                            // Mostra messaggio di conferma
+                            showFlashMessage(data.message, 'success');
+                        } else {
+                            showFlashMessage(data.message || 'Si è verificato un errore', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore:', error);
+                        showFlashMessage('Si è verificato un errore di comunicazione', 'error');
+                    });
+                });
+            }
+            
+            // Funzione per aggiornare l'aspetto del pulsante preferiti
+            function updateFavoriteButton() {
+                if (isFavorite) {
+                    toggleFavoriteBtn.classList.remove('add-favorite');
+                    toggleFavoriteBtn.classList.add('remove-favorite');
+                    toggleFavoriteBtn.innerHTML = '<i class="fas fa-heart"></i> Rimuovi dai Preferiti';
+                } else {
+                    toggleFavoriteBtn.classList.remove('remove-favorite');
+                    toggleFavoriteBtn.classList.add('add-favorite');
+                    toggleFavoriteBtn.innerHTML = '<i class="fas fa-heart"></i> Aggiungi ai Preferiti';
+                }
+            }
+            
+            // Funzione per mostrare messaggi flash dinamici
+            function showFlashMessage(message, category) {
+                const flashContainer = document.getElementById('flashMessages');
+                
+                if (!flashContainer) return;
+                
+                let icon = 'bell';
+                if (category === 'success') icon = 'check-circle';
+                else if (category === 'error' || category === 'danger') icon = 'exclamation-circle';
+                else if (category === 'info') icon = 'info-circle';
+                
+                const messageHTML = `
+                    <div class="flash-message ${category}" data-flash-message>
+                        <i class="fas fa-${icon} message-icon"></i>
+                        <div class="message-content">${message}</div>
+                        <button class="close-button" aria-label="Chiudi">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `;
+                
+                flashContainer.insertAdjacentHTML('beforeend', messageHTML);
+                
+                const newMessage = flashContainer.lastElementChild;
+                
+                // Auto-chiusura dopo 3 secondi
                 setTimeout(function() {
-                    message.style.opacity = '0';
-                    setTimeout(function() {
-                        message.style.display = 'none';
-                    }, 600); // tempo di transizione
-                }, 3000); // 3 secondi prima della chiusura
-            });
+                    if (newMessage) {
+                        newMessage.style.opacity = '0';
+                        setTimeout(function() {
+                            if (newMessage && newMessage.parentNode) {
+                                newMessage.style.display = 'none';
+                            }
+                        }, 600);
+                    }
+                }, 3000);
+            }
         });
     </script>
     <script src="{{ url_for('static', filename='js/car_detail.js') }}"></script>

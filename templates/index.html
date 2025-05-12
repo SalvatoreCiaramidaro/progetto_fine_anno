@@ -4,6 +4,20 @@
 
 {% block content %}
 <h2>Macchine Disponibili</h2>
+
+<div class="filter-container">
+    <div class="filter-buttons">
+        <button class="filter-btn active" data-filter="all">Tutte</button>
+        <button class="filter-btn" data-filter="Sportiva">Sportive</button>
+        <button class="filter-btn" data-filter="Supercar">Supercar</button>
+        <button class="filter-btn" data-filter="Hypercar">Hypercar</button>
+        <button class="filter-btn" data-filter="Berlina">Berline</button>
+        <button class="filter-btn" data-filter="Muscle">Muscle Car</button>
+        <button class="filter-btn" data-filter="GT">GT</button>
+        <button class="filter-btn" data-filter="Utilitaria">Utilitaria</button>
+    </div>
+</div>
+
 <div id="search-results-container" style="display: none;">
     <h3>Risultati della ricerca</h3>
     <button id="clear-search" class="clear-btn">Mostra tutte le auto</button>
@@ -12,13 +26,14 @@
     </div>
 </div>
 
+<br>
 <div id="all-cars-container">
     {% if not cars %}
         <p>Nessuna macchina disponibile.</p>
     {% else %}
         <div class="car-list" id="all-cars">
             {% for car in cars %}
-                <div class="small-car-container" onclick="window.location='{{ url_for('car_detail', car_id=car.id) }}'" style="cursor: pointer;">
+                <div class="small-car-container" data-type="{{ car.car_type }}" onclick="window.location='{{ url_for('car_detail', car_id=car.id) }}'" style="cursor: pointer;">
                     <div class="small-car-image">
                         {% if car.image[0:4] == 'http' %}
                             <img src="{{ car.image }}" alt="{{ car.name }}">
@@ -50,6 +65,46 @@
         const searchResultsContainer = document.getElementById('search-results-container');
         const searchResults = document.getElementById('search-results');
         const allCarsContainer = document.getElementById('all-cars-container');
+        
+        // Filtri per categoria
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const carElements = document.querySelectorAll('.small-car-container');
+        
+        // Gestione dei filtri per categoria
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Rimuovi la classe active da tutti i pulsanti
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Aggiungi la classe active a questo pulsante
+                this.classList.add('active');
+                
+                // Ottieni il valore del filtro
+                const filterValue = this.getAttribute('data-filter');
+                
+                // Mostra il container delle auto
+                searchResultsContainer.style.display = 'none';
+                allCarsContainer.style.display = 'block';
+                
+                // Se il filtro è "all", mostra tutte le auto
+                if (filterValue === 'all') {
+                    carElements.forEach(car => {
+                        car.style.display = 'block';
+                    });
+                    return;
+                }
+                
+                // Altrimenti, mostra solo le auto della categoria selezionata
+                carElements.forEach(car => {
+                    const carType = car.getAttribute('data-type');
+                    if (carType === filterValue) {
+                        car.style.display = 'block';
+                    } else {
+                        car.style.display = 'none';
+                    }
+                });
+            });
+        });
         
         // Funzione per eseguire la ricerca
         function performSearch() {
