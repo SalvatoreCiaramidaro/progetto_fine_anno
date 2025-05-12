@@ -326,6 +326,9 @@ def car_detail(car_id):
     with db_cursor(dictionary=True) as (cursor, conn):
         cursor.execute('SELECT AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE car_id = %s', (car_id,))
         rating_data = cursor.fetchone()
+    # Conversione di avg_rating in float per evitare errori con decimal.Decimal
+    avg_rating = float(rating_data['avg_rating']) if rating_data['avg_rating'] is not None else 0.0
+    review_count = rating_data['review_count'] or 0
     with db_cursor(dictionary=True) as (cursor, conn):
         cursor.execute('''SELECT r.*, u.username, u.profile_image FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.car_id = %s ORDER BY r.created_at DESC''', (car_id,))
         reviews = cursor.fetchall()
@@ -336,8 +339,6 @@ def car_detail(car_id):
             user_review = cursor.fetchone()
     if car:
         car['images'] = [img['image'] for img in images]
-    avg_rating = round(rating_data['avg_rating'], 1) if rating_data['avg_rating'] else 0
-    review_count = rating_data['review_count'] or 0
     is_favorite = False
     if current_user.is_authenticated:
         with db_cursor() as (cursor, conn):
