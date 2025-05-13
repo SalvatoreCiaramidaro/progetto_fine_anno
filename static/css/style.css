@@ -41,3 +41,8 @@
 .clear-btn:hover {
     background-color: #e9ecef;
 }
+
+.small-car-info {
+    position: relative;
+    /* ...altri stili esistenti... */
+}

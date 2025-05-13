@@ -212,13 +212,15 @@ def forgot_password():
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
-    # Verifica la validità del token
-    email = email_service.confirm_token(token)
-    
-    if email is None:
-        flash('Il link per reimpostare la password è scaduto o non è valido.', 'danger')
+    try:
+        email = email_service.confirm_token(token)
+        if email is None:
+            flash('Il link per il reset della password è scaduto. Richiedi un nuovo link.', 'danger')
+            return redirect(url_for('forgot_password'))
+    except Exception as e:
+        flash('Token non valido o errore. Richiedi un nuovo link.', 'danger')
         return redirect(url_for('forgot_password'))
-    
+
     if request.method == 'POST':
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
@@ -246,7 +248,12 @@ def reset_password(token):
 @app.route('/')
 def index():
     with db_cursor(dictionary=True) as (cursor, conn):
-        cursor.execute('SELECT * FROM cars')
+        cursor.execute('''
+            SELECT cars.*, COALESCE(AVG(reviews.rating), 0) as avg_rating
+            FROM cars
+            LEFT JOIN reviews ON cars.id = reviews.car_id
+            GROUP BY cars.id
+        ''')
         cars = cursor.fetchall()
     return render_template('index.html', cars=cars)
 
@@ -393,7 +400,14 @@ def delete_review(review_id):
 def favorites():
     user_id = current_user.id
     with db_cursor(dictionary=True) as (cursor, conn):
-        cursor.execute('SELECT cars.* FROM favorites JOIN cars ON favorites.car_id = cars.id WHERE favorites.user_id = %s', (user_id,))
+        cursor.execute('''
+            SELECT cars.*, COALESCE(AVG(reviews.rating), 0) as avg_rating
+            FROM favorites 
+            JOIN cars ON favorites.car_id = cars.id 
+            LEFT JOIN reviews ON cars.id = reviews.car_id
+            WHERE favorites.user_id = %s
+            GROUP BY cars.id
+        ''', (user_id,))
         favorite_cars = cursor.fetchall()
     return render_template('favorites.html', cars=favorite_cars)
 

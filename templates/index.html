@@ -45,6 +45,11 @@
                         <h3>{{ car.name }}</h3>
                         <p>{{ car.small_description }}</p>
                         <a href="{{ url_for('car_detail', car_id=car.id) }}" onclick="event.stopPropagation();">Dettagli</a>
+                        {% if car.avg_rating and car.avg_rating > 0 %}
+                        <div class="star-rating-box">
+                            ⭐ {{ '%.1f' % car.avg_rating }}
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             {% endfor %}

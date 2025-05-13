@@ -179,6 +179,7 @@ nav .right {
 }
 
 .small-car-info {
+    position: relative;
     padding: 10px;
 }
 
@@ -427,7 +428,20 @@ button:hover {
     gap: 10px;
 }
 
-
+.star-rating-box {
+    background: #e8491d;
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 8px;
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    font-size: 0.85em;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    z-index: 2;
+}
 
 @keyframes fadeInDown {
     from {
@@ -448,8 +462,6 @@ button:hover {
         opacity: 0;
     }
 }
-
-
 
 @keyframes fadeIn {
     from { opacity: 0; }

@@ -545,6 +545,30 @@ button:hover {
     z-index: 0;
 }
 
+.password-input-wrapper input[type="password"],
+.password-input-wrapper input[type="text"] {
+    width: 85%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+    box-sizing: border-box;
+    background: #fff;
+    color: #333;
+    transition: border 0.2s;
+    display: inline-block;
+}
+
+.password-input-wrapper .toggle-password {
+    cursor: pointer;
+    margin-left: 5px;
+    vertical-align: middle;
+    color: #888;
+    font-size: 1.1em;
+    display: inline-block;
+}
+
 @media (max-width: 768px) {
   nav {
     flex-direction: column;
