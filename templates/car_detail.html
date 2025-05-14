@@ -75,7 +75,7 @@
                 {% endif %}
               {% endfor %}
             </div>
-            <span class="text-muted">{{ review_count }} recensioni</span>
+            <span class="text-muted" id="reviewCount">{{ review_count }} recensioni</span>
           </div>
         </div>
         {% if current_user.is_authenticated and not user_review %}
@@ -346,8 +346,29 @@
                     if (newReviewsList) {
                         document.getElementById('reviewsList').innerHTML = newReviewsList.innerHTML;
                         bindReviewButtons();
+                        updateReviewStats(tempDiv); // Aggiorna media e contatore
                     }
                 });
+            }
+
+            // Aggiorna media e contatore recensioni
+            function updateReviewStats(tempDiv) {
+                // Aggiorna media
+                const newAvg = tempDiv.querySelector('.fs-2.fw-bold');
+                const avgTarget = document.querySelector('.fs-2.fw-bold');
+                if (newAvg && avgTarget) avgTarget.innerHTML = newAvg.innerHTML;
+                // Aggiorna stelle
+                const newStars = tempDiv.querySelector('.d-flex.align-items-center.mb-4 .stars-container');
+                const starsTarget = document.querySelector('.d-flex.align-items-center.mb-4 .stars-container');
+                if (newStars && starsTarget) starsTarget.innerHTML = newStars.innerHTML;
+                // Aggiorna contatore recensioni (solo quello nella sezione recensioni)
+                const newCount = tempDiv.querySelector('.d-flex.align-items-center.mb-4 .text-muted');
+                const countTarget = document.querySelector('.d-flex.align-items-center.mb-4 .text-muted');
+                if (newCount && countTarget) countTarget.innerHTML = newCount.innerHTML;
+                // Aggiorna contatore recensioni in tempo reale (id="reviewCount")
+                const newReviewCount = tempDiv.querySelector('#reviewCount');
+                const reviewCountTarget = document.querySelector('#reviewCount');
+                if (newReviewCount && reviewCountTarget) reviewCountTarget.innerHTML = newReviewCount.innerHTML;
             }
 
             // Elimina/modifica recensione AJAX
