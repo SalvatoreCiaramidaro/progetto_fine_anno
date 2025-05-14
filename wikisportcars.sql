@@ -26,7 +26,7 @@ CREATE TABLE cars (
     name VARCHAR(100) NOT NULL,
     small_description VARCHAR(100) NOT NULL,
     description VARCHAR(10000) NOT NULL,
-    image VARCHAR(200) NOT NULL,
+    image VARCHAR(1024) NOT NULL,
     brand VARCHAR(100) NOT NULL,
     model VARCHAR(100) NOT NULL,
     year INT,
@@ -52,7 +52,7 @@ INSERT INTO cars (id, name, small_description, description, image, brand, model,
 
 (4, 'Lamborghini Huracan', 'Macchina sportiva italiana con motore V10',
  'La Lamborghini Huracan rappresenta l’avanguardia del design e della tecnologia italiana nel segmento delle supercar. Con il suo motore V10 e linee audaci e dinamiche, la Huracan offre prestazioni estreme e un’esperienza di guida unica. Ogni curva e ogni dettaglio sono studiati per garantire aerodinamicità e stabilità, trasformando ogni corsa in un’avventura emozionante e piena di adrenalina.',
- 'https://www.virgilio.it/motori/wp-content/uploads/sites/4/2024/04/Lamborghini-Huracan-STJ.jpeg',
+ 'https://res.cloudinary.com/motortrak/image/upload/t_base_vehicle_transformation/v1706191867/ims2/vehicle-media/ce150f3a37083d090d804866f50f975a/lamborghini-Hurac%C3%A1n%20LP%20610-4-undefined-1/gdpoh2jpq6biwmqbkfu0.webp',
  'Lamborghini', 'Huracan', 2014, 'V10', 'Supercar'),
 
 (5, 'Audi R8', 'Macchina sportiva tedesca con motore V10',
@@ -90,21 +90,44 @@ INSERT INTO cars (id, name, small_description, description, image, brand, model,
 CREATE TABLE car_images (
     id INT AUTO_INCREMENT PRIMARY KEY,
     car_id INT,
-    image VARCHAR(200) NOT NULL,
+    image VARCHAR(1024) NOT NULL,
     FOREIGN KEY (car_id) REFERENCES cars(id)
 );
 
 INSERT INTO car_images (car_id, image) 
 VALUES 
 
-(1, 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/2003_Chevrolet_Corvette_C6_%284794076030%29.jpg/1200px-2003_Chevrolet_Corvette_C6_%284794076030%29.jpg'),
+
+(1, 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/2003_Chevrolet_C6_%284794076030%29.jpg/1200px-2003_Chevrolet_C6_%284794076030%29.jpg'),
 (1, 'https://prod.pictures.autoscout24.net/listing-images/371eda98-9e26-4830-8020-e02e5d53f945_25712121-81eb-4913-8e92-48f42f7e9784.jpg/1280x960.webp'),
 (1, 'https://prod-01-loadandpay-media.s3.eu-west-1.amazonaws.com/medias/cache/app_auction_slides_thumb/616802750f6c6332789666.jpg'),
-
 (2, 'https://www.autoscout24.it/cms-content-assets/2kNB9B2UWSOJMfdLiCsn7u-0f66f5f33762f0ffbfee88bef76a5cfb-ferrari-458-italia-back-1100.jpeg'),
 (2, 'https://www.autoscout24.it/cms-content-assets/6WYtZ8Kj5mO5QNBwcnCFpv-e23737ee3525530297d8ff37ec60840b-ferrari-458-italia-interior-1100.jpeg'),
-(2, 'https://upload.wikimedia.org/wikipedia/commons/6/63/Ferrari_458_Italia_engine.jpg');
-
+(2, 'https://upload.wikimedia.org/wikipedia/commons/6/63/Ferrari_458_Italia_engine.jpg'),
+(3, 'https://www.stuttcars.com/wp-content/uploads/2021/11/PORSCHE-911-Carrera-S-997-3811_16.jpeg'),
+(3, 'https://res.cloudinary.com/unix-center/image/upload/c_limit,dpr_3.0,f_auto,fl_progressive,g_center,h_580,q_75,w_906/k6cuo7msynqzvbc30sd6.jpg'),
+(3, 'https://img.stcrm.it/images/1202406/HOR_STD/800x/5-porsche-911-gt3-rs-4-0-2011-2.jpeg'),
+(4, 'https://www.sportal.it/wp-content/uploads/2024/05/lamborghini_1232772Photogallery.jpg'),
+(4, 'https://areamotori.files.wordpress.com/2017/03/lamborghini-huracan-performante-2017-interior2.jpg'),
+(4, 'https://www.cataloge.eu/media/lamborghini/7/it/lamborghini-huracan-evo-2020-motore.jpg'),
+(5, 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/2007_Audi_R8_02.JPG/1200px-2007_Audi_R8_02.JPG'),
+(5, 'https://img.stcrm.it/images/1188062/HOR_STD/800x/5-audi-r8-v8-4-2-2007-11-2.jpeg'),
+(5, 'https://media.motorbox.com/image/5/0/7/50787/50787-16x9-lg.jpg'),
+(6, 'https://www.cataloge.eu/media/nissan/30/it/thumbs-500/nissan-gt-r-r35-2009-1.jpg'),
+(6, 'https://images.ctfassets.net/uaddx06iwzdz/woy7Qma4jGO2SSAbcZ3rL/37bea23352d8ac17d77ffbef4f639a04/nissan-gtr-l-04.jpg'),
+(6, 'https://cdn.motor1.com/images/mgl/bggjWv/s1/nissan-gt-r-nismo-2016.jpg'),
+(7, 'https://i.bstr.es/highmotor/2017/05/McLaren-720S-7.jpg'),
+(7, 'https://www.automobiledimension.com/photos/interior/mclaren-720s-2017-dashboard.jpg'),
+(7, 'https://www.cavallivapore.it/wp-content/uploads/2017/03/McLaren-720S-Motore-2.jpg'),
+(8, 'https://cdn.veloce.it/wp-content/uploads/webp/2024/05/bugatti-veyron-3.webp'),
+(8, 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQjcKJZnpYiHd5BiKM2aRmkugPrHAtClBcLiw&s'),
+(8, 'https://www.autotecnica.org/wp-content/uploads/2015/07/BUG_Veyron_Photo_46.jpg'),
+(9, 'https://www.topcarrating.com/koenigsegg/2011-koenigsegg-agera-r-9.jpg'),
+(9, 'https://www.supercars.net/blog/wp-content/uploads/2016/01/914168-2.jpg'),
+(9, 'https://www.cdn-docs-ck.com/ck_img/zoom/111936/autoart_1_18_koenigsegg_agera_anno_2011_grigio_arg.jpg'),
+(10, 'https://www.kessel.ch/immaginiAutoNuove/kes_huayra_bc_2.jpg'),
+(10, 'https://www.cavallivapore.it/wp-content/gallery/cache/13153__720x540_pagani-huayra-interni.jpg'),
+(10, 'https://blog.euroimportpneumatici.com/wp-content/uploads/2019/08/Pagani-Huayra-BC-Roadster-9.jpg');
 
 
 DROP TABLE IF EXISTS `favorites`;

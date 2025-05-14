@@ -36,9 +36,9 @@
                 <div class="small-car-container" data-type="{{ car.car_type }}" onclick="window.location='{{ url_for('car_detail', car_id=car.id) }}'" style="cursor: pointer;">
                     <div class="small-car-image">
                         {% if car.image[0:4] == 'http' %}
-                            <img src="{{ car.image }}" alt="{{ car.name }}">
+                            <img src="{{ car.image }}" alt="{{ car.name }}" loading="lazy">
                         {% else %}
-                            <img src="{{ url_for('static', filename='images/' ~ car.image) }}" alt="{{ car.name }}">
+                            <img src="{{ url_for('static', filename='images/' ~ car.image) }}" alt="{{ car.name }}" loading="lazy">
                         {% endif %}
                     </div>
                     <div class="small-car-info">
@@ -151,7 +151,7 @@
                             
                         carElement.innerHTML = `
                             <div class="small-car-image">
-                                <img src="${imgSrc}" alt="${car.name}">
+                                <img src="${imgSrc}" alt="${car.name}" loading="lazy">
                             </div>
                             <div class="small-car-info">
                                 <h3>${car.name}</h3>

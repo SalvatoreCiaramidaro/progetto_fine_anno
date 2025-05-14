@@ -76,7 +76,7 @@ else:
     app.config['SERVER_NAME'] = 'localhost:5000'
     app.config['PREFERRED_URL_SCHEME'] = 'http'
 
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif','svg'}
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif','svg', 'webp'}
 
 # Assicurati che la cartella per il caricamento delle immagini esista
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
