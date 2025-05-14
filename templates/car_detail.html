@@ -464,31 +464,6 @@
                 });
             }
 
-            document.querySelectorAll('.delete-review-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (confirm('Sei sicuro di voler eliminare questa recensione?')) {
-                        const reviewId = this.getAttribute('data-review-id');
-                        fetch(`/delete_review/${reviewId}`, {
-                            method: 'POST',
-                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                        })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                showFlashMessage(data.message, 'success');
-                                const reviewCard = this.closest('.review-card');
-                                if (reviewCard) { reviewCard.remove(); } else { window.location.reload(); }
-                            } else {
-                                showFlashMessage(data.message, 'danger');
-                            }
-                        })
-                        .catch(error => {
-                            showFlashMessage('Si è verificato un errore durante l\'eliminazione della recensione', 'danger');
-                        });
-                    }
-                });
-            });
-
             // Modifica recensione inline
             function renderEditForm(card, reviewId, rating, comment) {
               const starsHtml = Array.from({length: 5}, (_, i) => `
