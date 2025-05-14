@@ -98,7 +98,7 @@ INSERT INTO car_images (car_id, image)
 VALUES 
 
 
-(1, 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/2003_Chevrolet_C6_%284794076030%29.jpg/1200px-2003_Chevrolet_C6_%284794076030%29.jpg'),
+(1, 'https://extremeonlinestore.com/cdn/shop/files/FLIP-199-ABS_SS-080-ABS_SPOILER_218_ABS-HD-28_1400x.jpg?v=1743813788'),
 (1, 'https://prod.pictures.autoscout24.net/listing-images/371eda98-9e26-4830-8020-e02e5d53f945_25712121-81eb-4913-8e92-48f42f7e9784.jpg/1280x960.webp'),
 (1, 'https://prod-01-loadandpay-media.s3.eu-west-1.amazonaws.com/medias/cache/app_auction_slides_thumb/616802750f6c6332789666.jpg'),
 (2, 'https://www.autoscout24.it/cms-content-assets/2kNB9B2UWSOJMfdLiCsn7u-0f66f5f33762f0ffbfee88bef76a5cfb-ferrari-458-italia-back-1100.jpeg'),
