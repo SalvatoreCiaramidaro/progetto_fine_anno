@@ -48,7 +48,7 @@ INSERT INTO cars (id, name, small_description, description, image, brand, model,
 (3, 'Porsche 911', 'Macchina sportiva tedesca con motore 6 cilindri',
  'La Porsche 911 è una leggenda del mondo delle auto sportive, celebre per il suo design senza tempo e la perfetta sinergia tra tradizione e innovazione. Dotata di un motore a 6 cilindri, la 911 offre un equilibrio impeccabile tra potenza, maneggevolezza e raffinatezza. Ogni dettaglio, dalla silhouette aerodinamica al sofisticato interno, è stato progettato per garantire una guida dinamica e coinvolgente, rendendo ogni esperienza al volante un vero piacere.',
  'https://img.autoabc.lv/Porsche-911/Porsche-911_2011_Kupeja_231232737_4.jpg',
- 'Porsche', '911', 2011, '6 cilindri', 'Sportiva'),
+ 'Porsche', '911', 2011, '6 cilindri', 'GT'),
 
 (4, 'Lamborghini Huracan', 'Macchina sportiva italiana con motore V10',
  'La Lamborghini Huracan rappresenta l’avanguardia del design e della tecnologia italiana nel segmento delle supercar. Con il suo motore V10 e linee audaci e dinamiche, la Huracan offre prestazioni estreme e un’esperienza di guida unica. Ogni curva e ogni dettaglio sono studiati per garantire aerodinamicità e stabilità, trasformando ogni corsa in un’avventura emozionante e piena di adrenalina.',
@@ -63,7 +63,7 @@ INSERT INTO cars (id, name, small_description, description, image, brand, model,
 (6, 'Nissan GT-R35', 'Macchina sportiva giapponese con motore V6',
  'La Nissan GT-R35 è sinonimo di tecnologia avanzata e prestazioni straordinarie, considerata tra le supercar giapponesi più innovative. Il suo motore V6, abbinato a un sofisticato sistema di trazione integrale, offre un’esperienza di guida dinamica e altamente reattiva. Con un design che unisce funzionalità ed estetica, la GT-R35 è stata progettata per dominare sia su strada che in pista, rappresentando una vera rivoluzione nell’automobilismo moderno.',
  'https://upload.wikimedia.org/wikipedia/commons/b/ba/Nissan_GT-R_01.JPG',
- 'Nissan', 'GT-R35', 2007, 'V6', 'Supercar'),
+ 'Nissan', 'GT-R35', 2007, 'V6', 'GT'),
 
 (7, 'McLaren 720S', 'Macchina sportiva inglese con motore V8',
  'La McLaren 720S è una supercar britannica che unisce un design futuristico a prestazioni eccezionali. Realizzata con materiali leggeri e all’avanguardia, la 720S offre una dinamica di guida rivoluzionaria, grazie al suo motore V8 che eroga una potenza impressionante. Ogni dettaglio, dalle linee scolpite al sistema aerodinamico, è stato studiato per garantire massima efficienza e un’esperienza di guida emozionante e senza compromessi.',
@@ -83,9 +83,23 @@ INSERT INTO cars (id, name, small_description, description, image, brand, model,
 (10, 'Pagani Huayra', 'Macchina sportiva italiana con motore V12',
  'La Pagani Huayra è l’emblema dell’eleganza e della maestria artigianale italiana, unendo il meglio del design e della tecnologia in una supercar che è autentica opera d’arte. Dotata di un potente motore V12, la Huayra offre prestazioni straordinarie accompagnate da una guida fluida e carismatica. Ogni elemento, dalle finiture interne in materiali pregiati fino alle linee esterne scolpite, è studiato per creare un equilibrio perfetto tra bellezza e potenza.',
  'https://www.autocar.co.uk/sites/autocar.co.uk/files/pagani-2511111948565911600x1060_0.jpg',
- 'Pagani', 'Huayra', 2012, 'V12', 'Hypercar');
+ 'Pagani', 'Huayra', 2012, 'V12', 'Hypercar'),
 
+(11, 'Opel Corsa', '4 Cilindri in linea 1.2 Benzina', "La Opel Corsa 1.2 benzina del 2018 è una city car a 5 porte, ideale 
+per l’uso urbano grazie alle dimensioni compatte e al motore 1.2 aspirato da 70 CV. Offre consumi contenuti (circa 5,5–6 l/100 km), buona affidabilità e dotazioni
+essenziali come climatizzatore, radio Bluetooth e sistemi di sicurezza di base. Con un bagagliaio da 285 litri e un abitacolo confortevole, è una scelta pratica 
+per chi cerca un’auto economica e funzionale e ideale per Neopatentati.     e per chi piace l'Opel :)",
+'https://www.federmetano.it/wp-content/uploads/2018/04/opel-corsa-1-2.jpg','Opel', 'Corsa', 2018, '4 cilindri in linea', 'Utilitaria'),
 
+(12, 'BMW Serie 5', 'Berlina tedesca elegante e confortevole',
+ 'La BMW Serie 5 è una delle berline più apprezzate al mondo, famosa per il suo equilibrio tra comfort, tecnologia e piacere di guida. Offre interni spaziosi, materiali di alta qualità e una gamma di motorizzazioni efficienti. Ideale sia per viaggi di lavoro che per la famiglia, la Serie 5 rappresenta il perfetto connubio tra eleganza e prestazioni.',
+ 'https://www.reportmotori.it/wp-content/uploads/2020/05/BMW-5-Series-2021-12-610x349.jpg',
+ 'BMW', 'Serie 5', 2021, '4 cilindri turbo', 'Berlina'),
+
+(13, 'Mazda MX-5', 'Roadster sportiva compatta giapponese',
+ 'La Mazda MX-5 è una delle sportive più iconiche e amate, celebre per la sua leggerezza, agilità e puro divertimento di guida. Con trazione posteriore, motore 4 cilindri e tetto apribile, la MX-5 offre un’esperienza di guida coinvolgente e autentica, perfetta per chi cerca emozioni su strada senza compromessi.',
+ 'https://www.motortrend.com/uploads/2022/11/2023-Mazda-MX-5-RF-Club-front-three-quarter-view-25.jpg?w=768&width=768&q=75&format=webp',
+ 'Mazda', 'MX-5', 2023, '4 cilindri', 'Sportiva');
 
 CREATE TABLE car_images (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -96,8 +110,6 @@ CREATE TABLE car_images (
 
 INSERT INTO car_images (car_id, image) 
 VALUES 
-
-
 (1, 'https://extremeonlinestore.com/cdn/shop/files/FLIP-199-ABS_SS-080-ABS_SPOILER_218_ABS-HD-28_1400x.jpg?v=1743813788'),
 (1, 'https://prod.pictures.autoscout24.net/listing-images/371eda98-9e26-4830-8020-e02e5d53f945_25712121-81eb-4913-8e92-48f42f7e9784.jpg/1280x960.webp'),
 (1, 'https://prod-01-loadandpay-media.s3.eu-west-1.amazonaws.com/medias/cache/app_auction_slides_thumb/616802750f6c6332789666.jpg'),
@@ -127,8 +139,16 @@ VALUES
 (9, 'https://www.cdn-docs-ck.com/ck_img/zoom/111936/autoart_1_18_koenigsegg_agera_anno_2011_grigio_arg.jpg'),
 (10, 'https://www.kessel.ch/immaginiAutoNuove/kes_huayra_bc_2.jpg'),
 (10, 'https://www.cavallivapore.it/wp-content/gallery/cache/13153__720x540_pagani-huayra-interni.jpg'),
-(10, 'https://blog.euroimportpneumatici.com/wp-content/uploads/2019/08/Pagani-Huayra-BC-Roadster-9.jpg');
-
+(10, 'https://blog.euroimportpneumatici.com/wp-content/uploads/2019/08/Pagani-Huayra-BC-Roadster-9.jpg'),
+(11, 'https://immagini.alvolante.it/sites/default/files/styles/anteprima_lunghezza_640_jpg/public/serie_auto_galleria/2014/12/opel_corsa_post_0.png'),
+(11, 'https://immagini.alvolante.it/sites/default/files/styles/editor_1_colonna/public/news_galleria/2014/07/opel-corsa-2015_23.jpg'),
+(11, 'https://www.pieroautomobili.it/wp-content/uploads/2024/09/WhatsApp-Image-2024-09-20-at-18.31.12-5.jpeg'),
+(12, 'https://i.bstr.es/highmotor/2020/05/BMW-Serie-5-2020-10-1280x853.jpg'),
+(12, 'https://www.autoscout24.it/cms-content-assets/7o29lB8aKtexCWNNtf3GAP-09fac938c2b015f57369e585a2bc22c3-bmw-serie-1100.5-touring-2024'),
+(12, 'https://motoreesperto.com/wp-content/uploads/2024/06/BMW-B48-900x495.jpg'),
+(13, 'https://hd2.tudocdn.net/1070735?w=1920'),
+(13, 'https://www.motorionline.com/wp-content/uploads/2022/12/Mazda_MX_5_2022_come_va_002.jpeg'),
+(13, 'https://motori.money.it/local/cache-gd2/97/8b8bf88d0df3a04a7148b63e969380.jpg?1708849244');
 
 DROP TABLE IF EXISTS `favorites`;
 CREATE TABLE favorites (
