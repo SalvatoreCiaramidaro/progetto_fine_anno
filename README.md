@@ -74,7 +74,6 @@ Legenda:
 - `config.py`: Configurazione database
 - `requirements.txt`: Dipendenze Python
 - `wikisportcars.sql`: Script per la creazione del database
-- `ER_diagramma.md`: Diagramma ER in formato markdown
 
 ## Descrizione delle cartelle e dei file principali
 
@@ -82,7 +81,6 @@ Legenda:
 - `config.py` / `db_config.py`: Configurazione della connessione al database MySQL.
 - `requirements.txt`: Elenco delle dipendenze Python necessarie per il progetto.
 - `wikisportcars.sql`: Script SQL per la creazione e il popolamento del database.
-- `ER_diagramma.md`: Diagramma ER del database in formato markdown/mermaid.
 - `wsgi.py`: Entry point per il deploy su server WSGI (es. PythonAnywhere).
 - `email_service.py`: Gestione invio email di conferma e recupero password.
 - `templates/`: Template HTML Jinja2 per tutte le pagine dell'applicazione (inclusi login, registrazione, profilo, dettaglio auto, admin, ecc).
