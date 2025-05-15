@@ -333,7 +333,6 @@ def car_detail(car_id):
     with db_cursor(dictionary=True) as (cursor, conn):
         cursor.execute('SELECT AVG(rating) as avg_rating, COUNT(*) as review_count FROM reviews WHERE car_id = %s', (car_id,))
         rating_data = cursor.fetchone()
-    # Conversione di avg_rating in float per evitare errori con decimal.Decimal
     avg_rating = float(rating_data['avg_rating']) if rating_data['avg_rating'] is not None else 0.0
     review_count = rating_data['review_count'] or 0
     with db_cursor(dictionary=True) as (cursor, conn):
@@ -342,7 +341,7 @@ def car_detail(car_id):
     user_review = None
     if current_user.is_authenticated:
         with db_cursor(dictionary=True) as (cursor, conn):
-            cursor.execute('SELECT * FROM reviews WHERE user_id = %s AND car_id = %s', (current_user.id, car_id))
+            cursor.execute('SELECT * FROM reviews WHERE car_id = %s AND user_id = %s', (car_id, current_user.id))
             user_review = cursor.fetchone()
     if car:
         car['images'] = [img['image'] for img in images]
@@ -350,8 +349,10 @@ def car_detail(car_id):
     if current_user.is_authenticated:
         with db_cursor() as (cursor, conn):
             cursor.execute('SELECT * FROM favorites WHERE user_id = %s AND car_id = %s', (current_user.id, car_id))
-            if cursor.fetchone():
-                is_favorite = True
+            is_favorite = cursor.fetchone() is not None
+    # GESTIONE AJAX
+    if request.args.get('ajax') == '1':
+        return render_template('_car_reviews.html', car=car, is_favorite=is_favorite, avg_rating=avg_rating, review_count=review_count, reviews=reviews, user_review=user_review)
     return render_template('car_detail.html', car=car, is_favorite=is_favorite, avg_rating=avg_rating, review_count=review_count, reviews=reviews, user_review=user_review)
 
 
@@ -362,7 +363,10 @@ def add_review(car_id):
         rating = int(request.form.get('rating', 0))
         comment = request.form.get('comment', '').strip()
         if rating < 1 or rating > 5:
-            return jsonify(success=False, message='La valutazione deve essere tra 1 e 5')
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify(success=False, message='La valutazione deve essere tra 1 e 5')
+            flash('La valutazione deve essere tra 1 e 5', 'danger')
+            return redirect(url_for('car_detail', car_id=car_id) + '#reviewsList')
         with db_cursor() as (cursor, conn):
             cursor.execute('SELECT id FROM reviews WHERE user_id = %s AND car_id = %s', (current_user.id, car_id))
             existing = cursor.fetchone()
@@ -373,26 +377,82 @@ def add_review(car_id):
                 cursor.execute('INSERT INTO reviews (car_id, user_id, rating, comment) VALUES (%s, %s, %s, %s)', (car_id, current_user.id, rating, comment))
                 msg = 'Recensione aggiunta!'
             conn.commit()
-        return jsonify(success=True, message=msg)
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=True, message=msg)
+        flash(msg, 'success')
+        return redirect(url_for('car_detail', car_id=car_id) + '#reviewsList')
     except Exception as e:
-        return jsonify(success=False, message=f'Errore: {str(e)}')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message=f'Errore: {str(e)}')
+        flash(f'Errore: {str(e)}', 'danger')
+        return redirect(url_for('car_detail', car_id=car_id) + '#reviewsList')
 
-@app.route('/delete_review/<int:review_id>', methods=['POST'])
+@app.route('/edit_review/<int:review_id>', methods=['POST'])
 @login_required
-def delete_review(review_id):
+def edit_review(review_id):
+    car_id = request.args.get('car_id', type=int)
     try:
         with db_cursor(dictionary=True) as (cursor, conn):
             cursor.execute('SELECT * FROM reviews WHERE id = %s', (review_id,))
             review = cursor.fetchone()
             if not review:
-                return jsonify(success=False, message='Recensione non trovata')
+                flash('Recensione non trovata', 'danger')
+                if car_id:
+                    return redirect(url_for('car_detail', car_id=car_id) + '#reviewsList')
+                return redirect(url_for('index'))
             if review['user_id'] != current_user.id and not current_user.is_admin:
-                return jsonify(success=False, message='Non hai il permesso di eliminare questa recensione')
+                flash('Non hai il permesso di modificare questa recensione', 'danger')
+                return redirect(url_for('car_detail', car_id=review['car_id']) + '#reviewsList')
+            # Recupera i nuovi dati dal form (rating e comment)
+            rating = int(request.form.get('rating', 0))
+            comment = request.form.get('comment', '').strip()
+            if rating < 1 or rating > 5:
+                flash('La valutazione deve essere tra 1 e 5', 'danger')
+                return redirect(url_for('car_detail', car_id=review['car_id']) + '#reviewsList')
+            cursor.execute('UPDATE reviews SET rating = %s, comment = %s, created_at = CURRENT_TIMESTAMP WHERE id = %s', (rating, comment, review_id))
+            conn.commit()
+            flash('Recensione aggiornata!', 'success')
+            return redirect(url_for('car_detail', car_id=review['car_id']) + '#reviewsList')
+    except Exception as e:
+        flash(f'Errore: {str(e)}', 'danger')
+        if car_id:
+            return redirect(url_for('car_detail', car_id=car_id) + '#reviewsList')
+        return redirect(url_for('index'))
+
+@app.route('/delete_review/<int:review_id>', methods=['POST'])
+@login_required
+def delete_review(review_id):
+    car_id = request.args.get('car_id', type=int)
+    try:
+        with db_cursor(dictionary=True) as (cursor, conn):
+            cursor.execute('SELECT * FROM reviews WHERE id = %s', (review_id,))
+            review = cursor.fetchone()
+            if not review:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify(success=False, message='Recensione non trovata')
+                flash('Recensione non trovata', 'danger')
+                if car_id:
+                    return redirect(url_for('car_detail', car_id=car_id) + '#reviewsList')
+                return redirect(url_for('index'))
+            if review['user_id'] != current_user.id and not current_user.is_admin:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return jsonify(success=False, message='Non hai il permesso di eliminare questa recensione')
+                flash('Non hai il permesso di eliminare questa recensione', 'danger')
+                return redirect(url_for('car_detail', car_id=review['car_id']) + '#reviewsList')
+            car_id = review['car_id']
             cursor.execute('DELETE FROM reviews WHERE id = %s', (review_id,))
             conn.commit()
-        return jsonify(success=True, message='Recensione eliminata')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=True, message='Recensione eliminata')
+        flash('Recensione eliminata', 'success')
+        return redirect(url_for('car_detail', car_id=car_id) + '#reviewsList')
     except Exception as e:
-        return jsonify(success=False, message=f'Errore: {str(e)}')
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=False, message=f'Errore: {str(e)}')
+        flash(f'Errore: {str(e)}', 'danger')
+        if car_id:
+            return redirect(url_for('car_detail', car_id=car_id) + '#reviewsList')
+        return redirect(url_for('index'))
 
 
 @app.route('/favorites')

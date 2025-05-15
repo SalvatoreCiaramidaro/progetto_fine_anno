@@ -1,0 +1,105 @@
+{# Template parziale per AJAX: solo recensioni e form #}
+<div class="d-flex align-items-center mb-4">
+  <div class="me-3">
+    <span class="fs-2 fw-bold">{{ avg_rating }}</span>
+    <span class="text-muted">/5</span>
+  </div>
+  <div>
+    <div class="stars-container">
+      {% for i in range(1, 6) %}
+        {% if i <= avg_rating %}
+          <i class="fas fa-star text-warning"></i>
+        {% elif i <= avg_rating + 0.5 %}
+          <i class="fas fa-star-half-alt text-warning"></i>
+        {% else %}
+          <i class="far fa-star text-warning"></i>
+        {% endif %}
+      {% endfor %}
+    </div>
+    <span class="text-muted" id="reviewCount">{{ review_count }} recensioni</span>
+  </div>
+</div>
+<div id="reviewFormContainer">
+  {% if current_user.is_authenticated and not user_review %}
+  <div class="card mb-4">
+    <div class="card-header">Lascia una recensione</div>
+    <div class="card-body">
+      <form id="reviewForm" method="POST" action="{{ url_for('add_review', car_id=car.id) }}">
+        <div class="mb-3">
+          <label>Valutazione</label>
+          <div class="rating-input">
+            {% for i in range(1, 6) %}
+              <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" />
+              <label for="star{{ i }}"><i class="far fa-star"></i></label>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="mb-3">
+          <label for="comment" class="form-label">Commento</label>
+          <textarea class="form-control" id="comment" name="comment" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Invia Recensione</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% if current_user.is_authenticated and user_review %}
+<div class="alert alert-info">Hai già recensito questa auto. Puoi modificare o eliminare la tua recensione qui sotto.</div>
+{% elif not current_user.is_authenticated %}
+<div class="alert alert-info">
+  <a href="{{ url_for('login') }}">Accedi</a> per lasciare una recensione.
+</div>
+{% endif %}
+<div id="reviewsList">
+  {% if reviews %}
+    {% for review in reviews %}
+    <div class="card mb-3 review-card" data-review-id="{{ review.id }}">
+      <div class="card-body">
+        <div class="d-flex mb-3">
+          <div class="flex-shrink-0">
+            {% if review.profile_image %}
+              <img src="{{ url_for('static', filename=review.profile_image) }}" class="rounded-circle" width="50" height="50" alt="Profile">
+            {% else %}
+              <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; color: white;">
+                {{ review.username[0] | upper }}
+              </div>
+            {% endif %}
+          </div>
+          <div class="ms-3">
+            <h5 class="mb-0">{{ review.username }}</h5>
+            <div class="stars-container">
+              {% for i in range(1, 6) %}
+                {% if i <= review.rating %}
+                  <i class="fas fa-star text-warning"></i>
+                {% else %}
+                  <i class="far fa-star text-warning"></i>
+                {% endif %}
+              {% endfor %}
+            </div>
+            <p class="text-muted small">
+              {{ review.created_at.strftime('%d/%m/%Y %H:%M') if review.created_at else '' }}
+            </p>
+          </div>
+        </div>
+        <div class="review-content">
+          <p class="card-text">{{ review.comment }}</p>
+          <br>
+        </div>
+        {% if current_user.is_authenticated and (current_user.id == review.user_id or current_user.is_admin) %}
+        <div class="review-actions">
+          <button type="button" class="btn btn-sm btn-outline-primary edit-review-btn" data-review-id="{{ review.id }}" data-rating="{{ review.rating }}" data-comment="{{ review.comment|escape }}">
+            <i class="fas fa-edit"></i> Modifica
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-danger delete-review-btn" data-review-id="{{ review.id }}">
+            <i class="fas fa-trash-alt"></i> Elimina
+          </button>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="alert alert-light">Nessuna recensione disponibile per questa auto.</div>
+  {% endif %}
+</div>
