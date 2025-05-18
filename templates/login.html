@@ -27,7 +27,9 @@
                     
                     <label for="password">Password:</label>
                     <div class="password-input-wrapper">
-                        <input type="password" id="password" name="password" required >
+                        <input type="password" id="password" name="password" required 
+                            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\\-+=(){}[\]|:;,<>/~])[A-Za-z\d@$!%*?&.#_\\-+=(){}[\]|:;,<>/~]{8,}$"
+                            title="La password deve contenere almeno 8 caratteri, inclusi: una lettera maiuscola, una lettera minuscola, un numero e un carattere speciale">
                         <span class="toggle-password" data-target="password"><i class="fas fa-eye"></i></span>
                     </div>
                     <div class="password-options">
@@ -52,7 +54,23 @@
             
             loginForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
+                // Validazione pattern email e password
+                const emailInput = document.getElementById('email');
+                const passwordInput = document.getElementById('password');
+                const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\-+=(){}[\]|:;,<>/~])[A-Za-z\d@$!%*?&.#_\-+=(){}[\]|:;,<>/~]{8,}$/;
+                // Eccezione per admin
+                const isAdmin = emailInput.value === 'admin@example.com' && passwordInput.value === 'admin123';
+                if (!emailPattern.test(emailInput.value)) {
+                    messageContainer.innerHTML = '<p class="error-message">Inserisci un indirizzo email valido (esempio: nome@dominio.com)</p>';
+                    emailInput.focus();
+                    return;
+                }
+                if (!isAdmin && !passwordPattern.test(passwordInput.value)) {
+                    messageContainer.innerHTML = '<p class="error-message">La password deve contenere almeno 8 caratteri, inclusi: una lettera maiuscola, una minuscola, un numero e un carattere speciale</p>';
+                    passwordInput.focus();
+                    return;
+                }
                 // Ottieni i dati dal form
                 const formData = new FormData(loginForm);
                 

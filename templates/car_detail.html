@@ -25,9 +25,23 @@
 {% block content %}
   <h2>{{ car.name }}</h2>
 
-  <div class="image-container">
+  <div class="image-container position-relative">
     <button class="prev-btn" onclick="changeImage(-1)">&#10094;</button>
-    <img id="carImage" src="{{ car.image }}" alt="Car Image" loading="lazy">
+    <img id="carImage" src="{{ car.image }}" alt="Car Image" loading="lazy" style="display: block;">
+    <!-- Spinner di caricamento -->
+    <div id="imageSpinner" class="position-absolute top-50 start-50 translate-middle" style="display: none; z-index: 2;">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Caricamento...</span>
+      </div>
+    </div>
+    <!-- Messaggio errore immagine -->
+    <div id="imageError" class="position-absolute top-50 start-50 translate-middle text-danger bg-white p-2 rounded shadow" style="display: none; z-index: 3;">
+      <i class="fas fa-exclamation-triangle"></i> Immagine non disponibile
+    </div>
+    <!-- Badge numerazione immagini -->
+    <div id="imageCounter" class="position-absolute top-0 end-0 m-2 px-2 py-1 bg-dark text-white rounded small" style="opacity: 0.85; z-index: 4;">
+      <span id="currentImageIndex">1</span>/<span id="totalImages">1</span>
+    </div>
     <button class="next-btn" onclick="changeImage(1)">&#10095;</button>
   </div>
   
@@ -173,25 +187,61 @@
   {{ super() }}
   <script>
     const carId = "{{ car.id }}";
-  </script>
-
-  <script>
     // Array di tutte le immagini (principale + aggiuntive)
     const images = {{ ([car.image] + car.images)|tojson }};
     let currentImageIndex = 0;
     const carImage = document.getElementById('carImage');
+    const imageSpinner = document.getElementById('imageSpinner');
+    const imageError = document.getElementById('imageError');
+    const currentImageIndexSpan = document.getElementById('currentImageIndex');
+    const totalImagesSpan = document.getElementById('totalImages');
+    if (totalImagesSpan) totalImagesSpan.textContent = images.length;
+    function updateImageCounter() {
+      if (currentImageIndexSpan) currentImageIndexSpan.textContent = (currentImageIndex + 1);
+    }
+    function showSpinner() {
+      if (imageSpinner) imageSpinner.style.display = 'block';
+    }
+    function hideSpinner() {
+      if (imageSpinner) imageSpinner.style.display = 'none';
+    }
+    function showError() {
+      if (imageError) imageError.style.display = 'block';
+    }
+    function hideError() {
+      if (imageError) imageError.style.display = 'none';
+    }
     function changeImage(direction) {
+      showSpinner();
+      hideError();
       currentImageIndex += direction;
       if (currentImageIndex < 0) currentImageIndex = images.length - 1;
       if (currentImageIndex >= images.length) currentImageIndex = 0;
+      carImage.style.display = 'block';
       carImage.src = images[currentImageIndex];
+      updateImageCounter();
     }
     // Carica la prima immagine all'avvio (se non già impostata)
     document.addEventListener('DOMContentLoaded', function() {
       if (images.length > 0) {
         carImage.src = images[0];
+        updateImageCounter();
+        if (totalImagesSpan) totalImagesSpan.textContent = images.length;
       }
     });
+    // Spinner e gestione caricamento immagine
+    carImage.addEventListener('load', function() {
+      hideSpinner();
+      hideError();
+      carImage.style.display = 'block';
+    });
+    carImage.addEventListener('error', function() {
+      hideSpinner();
+      showError();
+      carImage.style.display = 'none';
+    });
+    // Mostra spinner quando si cambia immagine
+    carImage.addEventListener('loadstart', showSpinner);
   </script>
 
   <script>

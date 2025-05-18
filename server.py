@@ -712,20 +712,19 @@ def change_password():
 
         # Verifica che la nuova password e la conferma corrispondano
         if new_password != confirm_password:
-            return jsonify(success=False, message='La nuova password e la conferma non corrispondono')
+            return jsonify(success=False, message='Le password non coincidono.')
 
         with db_cursor(dictionary=True) as (cursor, conn):
-            # Ottieni la password attuale dell'utente
             cursor.execute('SELECT password FROM users WHERE id = %s', (current_user.id,))
-            user_data = cursor.fetchone()
-
-            if not check_password_hash(user_data['password'], current_password):
-                return jsonify(success=False, message='Password attuale non corretta')
-
+            user = cursor.fetchone()
+            if not user or not check_password_hash(user['password'], current_password):
+                return jsonify(success=False, message='Password attuale sbagliata.')
+            if check_password_hash(user['password'], new_password):
+                return jsonify(success=False, message='La nuova password non può essere uguale a quella attuale.')
             # Aggiorna la password
             new_password_hash = generate_password_hash(new_password)
             cursor.execute('UPDATE users SET password = %s WHERE id = %s', (new_password_hash, current_user.id))
-
+            conn.commit()
         return jsonify(success=True, message='Password modificata con successo!')
     except Exception as e:
         return jsonify(success=False, message=f'Errore: {str(e)}')
