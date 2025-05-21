@@ -1,15 +1,64 @@
-# wikisportcars/wikisportcars/README.md
-
 # WikiSportCars
 
-WikiSportCars è un'applicazione web che permette agli utenti di esplorare una vasta gamma di automobili sportive, visualizzare dettagli, immagini, recensioni e salvare le auto preferite. Alcune funzionalità richiedono la registrazione e il login.
+WikiSportCars è una enciclopedia web interattiva dedicata al mondo delle automobili sportive, che permette agli appassionati di esplorare un vasto catalogo di vetture iconiche e moderne. La piattaforma offre contenuti dettagliati, gallerie fotografiche, specifiche tecniche e recensioni della community, creando un'esperienza completa per gli amanti dei motori.
 
-## Funzionalità principali
-- Visualizzazione elenco auto sportive
-- Dettagli e immagini di ogni auto
-- Registrazione e login utenti
-- Salvataggio auto nei preferiti
-- Recensioni e valutazioni sulle auto
+## Caratteristiche principali
+
+- **Catalogo completo**: Ampia selezione di auto sportive divise in categorie (Sportive, Supercar, Hypercar, Berline, Muscle Car, GT, Utilitarie)
+- **Schede dettagliate**: Ogni auto presenta descrizione approfondita, specifiche tecniche e galleria fotografica
+- **Sistema di ricerca avanzato**: Ricerca per nome, marca, modello con filtri per categoria
+- **Valutazioni e recensioni**: Sistema di rating a stelle e possibilità di lasciare recensioni dettagliate
+- **Area personale**: Profilo utente personalizzabile con foto e gestione dei preferiti
+- **Interfaccia responsive**: Design moderno e funzionale ottimizzato per tutti i dispositivi
+
+## Area utenti
+
+- Registrazione con conferma via email
+- Login sicuro con recupero password
+- Profilo personalizzabile con immagine
+- Salvataggio auto preferite
+- Possibilità di recensire e valutare i veicoli
+
+## Area amministrativa
+
+- Pannello di controllo per la gestione del catalogo
+- Strumenti per aggiungere, modificare ed eliminare schede auto
+- Gestione delle immagini multiple per ogni veicolo
+- Supervisione delle recensioni degli utenti
+
+## Tecnologie utilizzate
+
+Sviluppato con tecnologie moderne e robuste:
+- Backend: Python con framework Flask
+- Database: MySQL
+- Frontend: HTML5, CSS3, JavaScript
+- Autenticazione: Flask-Login con conferma email
+- Gestione immagini: Pillow
+
+## Sviluppi futuri
+
+Il progetto è in continua evoluzione, con diversi miglioramenti previsti nelle prossime versioni:
+
+### Interfaccia grafica
+- Ridesign completo della homepage con layout più moderno e intuitivo
+- Miglioramento della visualizzazione su dispositivi mobili
+- Implementazione di un tema scuro/chiaro selezionabile dall'utente
+- Ottimizzazione delle gallerie fotografiche con migliore gestione delle immagini
+
+### Area profilo utente
+- Espansione della sezione profilo con statistiche personali 
+- Aggiunta della funzionalità di confronto tra auto preferite
+- Miglioramento della gestione delle recensioni con possibilità di inserire foto
+- Implementazione di un sistema di notifiche per nuove auto o aggiornamenti
+
+### Usabilità
+- Aggiunta di filtri avanzati per la ricerca (prezzo, potenza, anno, ecc.)
+- Miglioramento dei form con validazione più intuitiva
+- Ottimizzazione dei tempi di caricamento delle pagine
+- Aggiunta di tooltip e guide contestuali per rendere l'esperienza più user-friendly
+- Implementazione di un tour guidato per i nuovi utenti
+
+Questi miglioramenti sono parte della roadmap di sviluppo e saranno implementati progressivamente nelle prossime release.
 
 ## Struttura del database
 
@@ -176,12 +225,12 @@ Tutte le dipendenze sono elencate in `requirements.txt`.
 5. **Configura la Web App:**
    - Scegli "Manual configuration" e Python 3.x.
    - Imposta il percorso del file `wsgi.py` come entry point.
-   - Aggiungi le variabili d’ambiente necessarie (es: credenziali DB, secret key, email, ecc).
+   - Aggiungi le variabili d'ambiente necessarie (es: credenziali DB, secret key, email, ecc).
    - Nella sezione "Static files", mappa `/static/` alla cartella `static` del progetto.
 6. **Riavvia la Web App** dalla dashboard di PythonAnywhere.
 
 ### Note utili
-- Se usi variabili d’ambiente, puoi creare un file `.env` e caricarlo tramite `python-dotenv`.
+- Se usi variabili d'ambiente, puoi creare un file `.env` e caricarlo tramite `python-dotenv`.
 - Per debug, consulta i log di errore nella dashboard PythonAnywhere.
 - Assicurati che tutte le dipendenze siano installate nel virtualenv attivo.
 
