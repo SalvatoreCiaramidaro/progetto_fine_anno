@@ -143,15 +143,10 @@ Legenda:
 - Flask
 - Flask-Login
 - Flask-Mail
-- Flask-WTF
-- Flask-SQLAlchemy
 - mysql-connector-python
-- email-validator
-- Pillow
 - Jinja2
 - itsdangerous
 - python-dotenv
-- gunicorn (per deploy)
 
 Tutte le dipendenze sono elencate in `requirements.txt`.
 
@@ -190,8 +185,7 @@ Tutte le dipendenze sono elencate in `requirements.txt`.
      mysql -u <user> -p <nome_database> < wikisportcars.sql
      ```
 6. **Configura la connessione al database:**
-   - Modifica `config.py` o `db_config.py` inserendo i parametri del tuo database (host, user, password, nome database).
-   - (Opzionale) Usa un file `.env` per gestire le variabili sensibili.
+   - Modifica `db_config.py` inserendo i parametri del tuo database (host, user, password, nome database).
 7. **Avvia l'applicazione:**
    ```
    python app.py
@@ -212,8 +206,8 @@ Tutte le dipendenze sono elencate in `requirements.txt`.
 
 ### Passaggi
 1. **Crea un nuovo database MySQL** tramite la dashboard di PythonAnywhere.
-2. **Aggiorna i parametri di connessione** in `config.py` o `db_config.py` con i dati forniti da PythonAnywhere.
-3. **Importa lo script SQL** nel database tramite la console MySQL di PythonAnywhere:
+2. **Aggiorna i parametri di connessione** in`db_config.py` con i dati forniti da PythonAnywhere.
+3. **Importa lo script SQL** nel database tramite la console MySQL di PythonAnywhere attraverso le query sql(nelle prossime release ):
    ```
    mysql -u <user> -p -h <host> <nome_database> < wikisportcars.sql
    ```
