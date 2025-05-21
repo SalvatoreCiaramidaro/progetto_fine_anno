@@ -23,6 +23,7 @@
 {% block search_bar %}{% endblock %}
 
 {% block content %}
+  <div class="flash-messages-container"></div>
   <h2>{{ car.name }}</h2>
 
   <div class="image-container position-relative">
@@ -415,4 +416,5 @@
   </script>
 
   <script src="{{ url_for('static', filename='js/car_detail.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/favorites.js') }}"></script>
 {% endblock %}

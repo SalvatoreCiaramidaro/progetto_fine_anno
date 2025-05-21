@@ -900,6 +900,20 @@ def admin_update_car_image(car_id):
         app.logger.error(f"Traceback completo: {traceback.format_exc()}")
         return jsonify(success=False, message=f'Errore: {str(e)}')
 
+@app.route('/api/favorites/count')
+@login_required
+def api_favorites_count():
+    user_id = current_user.id
+    try:
+        with db_cursor(dictionary=True) as (cursor, conn):
+            cursor.execute('SELECT COUNT(*) as count FROM favorites WHERE user_id = %s', (user_id,))
+            result = cursor.fetchone()
+            count = result['count'] if result else 0
+            return jsonify({"success": True, "count": count})
+    except Exception as e:
+        logging.error(f"Errore nel conteggio dei preferiti: {str(e)}")
+        return jsonify({"success": False, "count": 0, "error": str(e)}), 500
+
 if __name__ == '__main__':
     # Genera l'hash della password per l'admin (utilizzare solo una volta per generare l'hash)
     if '--generate-admin-hash' in sys.argv:

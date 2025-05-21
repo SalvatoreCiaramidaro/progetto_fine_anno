@@ -14,9 +14,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Inizializza i tooltip di Bootstrap
     const initTooltips = () => {
-        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"], [title]:not(.no-tooltip)');
         const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
+            return new bootstrap.Tooltip(tooltipTriggerEl, {
+                delay: { show: 300, hide: 100 }
+            });
         });
     };
     
@@ -30,8 +32,39 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     };
     
+    // Migliora l'accessibilità e l'esperienza utente
+    const enhanceUserExperience = () => {
+        // Aggiungi attributi ARIA per accessibility
+        const dropdownButtons = document.querySelectorAll('.dropbtn, .profile-image-container');
+        dropdownButtons.forEach(btn => {
+            if (!btn.getAttribute('aria-haspopup')) {
+                btn.setAttribute('aria-haspopup', 'true');
+            }
+            if (!btn.getAttribute('aria-expanded')) {
+                btn.setAttribute('aria-expanded', 'false');
+            }
+            
+            btn.addEventListener('click', function() {
+                const expanded = this.getAttribute('aria-expanded') === 'true' || false;
+                this.setAttribute('aria-expanded', !expanded);
+            });
+        });
+
+        // Migliora focus per navigazione da tastiera
+        const focusableElements = document.querySelectorAll('a, button, input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        focusableElements.forEach(el => {
+            el.addEventListener('focus', function() {
+                this.classList.add('keyboard-focus');
+            });
+            el.addEventListener('blur', function() {
+                this.classList.remove('keyboard-focus');
+            });
+        });
+    };
+    
     // Inizializzazione delle funzioni
     autoHideAlerts();
     initTooltips();
     initFadeInElements();
+    enhanceUserExperience();
 });

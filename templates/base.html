@@ -17,6 +17,8 @@
     <!-- CSS personalizzati -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash_messages.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dropdown.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar-custom.css') }}">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon/favicon.png') }}">
@@ -43,28 +45,33 @@
             <div class="nav-right">
                 {% if current_user.is_authenticated %}
                     <span class="greeting">Ciao, {{ current_user.username }}!</span>
-                    <div class="profile-image-container" id="profileImageContainer">
+                    <div class="profile-image-container" id="profileImageContainer" aria-label="Menu profilo utente" class="no-tooltip">
                         {% if user_profile_image %}
-                            <img src="{{ url_for('static', filename=user_profile_image) }}" alt="Profilo" class="profile-image">
+                            <img src="{{ url_for('static', filename=user_profile_image) }}" alt="Profilo" class="profile-image no-tooltip">
                         {% else %}
-                            <img src="{{ url_for('static', filename='images/default-profile.svg') }}" alt="Profilo" class="profile-image">
+                            <img src="{{ url_for('static', filename='images/default-profile.svg') }}" alt="Profilo" class="profile-image no-tooltip">
                         {% endif %}
                         <div class="profile-dropdown" id="profileDropdown">
-                            <a href="{{ url_for('profile') }}">Profilo</a>
-                            <a href="{{ url_for('favorites') }}">Preferiti</a>
+                            <a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profilo</a>
+                            <a href="{{ url_for('favorites') }}"><i class="fas fa-heart"></i> Preferiti <span class="dropdown-badge" id="favoritesCount"></span></a>
                             {% if current_user.is_authenticated and current_user.is_admin %}
-                                <a href="{{ url_for('admin_dashboard') }}">Amministrazione</a>
+                                <div class="dropdown-divider"></div>
+                                <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-cog"></i> Amministrazione</a>
                             {% endif %}
-                            <a href="{{ url_for('logout') }}">Logout</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
                         </div>
                     </div>
                 {% else %}
                     <div class="dropdown">
-                        <button class="dropbtn">Menu</button>
-                        <div class="dropdown-content">
-                            <a href="{{ url_for('favorites') }}">Preferiti</a>
-                            <a href="{{ url_for('login', next=request.path) }}">Login</a>
-                            <a href="{{ url_for('register') }}">Registrati</a>
+                        <button class="dropbtn" aria-label="Menu" class="no-tooltip">
+                            <i class="fas fa-bars"></i> Menu <i class="fas fa-caret-down"></i>
+                        </button>
+                        <div class="dropdown-content" id="menuDropdown">
+                            <a href="{{ url_for('favorites') }}"><i class="fas fa-heart"></i> Preferiti</a>
+                            <div class="dropdown-divider"></div>
+                            <a href="{{ url_for('login', next=request.path) }}"><i class="fas fa-sign-in-alt"></i> Login</a>
+                            <a href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Registrati</a>
                         </div>
                     </div>
                 {% endif %}
@@ -113,54 +120,133 @@
 
     <!-- Script principale -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/dropdown-enhancements.js') }}"></script>
 
-    <!-- Script dropdown immagine profilo -->
+    <!-- Script per dropdown e messaggi flash -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Gestione del dropdown del profilo
             const profileImageContainer = document.getElementById('profileImageContainer');
             const profileDropdown = document.getElementById('profileDropdown');
 
-            if (profileImageContainer) {
+            if (profileImageContainer && profileDropdown) {
+                // Variabile per tracciare se il menu deve rimanere aperto
+                let isProfileMenuOpen = false;
+                
                 profileImageContainer.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    profileDropdown.classList.toggle('show');
-                });
-
-                document.addEventListener('click', function(e) {
-                    if (!profileImageContainer.contains(e.target)) {
+                    
+                    // Inverte lo stato del menu
+                    isProfileMenuOpen = !profileDropdown.classList.contains('show');
+                    
+                    // Mostra/nascondi il dropdown in base allo stato
+                    if (isProfileMenuOpen) {
+                        profileDropdown.classList.add('show');
+                        this.setAttribute('aria-expanded', 'true');
+                        
+                        // Chiudi altri dropdown se aperti
+                        const menuDropdown = document.getElementById('menuDropdown');
+                        if (menuDropdown && menuDropdown.classList.contains('show')) {
+                            menuDropdown.classList.remove('show');
+                            document.querySelector('.dropbtn')?.setAttribute('aria-expanded', 'false');
+                        }
+                    } else {
                         profileDropdown.classList.remove('show');
+                        this.setAttribute('aria-expanded', 'false');
                     }
                 });
-            }
-        });
-    </script>
+                
+                // Trattamento speciale per i click sui link del dropdown
+                profileDropdown.addEventListener('click', function(e) {
+                    // Non chiudere il dropdown se si clicca sul dropdown stesso
+                    e.stopPropagation();
+                });
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
+                // Aggiungi supporto per la navigazione da tastiera
+                profileImageContainer.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        profileDropdown.classList.toggle('show');
+                        this.setAttribute('aria-expanded', profileDropdown.classList.contains('show'));
+                    }
+                });
+                
+                // Rendi l'immagine profilo navigabile con tab
+                profileImageContainer.setAttribute('tabindex', '0');
+            }
+
+            // Gestione del dropdown del menu
+            const menuBtn = document.querySelector('.dropbtn');
+            const menuDropdown = document.getElementById('menuDropdown');
+
+            if (menuBtn && menuDropdown) {
+                // Variabile per tracciare se il menu deve rimanere aperto
+                let isMenuOpen = false;
+                
+                menuBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    
+                    // Inverte lo stato del menu
+                    isMenuOpen = !menuDropdown.classList.contains('show');
+                    
+                    // Mostra/nascondi il dropdown in base allo stato
+                    if (isMenuOpen) {
+                        menuDropdown.classList.add('show');
+                        this.setAttribute('aria-expanded', 'true');
+                        
+                        // Chiudi dropdown profilo se aperto
+                        if (profileDropdown && profileDropdown.classList.contains('show')) {
+                            profileDropdown.classList.remove('show');
+                            profileImageContainer.setAttribute('aria-expanded', 'false');
+                        }
+                    } else {
+                        menuDropdown.classList.remove('show');
+                        this.setAttribute('aria-expanded', 'false');
+                    }
+                });
+                
+                // Trattamento speciale per i click sui link del dropdown
+                menuDropdown.addEventListener('click', function(e) {
+                    // Non chiudere il dropdown se si clicca sul dropdown stesso
+                    e.stopPropagation();
+                });
+            }
+
+            // Chiudi dropdown quando si clicca altrove sulla pagina
+            document.addEventListener('click', function(e) {
+                // Controlla che il click non sia sul dropdown o sui suoi trigger
+                if (profileDropdown && !profileImageContainer?.contains(e.target) && !profileDropdown.contains(e.target)) {
+                    profileDropdown.classList.remove('show');
+                    profileImageContainer?.setAttribute('aria-expanded', 'false');
+                }
+                
+                if (menuDropdown && !menuBtn?.contains(e.target) && !menuDropdown.contains(e.target)) {
+                    menuDropdown.classList.remove('show');
+                    menuBtn?.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            // Chiudi dropdown con ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (profileDropdown && profileDropdown.classList.contains('show')) {
+                        profileDropdown.classList.remove('show');
+                        profileImageContainer?.setAttribute('aria-expanded', 'false');
+                    }
+                    if (menuDropdown && menuDropdown.classList.contains('show')) {
+                        menuDropdown.classList.remove('show');
+                        menuBtn?.setAttribute('aria-expanded', 'false');
+                    }
+                }
+            });
+
+            // Gestione dei messaggi flash
             document.querySelectorAll('.flash-message .close-button').forEach(function(btn) {
                 btn.addEventListener('click', function() {
                     const flashMsg = btn.closest('.flash-message');
                     if (flashMsg) flashMsg.remove();
                 });
             });
-
-            // Dropdown per il menu non autenticato
-            const menuDropdown = document.querySelector('.dropdown');
-            const menuDropdownContent = document.querySelector('.dropdown-content');
-            const menuBtn = document.querySelector('.dropbtn');
-            if (menuDropdown && menuDropdownContent && menuBtn) {
-                menuBtn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    menuDropdownContent.style.display = (menuDropdownContent.style.display === 'block') ? 'none' : 'block';
-                    menuDropdownContent.style.maxHeight = (menuDropdownContent.style.display === 'block') ? '500px' : '0';
-                });
-                document.addEventListener('click', function(e) {
-                    if (!menuDropdown.contains(e.target)) {
-                        menuDropdownContent.style.display = 'none';
-                        menuDropdownContent.style.maxHeight = '0';
-                    }
-                });
-            }
         });
     </script>
 
