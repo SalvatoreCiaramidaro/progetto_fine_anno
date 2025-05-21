@@ -9,6 +9,7 @@ body {
     min-height: 100vh;
 }
 
+
 header {
     background: linear-gradient(90deg, #35424a, #e8491d);
     color: white;
@@ -544,6 +545,20 @@ button:hover {
     z-index: 1000;
     max-width: 350px;
     min-width: 280px;
+}
+
+/* Rimuove l'outline arancione quando gli elementi sono in focus */
+button:focus, 
+input:focus, 
+textarea:focus, 
+select:focus, 
+a:focus,
+.dropbtn:focus,
+#search-input:focus,
+.car-item a:focus,
+.button-group li a:focus {
+    outline: none;
+    box-shadow: none;
 }
 
 .flash-message {

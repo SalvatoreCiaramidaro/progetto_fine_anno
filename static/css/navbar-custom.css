@@ -31,11 +31,7 @@ header:hover {
     width: 100%;
 }
 
-/* Effetto focus per navigazione da tastiera */
-.keyboard-focus {
-    outline: 3px solid #e8491d !important;
-    outline-offset: 2px !important;
-}
+
 
 /* Animazione per icone nei dropdown */
 .dropdown-content a i, .profile-dropdown a i {
