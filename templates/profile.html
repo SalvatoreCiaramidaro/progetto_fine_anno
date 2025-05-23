@@ -14,91 +14,123 @@
 <div class="profile-container">
     <div class="profile-header">
         <div class="profile-details">
-            <h1> Ciao {{ user.username }}</h1>
+            <h1><i class="fas fa-user-circle"></i> Ciao {{ user.username }}</h1>
         </div>
     </div>
     
-    <div class="profile-section">
-        <h2>Immagine Profilo</h2>
-        <div class="profile-image-preview">
-            {% if user.profile_image %}
-                <img src="{{ url_for('static', filename=user.profile_image) }}" alt="Immagine profilo" class="profile-small-image" id="currentProfileImage">
-            {% else %}
-                <div class="default-profile-small-image" id="defaultProfileImage">
-                    <i class="fas fa-user"></i>
+    <!-- Tabs di navigazione -->
+    <div class="profile-tabs">
+        <button class="profile-tab active" data-tab="tab-profile"><i class="fas fa-user"></i> Profilo</button>
+        <button class="profile-tab" data-tab="tab-security"><i class="fas fa-lock"></i> Sicurezza</button>
+        <button class="profile-tab" data-tab="tab-favorites"><i class="fas fa-heart"></i> Preferiti</button>
+    </div>
+    
+    <!-- Tab Profilo -->
+    <div class="tab-content active" id="tab-profile">
+        <!-- Sezione Immagine -->
+        <div class="profile-section">
+            <h2><i class="fas fa-image"></i> Immagine Profilo</h2>
+            <div class="profile-image-preview">
+                {% if user.profile_image %}
+                    <img src="{{ url_for('static', filename=user.profile_image) }}" alt="Immagine profilo" class="profile-small-image" id="currentProfileImage">
+                {% else %}
+                    <div class="default-profile-small-image" id="defaultProfileImage">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <img src="" alt="Immagine profilo" class="profile-small-image" id="currentProfileImage" style="display: none;">
+                {% endif %}
+            </div>
+            <form id="profileImageForm" enctype="multipart/form-data">
+                <div class="image-upload-container">
+                    <label for="profile_image" class="custom-file-upload">
+                        <i class="fas fa-upload"></i> Scegli un'immagine
+                    </label>
+                    <input type="file" id="profile_image" name="profile_image" style="display:none" accept="image/*">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Salva immagine
+                    </button>
                 </div>
-                <img src="" alt="Immagine profilo" class="profile-small-image" id="currentProfileImage" style="display: none;">
-            {% endif %}
+            </form>
         </div>
-        <form id="profileImageForm" enctype="multipart/form-data">
-            <div class="image-upload-container">
-                <label for="profile_image" class="custom-file-upload">
-                    <i class="fas fa-upload"></i> Scegli un'immagine
-                </label>
-                <input type="file" id="profile_image" name="profile_image" style="display:none" accept="image/*">
-                <button type="submit" class="btn-primary" style="margin-top: 10px;">
-                    <i class="fas fa-save"></i> Salva immagine
+
+        <!-- Sezione Info Personali -->
+        <div class="profile-section">
+            <h2><i class="fas fa-address-card"></i> Informazioni Personali</h2>
+            <form id="profileForm" method="POST">
+                <div class="form-group">
+                    <label for="username"><i class="fas fa-user-tag"></i> Username:</label>
+                    <input type="text" id="username" name="username" value="{{ user.username }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="email"><i class="fas fa-envelope"></i> Email:</label>
+                    <input type="email" id="email" name="email" value="{{ user.email }}" required 
+                        pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
+                        title="Inserisci un indirizzo email valido (esempio: nome@dominio.com)">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Aggiorna Profilo
                 </button>
-            </div>
-        </form>
+            </form>
+            <div id="profileResult" class="alert" style="display: none;"></div>
+        </div>
     </div>
-
-    <div class="profile-section">
-        <h2>Informazioni Personali</h2>
-        <form id="profileForm" method="POST">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" id="username" name="username" value="{{ user.username }}" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" value="{{ user.email }}" required 
-                    pattern="[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$" 
-                    title="Inserisci un indirizzo email valido (esempio: nome@dominio.com)">
-            </div>
-            <button type="submit" class="btn btn-primary">Aggiorna Profilo</button>
-        </form>
-        <div id="profileResult" class="alert" style="display: none;"></div>
+    
+    <!-- Tab Sicurezza -->
+    <div class="tab-content" id="tab-security">
+        <div class="profile-section">
+            <h2><i class="fas fa-key"></i> Cambio Password</h2>
+            <form id="passwordForm" action="{{ url_for('change_password') }}" method="POST">
+                <div class="form-group">
+                    <label for="current_password"><i class="fas fa-lock"></i> Password Attuale:</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="current_password" name="current_password" required
+                            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\\-+=(){}[\]|:;,<>/~])[A-Za-z\d@$!%*?&.#_\\-+=(){}[\]|:;,<>/~]{8,}$">
+                        <span class="toggle-password" data-target="current_password"><i class="fas fa-eye"></i></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="new_password"><i class="fas fa-key"></i> Nuova Password:</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="new_password" name="new_password" required
+                            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\\-+=(){}[\]|:;,<>/~])[A-Za-z\d@$!%*?&.#_\\-+=(){}[\]|:;,<>/~]{8,}$">
+                        <span class="toggle-password" data-target="new_password"><i class="fas fa-eye"></i></span>
+                    </div>
+                    <div class="password-requirements">
+                        <p><i class="fas fa-info-circle"></i> La password deve contenere:</p>
+                        <ul>
+                            <li><i class="fas fa-check requirement-check" data-req="length"></i> Almeno 8 caratteri</li>
+                            <li><i class="fas fa-check requirement-check" data-req="lowercase"></i> Almeno una lettera minuscola</li>
+                            <li><i class="fas fa-check requirement-check" data-req="uppercase"></i> Almeno una lettera maiuscola</li>
+                            <li><i class="fas fa-check requirement-check" data-req="number"></i> Almeno un numero</li>
+                            <li><i class="fas fa-check requirement-check" data-req="special"></i> Almeno un carattere speciale</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password"><i class="fas fa-check-double"></i> Conferma Nuova Password:</label>
+                    <div class="password-input-wrapper">
+                        <input type="password" id="confirm_password" name="confirm_password" required
+                            pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\\-+=(){}[\]|:;,<>/~])[A-Za-z\d@$!%*?&.#_\\-+=(){}[\]|:;,<>/~]{8,}$">
+                        <span class="toggle-password" data-target="confirm_password"><i class="fas fa-eye"></i></span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-key"></i> Cambia Password
+                </button>
+            </form>
+            <div id="passwordResult" class="alert" style="display: none;"></div>
+        </div>
     </div>
-
-    <div class="profile-section">
-        <h2>Cambio Password</h2>
-        <form id="passwordForm" action="{{ url_for('change_password') }}" method="POST">
-            <div class="form-group">
-                <label for="current_password">Password Attuale:</label>
-                <div class="password-input-wrapper">
-                    <input type="password" id="current_password" name="current_password" required
-                        pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\\-+=(){}[\]|:;,<>/~])[A-Za-z\d@$!%*?&.#_\\-+=(){}[\]|:;,<>/~]{8,}$"
-                        title="La password deve contenere almeno 8 caratteri, inclusi: una lettera maiuscola, una lettera minuscola, un numero e un carattere speciale">
-                    <span class="toggle-password" data-target="current_password"><i class="fas fa-eye"></i></span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="new_password">Nuova Password:</label>
-                <div class="password-input-wrapper">
-                    <input type="password" id="new_password" name="new_password" required
-                        pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\\-+=(){}[\]|:;,<>/~])[A-Za-z\d@$!%*?&.#_\\-+=(){}[\]|:;,<>/~]{8,}$"
-                        title="La password deve contenere almeno 8 caratteri, inclusi: una lettera maiuscola, una lettera minuscola, un numero e un carattere speciale">
-                    <span class="toggle-password" data-target="new_password"><i class="fas fa-eye"></i></span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="confirm_password">Conferma Nuova Password:</label>
-                <div class="password-input-wrapper">
-                    <input type="password" id="confirm_password" name="confirm_password" required
-                        pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.#_\\-+=(){}[\]|:;,<>/~])[A-Za-z\d@$!%*?&.#_\\-+=(){}[\]|:;,<>/~]{8,}$"
-                        title="La password deve contenere almeno 8 caratteri, inclusi: una lettera maiuscola, una lettera minuscola, un numero e un carattere speciale">
-                    <span class="toggle-password" data-target="confirm_password"><i class="fas fa-eye"></i></span>
-                </div>
-            </div>
-            <button type="submit" class="btn btn-warning">Cambia Password</button>
-        </form>
-        <div id="passwordResult" class="alert" style="display: none;"></div>
-    </div>
-
-    <div class="profile-section">
-        <h2>I tuoi Preferiti</h2>
-        <a href="{{ url_for('favorites') }}" class="btn btn-info">Visualizza Auto Preferite</a>
+    
+    <!-- Tab Preferiti -->
+    <div class="tab-content" id="tab-favorites">
+        <div class="profile-section">
+            <h2><i class="fas fa-heart"></i> I tuoi Preferiti</h2>
+            <p>Visualizza e gestisci la tua collezione di auto preferite.</p>
+            <a href="{{ url_for('favorites') }}" class="btn btn-info">
+                <i class="fas fa-car"></i> Visualizza Auto Preferite
+            </a>
+        </div>
     </div>
 </div>
 <div id="alerts"></div>
@@ -250,6 +282,51 @@
     });
 
     document.addEventListener('DOMContentLoaded', function() {
+        // Gestione dei tab
+        const tabs = document.querySelectorAll('.profile-tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function() {
+                // Rimuove la classe attiva da tutti i tab
+                tabs.forEach(t => t.classList.remove('active'));
+                // Aggiunge la classe attiva al tab cliccato
+                this.classList.add('active');
+                
+                // Nasconde tutti i contenuti dei tab
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Mostra il contenuto corrispondente al tab cliccato
+                const tabId = this.getAttribute('data-tab');
+                document.getElementById(tabId).classList.add('active');
+            });
+        });
+        
+        // Controllo requisiti password in real-time
+        const newPasswordInput = document.getElementById('new_password');
+        if (newPasswordInput) {
+            newPasswordInput.addEventListener('input', function() {
+                const password = this.value;
+                const requirements = {
+                    length: password.length >= 8,
+                    lowercase: /[a-z]/.test(password),
+                    uppercase: /[A-Z]/.test(password),
+                    number: /\d/.test(password),
+                    special: /[@$!%*?&.#_\-+=(){}[\]|:;,<>/~]/.test(password)
+                };
+                
+                // Aggiorna le icone dei requisiti
+                for (const [req, isMet] of Object.entries(requirements)) {
+                    const reqIcon = document.querySelector(`.requirement-check[data-req="${req}"]`);
+                    if (reqIcon) {
+                        reqIcon.className = isMet ? 
+                            'fas fa-check requirement-check requirement-met' : 
+                            'fas fa-times requirement-check requirement-not-met';
+                    }
+                }
+            });
+        }
+                
         // Gestione del form profilo
         document.getElementById('profileForm').addEventListener('submit', function(e) {
             e.preventDefault();
