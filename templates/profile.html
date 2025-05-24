@@ -98,12 +98,16 @@
                     <div class="password-requirements">
                         <p><i class="fas fa-info-circle"></i> La password deve contenere:</p>
                         <ul>
-                            <li><i class="fas fa-check requirement-check" data-req="length"></i> Almeno 8 caratteri</li>
-                            <li><i class="fas fa-check requirement-check" data-req="lowercase"></i> Almeno una lettera minuscola</li>
-                            <li><i class="fas fa-check requirement-check" data-req="uppercase"></i> Almeno una lettera maiuscola</li>
-                            <li><i class="fas fa-check requirement-check" data-req="number"></i> Almeno un numero</li>
-                            <li><i class="fas fa-check requirement-check" data-req="special"></i> Almeno un carattere speciale</li>
+                            <li><i class="fas fa-times requirement-check requirement-not-met" data-req="length"></i> Almeno 8 caratteri</li>
+                            <li><i class="fas fa-times requirement-check requirement-not-met" data-req="lowercase"></i> Almeno una lettera minuscola</li>
+                            <li><i class="fas fa-times requirement-check requirement-not-met" data-req="uppercase"></i> Almeno una lettera maiuscola</li>
+                            <li><i class="fas fa-times requirement-check requirement-not-met" data-req="number"></i> Almeno un numero</li>
+                            <li><i class="fas fa-times requirement-check requirement-not-met" data-req="special"></i> Almeno un carattere speciale</li>
                         </ul>
+                        <div class="password-strength-meter">
+                            <div class="strength" id="password-strength-indicator"></div>
+                        </div>
+                        <div id="strength-text" style="font-size: 0.85em; margin-top: 5px; text-align: right;"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -138,6 +142,7 @@
 
 {% block styles %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/password-validation.css') }}">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 {% endblock %}
 
@@ -302,30 +307,7 @@
             });
         });
         
-        // Controllo requisiti password in real-time
-        const newPasswordInput = document.getElementById('new_password');
-        if (newPasswordInput) {
-            newPasswordInput.addEventListener('input', function() {
-                const password = this.value;
-                const requirements = {
-                    length: password.length >= 8,
-                    lowercase: /[a-z]/.test(password),
-                    uppercase: /[A-Z]/.test(password),
-                    number: /\d/.test(password),
-                    special: /[@$!%*?&.#_\-+=(){}[\]|:;,<>/~]/.test(password)
-                };
-                
-                // Aggiorna le icone dei requisiti
-                for (const [req, isMet] of Object.entries(requirements)) {
-                    const reqIcon = document.querySelector(`.requirement-check[data-req="${req}"]`);
-                    if (reqIcon) {
-                        reqIcon.className = isMet ? 
-                            'fas fa-check requirement-check requirement-met' : 
-                            'fas fa-times requirement-check requirement-not-met';
-                    }
-                }
-            });
-        }
+        // Nota: il controllo dei requisiti password in real-time è ora gestito completamente da profile.js
                 
         // Gestione del form profilo
         document.getElementById('profileForm').addEventListener('submit', function(e) {

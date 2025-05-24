@@ -33,7 +33,6 @@ Sviluppato con tecnologie moderne e robuste:
 - Database: MySQL
 - Frontend: HTML5, CSS3, JavaScript
 - Autenticazione: Flask-Login con conferma email
-- Gestione immagini: Pillow
 
 ## Sviluppi futuri
 
@@ -45,15 +44,12 @@ Il progetto è in continua evoluzione, con diversi miglioramenti previsti nelle 
 - Implementazione di un tema scuro/chiaro selezionabile dall'utente
 - Ottimizzazione delle gallerie fotografiche con migliore gestione delle immagini
 
-### Area profilo utente
-- Redesign area utente per una esperienza più user-friendly
 
 
 
 ### Usabilità
 - Miglioramento dei form con validazione più intuitiva
 - Ottimizzazione dei tempi di caricamento delle pagine
-- Aggiunta di tooltip e guide contestuali per rendere l'esperienza più user-friendly
 
 Questi miglioramenti sono parte della roadmap di sviluppo e saranno implementati progressivamente nelle prossime release.
 
@@ -179,7 +175,7 @@ Tutte le dipendenze sono elencate in `requirements.txt`.
    - Avvia MySQL e crea un database (es: `wikisportcars`).
    - Importa lo script `wikisportcars.sql` tramite client MySQL o phpMyAdmin:
      ```
-     mysql -u <user> -p <nome_database> < wikisportcars.sql
+     mysql -u <user> -p < <percorso>/wikisportcars.sql
      ```
 6. **Configura la connessione al database:**
    - Modifica `db_config.py` inserendo i parametri del tuo database (host, user, password, nome database).
