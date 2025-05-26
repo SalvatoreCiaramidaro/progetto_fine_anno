@@ -107,7 +107,6 @@ erDiagram
 Legenda:
 - PK = Primary Key
 - FK = Foreign Key
-- UNIQUE = Unico
 
 ## Struttura del progetto
 - `templates/`: File HTML delle pagine
