@@ -374,4 +374,39 @@ CREATE TABLE IF NOT EXISTS reviews (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     UNIQUE KEY unique_review (car_id, user_id)
 );
+```
+4. **Crea un virtualenv** e installa le dipendenze:
+   ```
+   python -m venv <nome-ambiente>
+   source myenv/bin/activate
+   pip install -r requirements.txt
+   ```
+5. **Configura la Web App:**
+   - Scegli "Manual configuration" e Python 3.x.
+   - Imposta il percorso del file `wsgi.py` come entry point.
+   - Aggiungi le variabili d'ambiente necessarie (es: credenziali DB, secret key, email, ecc).
+   - Nella sezione "Static files", mappa `/static/` alla cartella `static` del progetto.
+6. **Riavvia la Web App** dalla dashboard di PythonAnywhere.
+
+### Note utili
+- Per debug, consulta i log di errore nella dashboard PythonAnywhere.
+- Assicurati che tutte le dipendenze siano installate nel virtualenv attivo.
+
+---
+
+## Funzionalità avanzate
+- Sistema di autenticazione e gestione sessioni utente
+- Conferma email e recupero password tramite email
+- Dashboard amministratore per gestione auto
+- Ricerca e filtri dinamici sulle auto
+- Gestione immagini multiple per ogni auto
+- Messaggi flash dinamici e interfaccia responsive
+
+## Contribuire
+Sono benvenute issue e pull request per migliorare il progetto. Per proporre modifiche:
+- Fai un fork del repository
+- Crea un branch per la tua feature/fix
+- Invia una pull request descrivendo chiaramente le modifiche
+
+Per domande o suggerimenti, apri una issue su GitHub.
    
