@@ -11,7 +11,18 @@ load_dotenv()
 
 # Carica le configurazioni dal file config.ini
 config = configparser.ConfigParser()
-config.read('config.ini')
+# Prova prima percorso relativo, poi assoluto (sia con __file__ che con project_home di wsgi.py)
+read_files = config.read('config.ini')
+if not config.sections():
+    abs_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini')
+    read_files = config.read(abs_path)
+if not config.sections():
+    project_home = '/home/Ciaramid06/progetto_fine_anno'
+    abs_path2 = os.path.join(project_home, 'config.ini')
+    read_files = config.read(abs_path2)
+if not config.sections():
+    raise FileNotFoundError("config.ini non trovato né in percorso relativo né assoluto. Sezioni caricate: {}".format(config.sections()))
+print("Config sections (email_service):", config.sections())
 
 # Configura logging dettagliato
 logging.basicConfig(level=logging.DEBUG)
