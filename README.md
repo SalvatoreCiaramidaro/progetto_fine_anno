@@ -141,66 +141,151 @@ Legenda:
 
 Tutte le dipendenze sono elencate in `requirements.txt`.
 
-## Installazione locale
+## 🔧 Configurazione e Setup
+
+### 🔒 Sistema di Configurazione Sicuro
+
+Il progetto utilizza un sistema di configurazione avanzato che separa le informazioni sensibili da quelle pubbliche:
+
+- **`config.ini`**: Configurazioni pubbliche (committate su GitHub)
+- **`.env`**: Credenziali sensibili (mai committate)
+- **`.env.example`**: Template per sviluppatori
 
 ### Prerequisiti
 - Python 3.10 o superiore
 - MySQL Server installato e in esecuzione
 - (Consigliato) Ambiente virtuale Python
 
-### Passaggi
+### Setup Rapido per Sviluppatori
+
 1. **Clona il repository:**
-   ```
+   ```bash
    git clone <repository-url>
-   ```
-2. **Vai nella cartella del progetto:**
-   ```
    cd wikisportcars
    ```
-3. **Crea un ambiente virtuale:**
-   ```
+
+2. **Crea ambiente virtuale e installa dipendenze:**
+   ```bash
    python -m venv venv
-   ```
-4. **Attiva l'ambiente virtuale:**
-   ```
-   source venv/bin/activate  # Su Linux/Mac
+   source venv/bin/activate  # Linux/Mac
    # oppure
-   venv\Scripts\activate     # Su Windows
-   ```
-5. **Installa le dipendenze:**
-   ```
+   venv\Scripts\activate     # Windows
    pip install -r requirements.txt
    ```
-6. **Crea il database MySQL:**
-   - Avvia MySQL e crea un database (es: `wikisportcars`).
-   - Importa lo script `wikisportcars.sql` tramite client MySQL o phpMyAdmin:
-     ```
-     mysql -u <user> -p < <percorso>/wikisportcars.sql
-     ```
-7. **Configura la connessione al database:**
-   - Modifica `db_config.py` inserendo i parametri del tuo database (host, user, password, nome database).
-8. **Avvia l'applicazione:**
+
+3. **⚠️ IMPORTANTE - Configura le credenziali:**
+   ```bash
+   # Copia il template delle credenziali
+   cp .env.example .env
+   
+   # Modifica .env con le tue credenziali reali
+   nano .env  # o usa il tuo editor preferito
    ```
-   python app.py
+
+4. **Configura il database MySQL(solo in locale):**
+   ```bash
+   # Importa lo schema
+   mysql -u root -p wikisportcars < wikisportcars.sql
    ```
-   oppure
+
+5. **Aggiorna le credenziali nel file .env:**
+   ```bash
+   # Esempio configurazione .env
+   DB_PASSWORD_LOCAL=la_tua_password_mysql
+   FLASK_SECRET_KEY=genera_una_chiave_casuale_molto_lunga
+   EMAIL_USER=tua_email@gmail.com
+   EMAIL_PASSWORD=password_app_gmail
    ```
+
+6. **Avvia l'applicazione:**
+   ```bash
    python server.py
    ```
-9. **Apri il browser su** `http://localhost:5000`
+
+7. **Accedi su** `http://localhost:5000`
+
+### 📋 Configurazioni Specifiche
+
+#### File `.env` (Credenziali Sensibili)
+```bash
+# Database Passwords
+DB_PASSWORD_LOCAL=la_tua_password_mysql
+DB_PASSWORD_PYTHONANYWHERE=password_pythonanywhere
+
+# Flask Security Keys (GENERA CHIAVI RANDOM!)
+FLASK_SECRET_KEY=chiave_segreta_molto_lunga_e_casuale
+SECURITY_PASSWORD_SALT=salt_casuale_per_sicurezza
+
+# Email Configuration
+EMAIL_USER=tua_email@gmail.com
+EMAIL_PASSWORD=password_app_specifica_gmail
+
+# Admin Configuration
+ADMIN_EMAIL=admin@tuodominio.com
+ADMIN_PASSWORD=password_admin_sicura
+```
+
+#### File `config.ini` (Configurazioni Pubbliche)
+Le configurazioni non sensibili sono già nel file `config.ini` e possono essere modificate secondo necessità:
+- Host e nomi database
+- Configurazioni email (server, porta)
+- Impostazioni Flask
+- Percorsi e sicurezza
+
+### 👑 Account Amministratore
+
+Il sistema crea automaticamente un account admin:
+- **Email**: Configurabile nel file `.env` (`ADMIN_EMAIL`)
+- **Password**: Configurabile nel file `.env` (`ADMIN_PASSWORD`)
+
+Per accedere all'area admin: `/login` → inserisci credenziali admin → vai su `/admin`
 
 ---
 
-## Deploy su PythonAnywhere
+## 🚀 Deploy su PythonAnywhere
 
 ### Prerequisiti
 - Account su [pythonanywhere.com](https://www.pythonanywhere.com/)
-- Tutti i file del progetto caricati (via Git o upload manuale)
+- Repository clonato su PythonAnywhere (via Git consigliato)
 
-### Passaggi
-1. **Crea un nuovo database MySQL** tramite la dashboard di PythonAnywhere.
-2. **Aggiorna i parametri di connessione** in`db_config.py` con i dati forniti da PythonAnywhere.
-3. **Importa lo script SQL** nel database tramite la console MySQL di PythonAnywhere attraverso le query sql verranno create le tabelle nel database(nelle prossime release si integrerà uno script che importi in automatico il file sql ):
+### Setup Sicuro per Produzione
+
+1. **Clona il repository su PythonAnywhere:**
+   ```bash
+   git clone <repository-url>
+   cd wikisportcars
+   ```
+
+2. **Configura le credenziali di produzione:**
+   ```bash
+   # Crea il file .env per produzione
+   cp .env.example .env
+   
+   # Modifica con le credenziali di PythonAnywhere
+   nano .env
+   ```
+
+3. **Aggiorna .env per PythonAnywhere:**
+   ```bash
+   # Credenziali database PythonAnywhere
+   DB_PASSWORD_PYTHONANYWHERE=password_db_pythonanywhere
+   
+   # Chiavi di produzione (GENERA NUOVE CHIAVI SICURE!)
+   FLASK_SECRET_KEY=chiave_produzione_molto_sicura_e_lunga
+   SECURITY_PASSWORD_SALT=salt_produzione_sicuro
+   
+   # Email di produzione
+   EMAIL_USER=email_produzione@tuodominio.com
+   EMAIL_PASSWORD=password_email_produzione
+   
+   # Admin di produzione
+   ADMIN_EMAIL=admin@tuodominio.com
+   ADMIN_PASSWORD=password_admin_produzione
+   ```
+
+4. **Crea un nuovo database MySQL** tramite la dashboard di PythonAnywhere.
+
+5. **Importa lo script SQL** nel database tramite la console MySQL di PythonAnywhere:
 ```sql
 DROP DATABASE IF EXISTS wikisportcars;
 
@@ -375,22 +460,33 @@ CREATE TABLE IF NOT EXISTS reviews (
     UNIQUE KEY unique_review (car_id, user_id)
 );
 ```
-4. **Crea un virtualenv** e installa le dipendenze:
-   ```
-   python -m venv <nome-ambiente>
-   source myenv/bin/activate
+6. **Crea un virtualenv** e installa le dipendenze:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate
    pip install -r requirements.txt
    ```
-5. **Configura la Web App:**
-   - Scegli "Manual configuration" e Python 3.x.
-   - Imposta il percorso del file `wsgi.py` come entry point.
-   - Aggiungi le variabili d'ambiente necessarie (es: credenziali DB, secret key, email, ecc).
-   - Nella sezione "Static files", mappa `/static/` alla cartella `static` del progetto.
-6. **Riavvia la Web App** dalla dashboard di PythonAnywhere.
 
-### Note utili
-- Per debug, consulta i log di errore nella dashboard PythonAnywhere.
-- Assicurati che tutte le dipendenze siano installate nel virtualenv attivo.
+7. **Configura la Web App:**
+   - Scegli "Manual configuration" e Python 3.x
+   - Imposta il percorso del file `wsgi.py` come entry point
+   - **⚠️ IMPORTANTE**: NON aggiungere variabili d'ambiente nella dashboard PythonAnywhere (usa il file `.env`)
+   - Nella sezione "Static files", mappa `/static/` alla cartella `static` del progetto
+
+8. **Riavvia la Web App** dalla dashboard di PythonAnywhere.
+
+### 🔒 Note di Sicurezza per Produzione
+
+- ✅ **File `.env` protetto**: Non viene mai committato su GitHub
+- ✅ **Chiavi di produzione**: Genera chiavi diverse da quelle di sviluppo
+- ✅ **Credenziali separate**: Database e email di produzione diversi da sviluppo
+- ✅ **Admin sicuro**: Cambia le credenziali admin predefinite
+
+### Troubleshooting
+- Controlla i log di errore nella dashboard PythonAnywhere
+- Verifica che il file `.env` sia presente e corretto
+- Assicurati che tutte le dipendenze siano installate nel virtualenv
+- Controlla le configurazioni in `config.ini` se necessario
 
 ---
 
@@ -402,10 +498,66 @@ CREATE TABLE IF NOT EXISTS reviews (
 - Gestione immagini multiple per ogni auto
 - Messaggi flash dinamici e interfaccia responsive
 
+## 🔐 Sicurezza e Configurazione
+
+### Architettura di Sicurezza
+Il progetto implementa un sistema di configurazione sicuro che separa completamente le informazioni sensibili da quelle pubbliche:
+
+#### 📋 File di Configurazione
+- **`config.ini`** - Configurazioni pubbliche (committate su GitHub)
+  - Host e nomi database
+  - Configurazioni server email
+  - Impostazioni Flask
+  - Percorsi e parametri di sicurezza
+  
+- **`.env`** - Solo credenziali sensibili (mai committate)
+  - Password database
+  - Chiavi segrete Flask
+  - Credenziali email
+  - Credenziali amministratore
+  
+- **`.env.example`** - Template per sviluppatori
+  - Istruzioni di configurazione
+  - Esempi di setup
+  - Guida per nuovi collaboratori
+
+#### 🛡️ Vantaggi del Sistema
+- ✅ **Sicurezza Massima**: Nessuna credenziale nel codice
+- ✅ **Collaborazione Facile**: Setup rapido per nuovi sviluppatori
+- ✅ **Ambienti Separati**: Configurazioni diverse per dev/prod
+- ✅ **Manutenzione Semplice**: Modifiche senza toccare il codice
+
+#### 🔧 File Modificati
+Tutti i file principali sono stati aggiornati per utilizzare la configurazione ibrida:
+- **`db_config.py`** - Database connection con config.ini + .env
+- **`email_service.py`** - Email service con config.ini + .env
+- **`server.py`** - Flask app con config.ini + .env
+
+### Setup Sicurezza per Contribuitori
+```bash
+# 1. Clona il repository
+git clone <repository-url>
+cd wikisportcars
+
+# 2. Configura le credenziali
+cp .env.example .env
+nano .env  # Inserisci le tue credenziali
+
+# 3. Setup completo
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python server.py
+```
+
+Per maggiori dettagli sulla configurazione di sicurezza, consulta [`README_SICUREZZA.md`](README_SICUREZZA.md).
+
 ## Contribuire
 Sono benvenute issue e pull request per migliorare il progetto. Per proporre modifiche:
 - Fai un fork del repository
 - Crea un branch per la tua feature/fix
+- **⚠️ IMPORTANTE**: Copia `.env.example` come `.env` e configura le tue credenziali
+- Testa le modifiche localmente
 - Invia una pull request descrivendo chiaramente le modifiche
 
 Per domande o suggerimenti, apri una issue su GitHub.

@@ -1,8 +1,17 @@
 import os
+import configparser
 from flask import url_for
 from flask_mail import Mail, Message
 import logging
 from itsdangerous import URLSafeTimedSerializer, SignatureExpired, BadSignature
+from dotenv import load_dotenv
+
+# Carica le variabili d'ambiente dal file .env
+load_dotenv()
+
+# Carica le configurazioni dal file config.ini
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 # Configura logging dettagliato
 logging.basicConfig(level=logging.DEBUG)
@@ -14,12 +23,12 @@ class EmailService:
         self.security_password_salt = None
 
     def init_app(self, app):
-        app.config.setdefault('MAIL_SERVER', 'smtp.gmail.com')
-        app.config.setdefault('MAIL_PORT', 587)
-        app.config.setdefault('MAIL_USE_TLS', True)
-        app.config.setdefault('MAIL_USERNAME', os.environ.get('EMAIL_USER', 'wikisportcars@gmail.com'))
-        app.config.setdefault('MAIL_PASSWORD', os.environ.get('EMAIL_PASSWORD', 'jwcy xkmh pgsi zbug'))
-        app.config.setdefault('MAIL_DEFAULT_SENDER', os.environ.get('EMAIL_USER', 'wikisportcars@gmail.com'))
+        app.config.setdefault('MAIL_SERVER', config.get('EMAIL', 'server'))
+        app.config.setdefault('MAIL_PORT', config.getint('EMAIL', 'port'))
+        app.config.setdefault('MAIL_USE_TLS', config.getboolean('EMAIL', 'use_tls'))
+        app.config.setdefault('MAIL_USERNAME', os.getenv('EMAIL_USER'))
+        app.config.setdefault('MAIL_PASSWORD', os.getenv('EMAIL_PASSWORD'))
+        app.config.setdefault('MAIL_DEFAULT_SENDER', os.getenv('EMAIL_USER'))
 
         self.mail = Mail(app)
         self.serializer = URLSafeTimedSerializer(app.secret_key)

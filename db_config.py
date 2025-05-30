@@ -1,7 +1,16 @@
 import mysql.connector
 import os
 import logging
+import configparser
 from contextlib import contextmanager
+from dotenv import load_dotenv
+
+# Carica le variabili d'ambiente dal file .env
+load_dotenv()
+
+# Carica le configurazioni dal file config.ini
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 # Rileva se siamo su PythonAnywhere
 is_pythonanywhere = 'PYTHONANYWHERE_SITE' in os.environ
@@ -12,21 +21,21 @@ logging.basicConfig(level=logging.INFO)
 if is_pythonanywhere:
     # Configurazione per PythonAnywhere
     db_config = {
-        'user': 'Ciaramid06',
-        'password': 'dioladro10',  # ⚠️ Sostituisci con la password reale
-        'host': 'Ciaramid06.mysql.pythonanywhere-services.com',
-        'database': 'Ciaramid06$wikisportcars',  # Formato corretto su PythonAnywhere
-        'raise_on_warnings': True
+        'user': config.get('DATABASE_PYTHONANYWHERE', 'user'),
+        'password': os.getenv('DB_PASSWORD_PYTHONANYWHERE'),
+        'host': config.get('DATABASE_PYTHONANYWHERE', 'host'),
+        'database': config.get('DATABASE_PYTHONANYWHERE', 'database'),
+        'raise_on_warnings': config.getboolean('DATABASE_PYTHONANYWHERE', 'raise_on_warnings')
     }
     logging.info(f"Usando configurazione database per PythonAnywhere: {db_config['host']} - {db_config['database']}")
 else:
     # Configurazione per ambiente locale
     db_config = {
-        'user': 'root',
-        'password': 'x',
-        'host': 'localhost',
-        'database': 'wikisportcars',
-        'raise_on_warnings': True
+        'user': config.get('DATABASE_LOCAL', 'user'),
+        'password': os.getenv('DB_PASSWORD_LOCAL'),
+        'host': config.get('DATABASE_LOCAL', 'host'),
+        'database': config.get('DATABASE_LOCAL', 'database'),
+        'raise_on_warnings': config.getboolean('DATABASE_LOCAL', 'raise_on_warnings')
     }
     logging.info("Usando configurazione database per ambiente locale")
 

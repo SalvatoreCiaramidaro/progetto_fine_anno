@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 import logging
+import configparser
 from urllib.parse import urlparse, urljoin
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -9,6 +10,14 @@ import os
 import uuid
 import sys
 from functools import wraps
+from dotenv import load_dotenv
+
+# Carica le variabili d'ambiente dal file .env
+load_dotenv()
+
+# Carica le configurazioni dal file config.ini
+config = configparser.ConfigParser()
+config.read('config.ini')
 
 # Importazioni dai moduli personalizzati
 from db_config import db_cursor
@@ -20,40 +29,42 @@ is_pythonanywhere = 'PYTHONANYWHERE_SITE' in os.environ
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-app.secret_key = 'your_secret_key'
-app.config['SECURITY_PASSWORD_SALT'] = 'your_security_password_salt'
+app.secret_key = os.getenv('FLASK_SECRET_KEY')
+app.config['SECURITY_PASSWORD_SALT'] = os.getenv('SECURITY_PASSWORD_SALT')
 
 # Funzione per verificare e creare l'utente admin se necessario
 def ensure_admin_exists():
     try:
+        admin_email = os.getenv('ADMIN_EMAIL')
+        admin_password = os.getenv('ADMIN_PASSWORD')
+        
         with db_cursor(dictionary=True) as (cursor, conn):
             # Verifica se l'admin esiste
-            cursor.execute('SELECT * FROM users WHERE email = %s', ('admin@example.com',))
+            cursor.execute('SELECT * FROM users WHERE email = %s', (admin_email,))
             admin = cursor.fetchone()
             
             if not admin:
                 # Crea l'admin se non esiste
-                admin_password = 'admin123'
                 password_hash = generate_password_hash(admin_password)
                 cursor.execute(
                     'INSERT INTO users (username, email, password, confirmed, is_admin) VALUES (%s, %s, %s, %s, %s)',
-                    ('admin', 'admin@example.com', password_hash, 1, 1)
+                    ('admin', admin_email, password_hash, 1, 1)
                 )
                 logging.info("Utente admin creato con successo")
             elif not admin['is_admin'] or not admin['confirmed']:
                 # Aggiorna l'admin se esiste ma non ha i permessi corretti
                 cursor.execute(
                     'UPDATE users SET is_admin = 1, confirmed = 1 WHERE email = %s',
-                    ('admin@example.com',)
+                    (admin_email,)
                 )
                 logging.info("Permessi admin aggiornati")
             
             # Aggiorna la password se necessario
-            if admin and not check_password_hash(admin['password'], 'admin123'):
-                new_password_hash = generate_password_hash('admin123')
+            if admin and not check_password_hash(admin['password'], admin_password):
+                new_password_hash = generate_password_hash(admin_password)
                 cursor.execute(
                     'UPDATE users SET password = %s WHERE email = %s',
-                    (new_password_hash, 'admin@example.com')
+                    (new_password_hash, admin_email)
                 )
                 logging.info("Password admin aggiornata")
     except Exception as e:
@@ -65,18 +76,20 @@ ensure_admin_exists()
 # Configurazione diversa in base all'ambiente
 if is_pythonanywhere:
     # Configurazione per PythonAnywhere
-    app.config['UPLOAD_FOLDER'] = '/home/Ciaramid06/progetto_fine_anno/static/profile_images'
-    app.debug = False
-    app.config['SERVER_NAME'] = 'ciaramid06.pythonanywhere.com'
-    app.config['PREFERRED_URL_SCHEME'] = 'https'
+    app.config['UPLOAD_FOLDER'] = config.get('PATHS_PYTHONANYWHERE', 'upload_folder')
+    app.debug = config.getboolean('FLASK', 'debug_pythonanywhere')
+    app.config['SERVER_NAME'] = config.get('PATHS_PYTHONANYWHERE', 'server_name')
+    app.config['PREFERRED_URL_SCHEME'] = config.get('PATHS_PYTHONANYWHERE', 'url_scheme')
 else:
     # Configurazione per ambiente locale
-    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static/profile_images')
-    app.debug = True
-    app.config['SERVER_NAME'] = 'localhost:5000'
-    app.config['PREFERRED_URL_SCHEME'] = 'http'
+    app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), config.get('PATHS_LOCAL', 'upload_folder'))
+    app.debug = config.getboolean('FLASK', 'debug_local')
+    app.config['SERVER_NAME'] = config.get('PATHS_LOCAL', 'server_name')
+    app.config['PREFERRED_URL_SCHEME'] = config.get('PATHS_LOCAL', 'url_scheme')
 
-app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif','svg', 'webp'}
+# Configura le estensioni consentite dal config.ini
+allowed_extensions = config.get('SECURITY', 'allowed_extensions').split(',')
+app.config['ALLOWED_EXTENSIONS'] = {ext.strip() for ext in allowed_extensions}
 
 # Assicurati che la cartella per il caricamento delle immagini esista
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
@@ -275,7 +288,8 @@ def login():
                     return jsonify(success=False, message='Per favore conferma il tuo account via email prima di accedere')
 
                 # Forza conferma e permessi admin se è l'admin
-                if email == 'admin@example.com':
+                admin_email = os.getenv('ADMIN_EMAIL')
+                if email == admin_email:
                     with db_cursor() as (cursor, conn):
                         cursor.execute('UPDATE users SET confirmed = 1, is_admin = 1 WHERE email = %s', (email,))
                 
@@ -284,9 +298,9 @@ def login():
                     username=user['username'],
                     email=user['email'],
                     password=user['password'],
-                    confirmed=user['confirmed'] or email == 'admin@example.com',
+                    confirmed=user['confirmed'] or email == admin_email,
                     profile_image=user.get('profile_image'),
-                    is_admin=user.get('is_admin', 0) or email == 'admin@example.com'
+                    is_admin=user.get('is_admin', 0) or email == admin_email
                 )
                 login_user(user_obj)
                 next_page = request.form.get('next')
@@ -915,10 +929,4 @@ def api_favorites_count():
         return jsonify({"success": False, "count": 0, "error": str(e)}), 500
 
 if __name__ == '__main__':
-    # Genera l'hash della password per l'admin (utilizzare solo una volta per generare l'hash)
-    if '--generate-admin-hash' in sys.argv:
-        admin_password = 'admin123'
-        hashed_password = generate_password_hash(admin_password)
-        print(f"Hash per la password admin 'admin123': {hashed_password}")
-    
-    app.run(host='0.0.0.0')
+    app.run(host=config.get('FLASK', 'host'))
