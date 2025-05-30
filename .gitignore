@@ -2,3 +2,5 @@ __pycache__
 __pycache__/
 db_config.cpython-310.pyc
 myvenv
+venv
+.env

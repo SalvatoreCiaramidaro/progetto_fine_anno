@@ -122,29 +122,49 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dropdown-enhancements.js') }}"></script>
 
-    <!-- Script per dropdown e messaggi flash -->
+    <!-- Script per gestione search mobile, dropdown e shrinking navbar -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Gestione header shrinking on scroll
+            const header = document.querySelector('header');
+            let lastScrollTop = 0;
+            let isScrolling = false;
+            
+            function handleHeaderShrink() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                
+                if (scrollTop > 50) {
+                    header.classList.add('header-shrink');
+                } else {
+                    header.classList.remove('header-shrink');
+                }
+                
+                lastScrollTop = scrollTop;
+                isScrolling = false;
+            }
+            
+            // Throttle per performance
+            window.addEventListener('scroll', function() {
+                if (!isScrolling) {
+                    isScrolling = true;
+                    requestAnimationFrame(handleHeaderShrink);
+                }
+            });
             // Gestione del dropdown del profilo
             const profileImageContainer = document.getElementById('profileImageContainer');
             const profileDropdown = document.getElementById('profileDropdown');
 
             if (profileImageContainer && profileDropdown) {
-                // Variabile per tracciare se il menu deve rimanere aperto
                 let isProfileMenuOpen = false;
                 
                 profileImageContainer.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    
-                    // Inverte lo stato del menu
                     isProfileMenuOpen = !profileDropdown.classList.contains('show');
                     
-                    // Mostra/nascondi il dropdown in base allo stato
                     if (isProfileMenuOpen) {
                         profileDropdown.classList.add('show');
                         this.setAttribute('aria-expanded', 'true');
                         
-                        // Chiudi altri dropdown se aperti
                         const menuDropdown = document.getElementById('menuDropdown');
                         if (menuDropdown && menuDropdown.classList.contains('show')) {
                             menuDropdown.classList.remove('show');
@@ -156,13 +176,10 @@
                     }
                 });
                 
-                // Trattamento speciale per i click sui link del dropdown
                 profileDropdown.addEventListener('click', function(e) {
-                    // Non chiudere il dropdown se si clicca sul dropdown stesso
                     e.stopPropagation();
                 });
 
-                // Aggiungi supporto per la navigazione da tastiera
                 profileImageContainer.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
@@ -171,26 +188,24 @@
                     }
                 });
                 
-                // Rendi l'immagine profilo navigabile con tab
                 profileImageContainer.setAttribute('tabindex', '0');
             }
 
-            // Gestione del dropdown del menu
+            // Gestione del dropdown del menu (solo per utenti non loggati)
             const menuBtn = document.querySelector('.dropbtn');
             const menuDropdown = document.getElementById('menuDropdown');
 
             if (menuBtn && menuDropdown) {
-                // Variabile per tracciare se il menu deve rimanere aperto
-                let isMenuOpen = false;
-                
+                // Toggler con click
                 menuBtn.addEventListener('click', function(e) {
                     e.stopPropagation();
                     
-                    // Inverte lo stato del menu
-                    isMenuOpen = !menuDropdown.classList.contains('show');
+                    const isCurrentlyOpen = menuDropdown.classList.contains('show');
                     
-                    // Mostra/nascondi il dropdown in base allo stato
-                    if (isMenuOpen) {
+                    if (isCurrentlyOpen) {
+                        menuDropdown.classList.remove('show');
+                        this.setAttribute('aria-expanded', 'false');
+                    } else {
                         menuDropdown.classList.add('show');
                         this.setAttribute('aria-expanded', 'true');
                         
@@ -199,22 +214,17 @@
                             profileDropdown.classList.remove('show');
                             profileImageContainer.setAttribute('aria-expanded', 'false');
                         }
-                    } else {
-                        menuDropdown.classList.remove('show');
-                        this.setAttribute('aria-expanded', 'false');
                     }
                 });
                 
-                // Trattamento speciale per i click sui link del dropdown
+                // Previeni chiusura quando si clicca sui link del dropdown
                 menuDropdown.addEventListener('click', function(e) {
-                    // Non chiudere il dropdown se si clicca sul dropdown stesso
                     e.stopPropagation();
                 });
             }
 
-            // Chiudi dropdown quando si clicca altrove sulla pagina
+            // Chiudi dropdown quando si clicca altrove
             document.addEventListener('click', function(e) {
-                // Controlla che il click non sia sul dropdown o sui suoi trigger
                 if (profileDropdown && !profileImageContainer?.contains(e.target) && !profileDropdown.contains(e.target)) {
                     profileDropdown.classList.remove('show');
                     profileImageContainer?.setAttribute('aria-expanded', 'false');
