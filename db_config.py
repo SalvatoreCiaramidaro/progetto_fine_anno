@@ -8,9 +8,13 @@ from dotenv import load_dotenv
 # Carica le variabili d'ambiente dal file .env
 load_dotenv()
 
+# Ottieni il percorso assoluto della directory in cui si trova questo script
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE_PATH = os.path.join(BASE_DIR, 'config.ini')
+
 # Carica le configurazioni dal file config.ini
 config = configparser.ConfigParser()
-config.read('config.ini')
+config.read(CONFIG_FILE_PATH)
 
 # Rileva se siamo su PythonAnywhere
 is_pythonanywhere = 'PYTHONANYWHERE_SITE' in os.environ
