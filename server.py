@@ -21,8 +21,12 @@ import os
 # Prima tenta il percorso relativo, poi quello assoluto se non trova sezioni
 read_files = config.read('config.ini')
 if not config.sections():
-    abs_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini')
+    # Prova con il percorso assoluto usato in wsgi.py
+    project_home = '/home/Ciaramid06/progetto_fine_anno'
+    abs_path = os.path.join(project_home, 'config.ini')
     read_files = config.read(abs_path)
+if not config.sections():
+    raise FileNotFoundError("config.ini non trovato né in percorso relativo né assoluto. Sezioni caricate: {}".format(config.sections()))
 print("Config sections:", config.sections())
 print("Config sections:", config.sections())
 
