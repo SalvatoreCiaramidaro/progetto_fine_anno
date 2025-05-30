@@ -17,7 +17,14 @@ load_dotenv()
 
 # Carica le configurazioni dal file config.ini
 config = configparser.ConfigParser()
-config.read('config.ini')
+import os
+# Prima tenta il percorso relativo, poi quello assoluto se non trova sezioni
+read_files = config.read('config.ini')
+if not config.sections():
+    abs_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.ini')
+    read_files = config.read(abs_path)
+print("Config sections:", config.sections())
+print("Config sections:", config.sections())
 
 # Importazioni dai moduli personalizzati
 from db_config import db_cursor
