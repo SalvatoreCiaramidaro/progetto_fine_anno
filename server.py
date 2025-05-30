@@ -1,19 +1,20 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
-from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
-import logging
-import configparser
-from urllib.parse import urlparse, urljoin
-from werkzeug.security import generate_password_hash, check_password_hash
-from werkzeug.utils import secure_filename
-from mysql.connector.errors import IntegrityError
 import os
-import uuid
 import sys
+import uuid
+import logging
 from functools import wraps
 from dotenv import load_dotenv
 
 # Carica le variabili d'ambiente dal file .env
 load_dotenv()
+
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
+import configparser
+from urllib.parse import urlparse, urljoin
+from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
+from mysql.connector.errors import IntegrityError
 
 # Carica le configurazioni dal file config.ini
 config = configparser.ConfigParser()
@@ -40,7 +41,14 @@ is_pythonanywhere = 'PYTHONANYWHERE_SITE' in os.environ
 logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
-app.secret_key = os.getenv('FLASK_SECRET_KEY')
+secret_key = os.getenv('FLASK_SECRET_KEY')
+if not secret_key:
+    try:
+        secret_key = config.get('FLASK', 'secret_key')
+    except Exception:
+        print("ATTENZIONE: FLASK_SECRET_KEY non trovata né come variabile d'ambiente né in config.ini!")
+        secret_key = None
+app.secret_key = secret_key
 app.config['SECURITY_PASSWORD_SALT'] = os.getenv('SECURITY_PASSWORD_SALT')
 
 # Funzione per verificare e creare l'utente admin se necessario
