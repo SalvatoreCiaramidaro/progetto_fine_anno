@@ -1,3 +1,5 @@
+import sys
+print("DEBUG: server.py avviato", file=sys.stderr)
 import os
 import sys
 import uuid
@@ -6,7 +8,14 @@ from functools import wraps
 from dotenv import load_dotenv
 
 # Carica le variabili d'ambiente dal file .env
-load_dotenv()
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
+import sys
+print("DEBUG ENV FLASK_SECRET_KEY:", os.getenv('FLASK_SECRET_KEY'), file=sys.stderr)
+print("DEBUG ENV SECURITY_PASSWORD_SALT:", os.getenv('SECURITY_PASSWORD_SALT'), file=sys.stderr)
+print("DEBUG ENV EMAIL_USER:", os.getenv('EMAIL_USER'), file=sys.stderr)
+print("DEBUG ENV EMAIL_PASSWORD:", os.getenv('EMAIL_PASSWORD'), file=sys.stderr)
+print("DEBUG ENV ADMIN_EMAIL:", os.getenv('ADMIN_EMAIL'), file=sys.stderr)
+print("DEBUG ENV ADMIN_PASSWORD:", os.getenv('ADMIN_PASSWORD'), file=sys.stderr)
 
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
