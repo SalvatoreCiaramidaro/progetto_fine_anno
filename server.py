@@ -1,34 +1,25 @@
 import sys
 import os
-import sys
 import uuid
 import logging
+import configparser
 from functools import wraps
 from dotenv import load_dotenv
-
-# Carica le variabili d'ambiente dal file .env
-load_dotenv(dotenv_path=os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env'))
-import sys
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
-import configparser
 from urllib.parse import urlparse, urljoin
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from mysql.connector.errors import IntegrityError
 
-# Carica le configurazioni dal file config.ini
+# Carica le variabili d'ambiente dal file .env (percorso relativo)
+load_dotenv('.env')
+
+# Carica le configurazioni dal file config.ini (percorso relativo)
 config = configparser.ConfigParser()
-import os
-# Prima tenta il percorso relativo, poi quello assoluto se non trova sezioni
 read_files = config.read('config.ini')
 if not config.sections():
-    # Prova con il percorso assoluto usato in wsgi.py
-    project_home = '/home/Ciaramid06/progetto_fine_anno'
-    abs_path = os.path.join(project_home, 'config.ini')
-    read_files = config.read(abs_path)
-if not config.sections():
-    raise FileNotFoundError("config.ini non trovato né in percorso relativo né assoluto. Sezioni caricate: {}".format(config.sections()))
+    raise FileNotFoundError("config.ini non trovato nel percorso relativo. Verifica che il file esista nella directory corrente.")
 
 
 # Importazioni dai moduli personalizzati
