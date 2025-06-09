@@ -5,10 +5,9 @@
 {% block content %}
 <h2>Risultati della ricerca</h2>
 
-<form action="{{ url_for('search') }}" method="get" class="search-form">
-    <input type="text" name="query" value="{{ query }}" placeholder="Cerca auto per brand, modello o tipo..." required>
-    <button type="submit">Cerca</button>
-</form>
+{% if query %}
+    <p class="search-info">Stai cercando: <strong>"{{ query }}"</strong></p>
+{% endif %}
 
 {% if not cars %}
     <p>Nessun risultato trovato.</p>

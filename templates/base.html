@@ -20,6 +20,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/dropdown.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar-custom.css') }}">
 
+    <!-- CSS mobile only -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon/favicon.png') }}">
 
@@ -27,54 +30,65 @@
 </head>
 <body>
     <header>
-        <h1>Benvenuti su WikiSportCars</h1>
-        <nav>
-            <div class="nav-left">
-                <a href="{{ url_for('index') }}"><i class="fas fa-home"></i></a>
-            </div>
+        <h1 class="text-center text-md-start py-2">Benvenuti su WikiSportCars</h1>
+        <nav class="navbar navbar-expand-md px-2">
+            <div class="container-fluid">
+                <div class="d-flex align-items-center me-auto">
+                    <a class="navbar-brand" href="{{ url_for('index') }}"><i class="fas fa-home"></i></a>
+                </div>
 
-            {% block search_bar %}
-            <div class="nav-center">
-                <div class="search-container">
-                    <input type="text" id="search-input" placeholder="Cerca auto...">
-                    <button id="search-button"><i class="fas fa-search"></i></button>
+                {% block search_bar %}
+                <form class="d-none d-md-flex mx-auto" role="search" style="max-width:400px;">
+                    <div class="input-group">
+                        <input type="text" id="search-input" class="form-control" placeholder="Cerca auto...">
+                        <button id="search-button" class="btn btn-outline-secondary" type="button"><i class="fas fa-search"></i></button>
+                    </div>
+                </form>
+                {% endblock %}
+
+                <div class="d-flex align-items-center ms-auto">
+                    {% if current_user.is_authenticated %}
+                        <span class="greeting me-2 d-none d-md-inline">Ciao, {{ current_user.username }}!</span>
+                        <div class="profile-image-container" id="profileImageContainer" aria-label="Menu profilo utente" class="no-tooltip">
+                            {% if user_profile_image %}
+                                <img src="{{ url_for('static', filename=user_profile_image) }}" alt="Profilo" class="profile-image no-tooltip">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='images/default-profile.svg') }}" alt="Profilo" class="profile-image no-tooltip">
+                            {% endif %}
+                            <div class="profile-dropdown" id="profileDropdown">
+                                <a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profilo</a>
+                                <a href="{{ url_for('favorites') }}"><i class="fas fa-heart"></i> Preferiti <span class="dropdown-badge" id="favoritesCount"></span></a>
+                                {% if current_user.is_authenticated and current_user.is_admin %}
+                                    <div class="dropdown-divider"></div>
+                                    <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-cog"></i> Amministrazione</a>
+                                {% endif %}
+                                <div class="dropdown-divider"></div>
+                                <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="dropdown">
+                            <button class="dropbtn btn btn-outline-secondary d-flex align-items-center" aria-label="Menu" class="no-tooltip">
+                                <i class="fas fa-bars"></i> <span class="d-none d-md-inline ms-1">Menu</span> <i class="fas fa-caret-down ms-1"></i>
+                            </button>
+                            <div class="dropdown-content" id="menuDropdown">
+                                <a href="{{ url_for('favorites') }}"><i class="fas fa-heart"></i> Preferiti</a>
+                                <div class="dropdown-divider"></div>
+                                <a href="{{ url_for('login', next=request.path) }}"><i class="fas fa-sign-in-alt"></i> Login</a>
+                                <a href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Registrati</a>
+                            </div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
-            {% endblock %}
-
-            <div class="nav-right">
-                {% if current_user.is_authenticated %}
-                    <span class="greeting">Ciao, {{ current_user.username }}!</span>
-                    <div class="profile-image-container" id="profileImageContainer" aria-label="Menu profilo utente" class="no-tooltip">
-                        {% if user_profile_image %}
-                            <img src="{{ url_for('static', filename=user_profile_image) }}" alt="Profilo" class="profile-image no-tooltip">
-                        {% else %}
-                            <img src="{{ url_for('static', filename='images/default-profile.svg') }}" alt="Profilo" class="profile-image no-tooltip">
-                        {% endif %}
-                        <div class="profile-dropdown" id="profileDropdown">
-                            <a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profilo</a>
-                            <a href="{{ url_for('favorites') }}"><i class="fas fa-heart"></i> Preferiti <span class="dropdown-badge" id="favoritesCount"></span></a>
-                            {% if current_user.is_authenticated and current_user.is_admin %}
-                                <div class="dropdown-divider"></div>
-                                <a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-cog"></i> Amministrazione</a>
-                            {% endif %}
-                            <div class="dropdown-divider"></div>
-                            <a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                        </div>
+            <!-- Search bar mobile e pulsanti fanno parte della navbar -->
+            <div class="w-100 d-md-none mt-2">
+                <form class="d-flex" role="search">
+                    <div class="input-group w-100">
+                        <input type="text" id="search-input-mobile" class="form-control" placeholder="Cerca auto...">
+                        <button id="search-button-mobile" class="btn btn-outline-secondary" type="button"><i class="fas fa-search"></i></button>
                     </div>
-                {% else %}
-                    <div class="dropdown">
-                        <button class="dropbtn" aria-label="Menu" class="no-tooltip">
-                            <i class="fas fa-bars"></i> Menu <i class="fas fa-caret-down"></i>
-                        </button>
-                        <div class="dropdown-content" id="menuDropdown">
-                            <a href="{{ url_for('favorites') }}"><i class="fas fa-heart"></i> Preferiti</a>
-                            <div class="dropdown-divider"></div>
-                            <a href="{{ url_for('login', next=request.path) }}"><i class="fas fa-sign-in-alt"></i> Login</a>
-                            <a href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Registrati</a>
-                        </div>
-                    </div>
-                {% endif %}
+                </form>
             </div>
         </nav>
     </header>
@@ -121,6 +135,7 @@
     <!-- Script principale -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/dropdown-enhancements.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mobile.js') }}"></script>
 
     <!-- Script per gestione search mobile, dropdown e shrinking navbar -->
     <script>
@@ -150,53 +165,70 @@
                     requestAnimationFrame(handleHeaderShrink);
                 }
             });
-            // Gestione del dropdown del profilo
+            // ========== GESTIONE DROPDOWN COMPLETAMENTE UNIFICATA ==========
+            // Gestione del dropdown del profilo - IDENTICA alla logica del menu dropdown
             const profileImageContainer = document.getElementById('profileImageContainer');
             const profileDropdown = document.getElementById('profileDropdown');
 
             if (profileImageContainer && profileDropdown) {
                 let isProfileMenuOpen = false;
                 
+                // Click sul profilo - LOGICA IDENTICA AL MENU DROPDOWN
                 profileImageContainer.addEventListener('click', function(e) {
                     e.stopPropagation();
-                    isProfileMenuOpen = !profileDropdown.classList.contains('show');
+                    
+                    // Toggle stato usando la stessa logica del menu
+                    isProfileMenuOpen = !isProfileMenuOpen;
                     
                     if (isProfileMenuOpen) {
+                        // Apri dropdown profilo
                         profileDropdown.classList.add('show');
                         this.setAttribute('aria-expanded', 'true');
                         
+                        // Chiudi dropdown menu se aperto (stessa logica)
                         const menuDropdown = document.getElementById('menuDropdown');
                         if (menuDropdown && menuDropdown.classList.contains('show')) {
                             menuDropdown.classList.remove('show');
                             document.querySelector('.dropbtn')?.setAttribute('aria-expanded', 'false');
                         }
                     } else {
+                        // Chiudi dropdown profilo
                         profileDropdown.classList.remove('show');
                         this.setAttribute('aria-expanded', 'false');
                     }
                 });
                 
+                // Previeni chiusura quando si clicca sui link del dropdown (identico)
                 profileDropdown.addEventListener('click', function(e) {
                     e.stopPropagation();
                 });
 
+                // Supporto tastiera (identico)
                 profileImageContainer.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        profileDropdown.classList.toggle('show');
-                        this.setAttribute('aria-expanded', profileDropdown.classList.contains('show'));
+                        
+                        isProfileMenuOpen = !isProfileMenuOpen;
+                        
+                        if (isProfileMenuOpen) {
+                            profileDropdown.classList.add('show');
+                            this.setAttribute('aria-expanded', 'true');
+                        } else {
+                            profileDropdown.classList.remove('show');
+                            this.setAttribute('aria-expanded', 'false');
+                        }
                     }
                 });
                 
                 profileImageContainer.setAttribute('tabindex', '0');
             }
 
-            // Gestione del dropdown del menu (solo per utenti non loggati)
+            // Gestione del dropdown del menu (solo per utenti non loggati) - LOGICA ORIGINALE
             const menuBtn = document.querySelector('.dropbtn');
             const menuDropdown = document.getElementById('menuDropdown');
 
             if (menuBtn && menuDropdown) {
-                // Toggler con click
+                // Click sul menu - LOGICA ORIGINALE CHE FUNZIONA
                 menuBtn.addEventListener('click', function(e) {
                     e.stopPropagation();
                     
@@ -223,26 +255,35 @@
                 });
             }
 
-            // Chiudi dropdown quando si clicca altrove
+            // ========== CHIUSURA DROPDOWN UNIFICATA ==========
+            // Chiudi dropdown quando si clicca altrove - LOGICA UNIFICATA
             document.addEventListener('click', function(e) {
-                if (profileDropdown && !profileImageContainer?.contains(e.target) && !profileDropdown.contains(e.target)) {
+                // Chiudi dropdown profilo se clicco fuori
+                if (profileDropdown && 
+                    !profileImageContainer?.contains(e.target) && 
+                    !profileDropdown.contains(e.target)) {
                     profileDropdown.classList.remove('show');
                     profileImageContainer?.setAttribute('aria-expanded', 'false');
                 }
                 
-                if (menuDropdown && !menuBtn?.contains(e.target) && !menuDropdown.contains(e.target)) {
+                // Chiudi dropdown menu se clicco fuori
+                if (menuDropdown && 
+                    !menuBtn?.contains(e.target) && 
+                    !menuDropdown.contains(e.target)) {
                     menuDropdown.classList.remove('show');
                     menuBtn?.setAttribute('aria-expanded', 'false');
                 }
             });
 
-            // Chiudi dropdown con ESC
+            // Chiudi dropdown con ESC - LOGICA UNIFICATA
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
+                    // Chiudi dropdown profilo
                     if (profileDropdown && profileDropdown.classList.contains('show')) {
                         profileDropdown.classList.remove('show');
                         profileImageContainer?.setAttribute('aria-expanded', 'false');
                     }
+                    // Chiudi dropdown menu
                     if (menuDropdown && menuDropdown.classList.contains('show')) {
                         menuDropdown.classList.remove('show');
                         menuBtn?.setAttribute('aria-expanded', 'false');
@@ -257,6 +298,115 @@
                     if (flashMsg) flashMsg.remove();
                 });
             });
+
+            // ========== RICERCA MOBILE E DESKTOP UNIFICATA ==========
+            const searchInput = document.getElementById('search-input');
+            const searchButton = document.getElementById('search-button');
+            const searchInputMobile = document.getElementById('search-input-mobile');
+            const searchButtonMobile = document.getElementById('search-button-mobile');
+
+            // Funzione di ricerca globale (funziona su tutte le pagine)
+            window.performSearchGlobal = function() {
+                // Determina quale input usare
+                const activeInput = searchInputMobile && searchInputMobile.value.trim() ? 
+                    searchInputMobile : searchInput;
+                
+                if (!activeInput) return;
+                
+                const query = activeInput.value.trim();
+                
+                if (query.length < 1) {
+                    return;
+                }
+
+                // Sincronizza i valori tra desktop e mobile
+                if (searchInput && searchInputMobile) {
+                    searchInput.value = query;
+                    searchInputMobile.value = query;
+                }
+
+                // Se siamo nella pagina index e esiste performSearch, usa la ricerca AJAX
+                if (typeof performSearch === 'function' && window.location.pathname === '/') {
+                    performSearch();
+                    return;
+                }
+
+                // Altrimenti, reindirizza alla pagina di ricerca
+                window.location.href = `/search?query=${encodeURIComponent(query)}`;
+            };
+
+            // Event listeners per desktop
+            if (searchButton) {
+                searchButton.addEventListener('click', window.performSearchGlobal);
+            }
+            
+            if (searchInput) {
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        window.performSearchGlobal();
+                    }
+                });
+            }
+
+            // Event listeners per mobile
+            if (searchButtonMobile) {
+                searchButtonMobile.addEventListener('click', window.performSearchGlobal);
+            }
+            
+            if (searchInputMobile) {
+                searchInputMobile.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        window.performSearchGlobal();
+                    }
+                });
+
+                // Sincronizzazione real-time tra input mobile e desktop
+                searchInputMobile.addEventListener('input', function() {
+                    if (searchInput) {
+                        searchInput.value = this.value;
+                    }
+                });
+            }
+
+            // Sincronizzazione da desktop a mobile
+            if (searchInput && searchInputMobile) {
+                searchInput.addEventListener('input', function() {
+                    searchInputMobile.value = this.value;
+                });
+            }
+        });
+    </script>
+
+    <!-- Mobile enhancements script -->
+    <script src="{{ url_for('static', filename='js/mobile-enhancements.js') }}"></script>
+
+    <!-- UNIFIED DROPDOWN SYSTEM - NESSUN OVERRIDE AGGIUNTIVO -->
+    <script>
+        // Sistema dropdown unificato: tutta la logica è nel script principale sopra
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✅ Sistema dropdown unificato attivo');
+            
+            // Debug per mobile
+            if (window.innerWidth <= 768) {
+                console.log('📱 Modalità mobile rilevata');
+                
+                // Forza refresh degli stili CSS su mobile se necessario
+                const style = document.createElement('style');
+                style.textContent = `
+                    @media (max-width: 768px) {
+                        .profile-dropdown.show {
+                            position: fixed !important;
+                            bottom: 20px !important;
+                            left: 50% !important;
+                            transform: translateX(-50%) !important;
+                            z-index: 9999 !important;
+                        }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
         });
     </script>
 

@@ -1,5 +1,4 @@
 import sys
-print("DEBUG: server.py avviato", file=sys.stderr)
 import os
 import sys
 import uuid
@@ -30,8 +29,7 @@ if not config.sections():
     read_files = config.read(abs_path)
 if not config.sections():
     raise FileNotFoundError("config.ini non trovato né in percorso relativo né assoluto. Sezioni caricate: {}".format(config.sections()))
-print("Config sections:", config.sections())
-print("Config sections:", config.sections())
+
 
 # Importazioni dai moduli personalizzati
 from db_config import db_cursor
@@ -58,38 +56,38 @@ def ensure_admin_exists():
     try:
         admin_email = os.getenv('ADMIN_EMAIL')
         admin_password = os.getenv('ADMIN_PASSWORD')
-        
+
+        if not admin_email or not admin_password:
+            return
+
         with db_cursor(dictionary=True) as (cursor, conn):
-            # Verifica se l'admin esiste
             cursor.execute('SELECT * FROM users WHERE email = %s', (admin_email,))
             admin = cursor.fetchone()
             
             if not admin:
-                # Crea l'admin se non esiste
                 password_hash = generate_password_hash(admin_password)
                 cursor.execute(
                     'INSERT INTO users (username, email, password, confirmed, is_admin) VALUES (%s, %s, %s, %s, %s)',
                     ('admin', admin_email, password_hash, 1, 1)
                 )
-                logging.info("Utente admin creato con successo")
             elif not admin['is_admin'] or not admin['confirmed']:
-                # Aggiorna l'admin se esiste ma non ha i permessi corretti
+                
                 cursor.execute(
                     'UPDATE users SET is_admin = 1, confirmed = 1 WHERE email = %s',
                     (admin_email,)
                 )
-                logging.info("Permessi admin aggiornati")
             
             # Aggiorna la password se necessario
             if admin and not check_password_hash(admin['password'], admin_password):
+                
                 new_password_hash = generate_password_hash(admin_password)
                 cursor.execute(
                     'UPDATE users SET password = %s WHERE email = %s',
                     (new_password_hash, admin_email)
                 )
-                logging.info("Password admin aggiornata")
+                
     except Exception as e:
-        logging.error(f"Errore durante la verifica dell'admin: {str(e)}")
+        logging.error("Errore durante la verifica dell'admin")  
 
 # Chiamata alla funzione all'avvio dell'app
 ensure_admin_exists()

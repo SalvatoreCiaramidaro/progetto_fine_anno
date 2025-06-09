@@ -94,11 +94,12 @@
     margin: 0.5rem 0;
 }
 
-/* Stili specifici per il dropdown dell'immagine del profilo */
+/* Stili specifici per il dropdown dell'immagine del profilo - LOGICA UNIFICATA */
 .profile-image-container {
     position: relative;
     cursor: pointer;
     transition: transform 0.2s ease;
+    display: inline-block;
 }
 
 .profile-image-container:hover {
@@ -120,6 +121,7 @@
     box-shadow: 0 4px 8px rgba(232, 73, 29, 0.4);
 }
 
+/* NUOVO: Profile dropdown con stessa logica del menu dropdown */
 .profile-dropdown {
     position: absolute;
     top: calc(100% + 8px);
@@ -133,14 +135,14 @@
     visibility: hidden;
     transform: translateY(-10px);
     transition: all 0.3s ease;
-    pointer-events: none; /* Impedisce che il dropdown catturi gli eventi del mouse quando non è visibile */
+    pointer-events: none;
 }
 
 .profile-dropdown.show {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
-    pointer-events: auto; /* Consente al dropdown di ricevere eventi del mouse quando è visibile */
+    pointer-events: auto;
 }
 
 /* Link all'interno del dropdown del profilo */
@@ -224,26 +226,63 @@ a:hover .dropdown-badge {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-/* Responsive design per i dropdown */
+/* Responsive design per i dropdown - REGOLE UNIFICATE DEFINITIVE */
 @media (max-width: 768px) {
+    /* RESET COMPLETO per entrambi i dropdown su mobile */
     .dropdown-content, .profile-dropdown {
-        position: fixed;
-        top: unset;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%) translateY(10px);
-        width: 90%;
-        max-width: 320px;
-        border-radius: 10px;
-        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+        /* Forza posizionamento fisso in basso al centro */
+        position: fixed !important;
+        top: unset !important;
+        bottom: 20px !important;
+        left: 50% !important;
+        right: unset !important;
+        transform: translateX(-50%) translateY(10px) !important;
+        
+        /* Dimensioni unificate */
+        width: 320px !important;
+        max-width: 90vw !important;
+        min-width: 280px !important;
+        
+        /* Stile visivo uniforme */
+        border-radius: 12px !important;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25) !important;
+        z-index: 9999 !important;
+        
+        /* Assicura visibilità */
+        background: white !important;
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        
+        /* Transizione fluida */
+        transition: all 0.3s ease !important;
     }
     
+    /* Quando sono mostrati - COMPORTAMENTO IDENTICO */
     .dropdown-content.show, .profile-dropdown.show {
-        transform: translateX(-50%) translateY(0);
+        transform: translateX(-50%) translateY(0) !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
     }
     
+    /* Pulsante dropdown */
     .dropbtn {
         padding: 8px 16px;
         font-size: 1em;
+    }
+    
+    /* OVERRIDE per eventuali conflitti */
+    .profile-dropdown.show {
+        /* Forza esattamente la stessa logica del menu dropdown */
+        position: fixed !important;
+        top: unset !important;
+        bottom: 20px !important;
+        left: 50% !important;
+        right: unset !important;
+        transform: translateX(-50%) !important;
+        width: 320px !important;
+        max-width: 90vw !important;
+        z-index: 9999 !important;
     }
 }

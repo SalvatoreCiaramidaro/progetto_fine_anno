@@ -111,12 +111,19 @@
             });
         });
         
-        // Funzione per eseguire la ricerca
-        function performSearch() {
-            const query = searchInput.value.trim();
+        // Funzione globale per eseguire la ricerca AJAX (accessibile da base.html)
+        window.performSearch = function() {
+            const query = searchInput ? searchInput.value.trim() : 
+                         (document.getElementById('search-input-mobile') ? document.getElementById('search-input-mobile').value.trim() : '');
             
             if (query.length < 1) {
                 return;
+            }
+            
+            // Sincronizza i valori tra desktop e mobile
+            if (searchInput && document.getElementById('search-input-mobile')) {
+                searchInput.value = query;
+                document.getElementById('search-input-mobile').value = query;
             }
             
             // Mostra indicatore di caricamento
@@ -171,14 +178,14 @@
         
         // Event listener per il pulsante di ricerca
         if (searchButton) {
-            searchButton.addEventListener('click', performSearch);
+            searchButton.addEventListener('click', window.performSearch);
         }
         
         // Event listener per la ricerca con invio
         if (searchInput) {
             searchInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
-                    performSearch();
+                    window.performSearch();
                 }
             });
         }
@@ -186,7 +193,11 @@
         // Event listener per pulire la ricerca
         if (clearSearchButton) {
             clearSearchButton.addEventListener('click', function() {
-                searchInput.value = '';
+                // Reset entrambi gli input (desktop e mobile)
+                if (searchInput) searchInput.value = '';
+                const searchInputMobile = document.getElementById('search-input-mobile');
+                if (searchInputMobile) searchInputMobile.value = '';
+                
                 searchResultsContainer.style.display = 'none';
                 allCarsContainer.style.display = 'block';
             });
