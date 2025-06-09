@@ -12,14 +12,19 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from mysql.connector.errors import IntegrityError
 
-# Carica le variabili d'ambiente dal file .env (percorso relativo)
-load_dotenv('.env')
+# Ottieni la directory del file server.py
+script_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Carica le configurazioni dal file config.ini (percorso relativo)
+# Carica le variabili d'ambiente dal file .env (percorso relativo al file server.py)
+env_path = os.path.join(script_dir, '.env')
+load_dotenv(env_path)
+
+# Carica le configurazioni dal file config.ini (percorso relativo al file server.py)
 config = configparser.ConfigParser()
-read_files = config.read('config.ini')
+config_path = os.path.join(script_dir, 'config.ini')
+read_files = config.read(config_path)
 if not config.sections():
-    raise FileNotFoundError("config.ini non trovato nel percorso relativo. Verifica che il file esista nella directory corrente.")
+    raise FileNotFoundError(f"config.ini non trovato in: {config_path}. Verifica che il file esista nella stessa directory di server.py.")
 
 
 # Importazioni dai moduli personalizzati
