@@ -1,453 +1,463 @@
-/* Mobile Responsive Styles */
+/* === INTERFACCIA MOBILE COMPLETAMENTE RIDISEGNATA === */
+/* Design moderno e unificato per WikiSportCars Mobile */
+
 @media (max-width: 768px) {
-  /* Body e layout base */
-  body {
+  /* === BASE E RESET === */
+  html, body {
+    font-size: 16px;
     background: #f8f9fa;
-    font-size: 1rem;
     color: #212529;
-    font-family: Arial, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
     margin: 0;
     padding: 0;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    overflow-x: hidden;
+    line-height: 1.5;
+    scroll-behavior: smooth;
   }
-
-  /* Header mobile - mantiene il gradiente e la solidità */
+  
+  * {
+    box-sizing: border-box;
+  }
+  
+  /* === HEADER E NAVBAR === */
   header {
-    background: linear-gradient(90deg, #35424a, #e8491d) !important;
-    color: white !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 1000 !important;
-    box-shadow: none !important;
-    padding: 10px 15px !important;
-    width: 100% !important;
-    min-height: auto !important;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: white;
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 0;
   }
-
-  /* Titolo header mobile */
+  
   header h1 {
-    margin: 0 !important;
-    font-size: 1.5rem !important;
-    text-align: center !important;
-    color: white !important;
-    padding: 5px 0 !important;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    padding: 0.75rem 1rem;
+    text-align: center;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    border-bottom: 1px solid #c0392b;
   }
-
-  /* Navbar mobile - stesso gradiente dell'header per coerenza */
-  nav, .navbar {
-    background: linear-gradient(90deg, #35424a, #e8491d) !important;
-    background-color: transparent !important;
-    background-image: linear-gradient(90deg, #35424a, #e8491d) !important;
-    color: #fff !important;
-    padding: 10px 15px !important;
-    margin: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-    display: flex !important;
-    flex-wrap: wrap !important;
-    border-radius: 0 !important;
+  
+  .navbar {
+    padding: 0.5rem 1rem;
+    background: white;
+    min-height: 60px;
+    border: none;
   }
-
-  /* Container navbar mobile */
-  .navbar .container-fluid {
-    padding: 0 !important;
-    width: 100% !important;
-  }
-
-  /* Links navbar mobile */
-  .navbar-brand, .navbar-nav .nav-link, .nav-link {
-    color: #fff !important;
-    text-decoration: none !important;
-  }
-
+  
   .navbar-brand {
-    font-size: 1.5rem !important;
-    padding: 5px 10px !important;
-  }
-
-  /* Bottoni e dropdown mobile - colori corretti desktop */
-  .dropbtn, .btn {
-    background: #35424a !important;
-    color: #fff !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    border-radius: 8px !important;
-    padding: 10px 16px !important;
-    font-size: 1rem !important;
-    min-height: 44px !important; /* Touch-friendly */
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  .dropbtn:hover, .btn:hover, .dropbtn:focus, .btn:focus {
-    background: #45a049 !important;
-    color: #fff !important;
-    transform: scale(1.05) !important;
-  }
-  /* Card Bootstrap - senza ombre su mobile */
-  .card {
-    border-radius: 1rem !important;
-    box-shadow: none !important;
-    border: 1px solid #e0e0e0 !important;
-    margin-bottom: 1rem;
-  }
-  /* Bottoni Bootstrap - colori desktop corretti */
-  .btn, button, input[type="submit"] {
-    border-radius: 0.7rem !important;
-    font-size: 1.1rem !important;
-    padding: 0.7rem 1.2rem !important;
-    margin-bottom: 0.5rem;
-    background: #35424a !important;
-    color: #fff !important;
-    border: none !important;
-    transition: all 0.3s ease !important;
+    font-size: 1.5rem;
+    color: #e74c3c;
+    margin-right: 1rem;
+    text-decoration: none;
   }
   
-  .btn:hover, button:hover, input[type="submit"]:hover {
-    background: #45a049 !important;
-    transform: scale(1.05) !important;
+  .navbar-brand:hover {
+    color: #c0392b;
   }
   
-  .btn-primary {
-    background: #e8491d !important;
-    color: #fff !important;
-  }
-  
-  .btn-primary:hover {
-    background: #45a049 !important;
-  }
-  
-  .btn-success, .btn-danger, .btn-info, .btn-warning {
-    color: #fff !important;
-  }
-  /* Form */
-  .form-control {
-    border-radius: 0.5rem !important;
-    font-size: 1.1rem !important;
-    margin-bottom: 0.7rem;
-  }
-  /* Migliora touch e spaziatura */
-  .profile-header, .profile-content, form {
-    padding: 0.5rem 0.5rem !important;
-  }
-  /* Nascondi elementi desktop-only */
-  .desktop-only {
+  /* === PROFILO E DROPDOWN === */
+  .greeting {
     display: none !important;
   }
-  /* Mostra elementi mobile-only */
-  .mobile-only {
-    display: block !important;
-  }
-  /* Flash messages */
-  .flash-message {
-    font-size: 1rem !important;
-    border-radius: 0.5rem !important;
-    margin: 0.5rem 0.2rem;
-    padding: 0.7rem 1rem;
-  }
-  /* Dropdown profilo loggato mobile: comportamento identico al menu non loggato */
-  /* STILI UNIFICATI PER TUTTI I DROPDOWN MOBILE - POSIZIONAMENTO DAL BASSO SENZA OMBRE */
-  /* Manteniamo il comportamento normale dei dropdown su mobile finché JavaScript non li trasforma */
   
-  /* DROPDOWN MOBILE - Solo quando JavaScript applica la classe mobile-dropdown */
-  /* Selettori ad alta specificità per sovrascrivere gli stili desktop */
-  .mobile-dropdown.profile-dropdown.show,
-  .mobile-dropdown.dropdown-content.show,
-  .profile-dropdown.mobile-dropdown.show,
-  .dropdown-content.mobile-dropdown.show {
+  .profile-image-container {
+    position: relative;
+    cursor: pointer;
+    margin-left: auto;
+  }
+  
+  .profile-image {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid #dee2e6;
+    object-fit: cover;
+    transition: border-color 0.2s ease;
+  }
+  
+  .profile-image:hover {
+    border-color: #e74c3c;
+  }
+  
+  /* === DROPDOWN MOBILE MODERNI === */
+  .dropdown-content {
     position: fixed !important;
     left: 50% !important;
-    right: unset !important;
+    bottom: 2rem !important;
     top: unset !important;
-    bottom: 20px !important;
+    right: unset !important;
     transform: translateX(-50%) !important;
     width: 90vw !important;
-    max-width: 320px !important;
-    border-radius: 12px !important;
-    box-shadow: none !important; /* NESSUNA OMBRA */
-    background: #fff !important;
-    border: 2px solid #35424a !important; /* Bordo solido invece di ombra */
+    max-width: 350px !important;
+    min-width: 280px !important;
+    border-radius: 16px !important;
+    background: white !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+    border: none !important;
     z-index: 9999 !important;
-    margin: 0 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  
+  .dropdown-content.show {
     opacity: 1 !important;
     visibility: visible !important;
     pointer-events: auto !important;
-    display: block !important;
   }
   
-  /* Stili unificati per i link nei dropdown mobile */
-  .dropdown-content a,
-  .profile-dropdown a {
-    color: #333 !important;
-    padding: 15px 20px !important;
-    font-size: 1.1rem !important;
+  .dropdown-content a {
     display: flex !important;
     align-items: center !important;
-    min-height: 54px !important;
+    gap: 1rem !important;
+    padding: 1rem 1.5rem !important;
+    font-size: 1rem !important;
+    color: #212529 !important;
+    background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid #f1f3f4 !important;
     text-decoration: none !important;
-    border-bottom: 1px solid #f0f0f0 !important;
     transition: background-color 0.2s ease !important;
   }
-
-  .dropdown-content a:last-child,
-  .profile-dropdown a:last-child {
+  
+  .dropdown-content a:first-child {
+    border-top-left-radius: 16px !important;
+    border-top-right-radius: 16px !important;
+  }
+  
+  .dropdown-content a:last-child {
     border-bottom: none !important;
+    border-bottom-left-radius: 16px !important;
+    border-bottom-right-radius: 16px !important;
   }
-
-  .dropdown-content a:hover,
-  .profile-dropdown a:hover {
-    background: #f8f9fa !important;
-  }
-
-  /* Visibilità dropdown corretta - senza sovrapposizioni */
-  .dropdown:hover .dropdown-content,
-  .dropdown.show .dropdown-content {
-    display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-  }
-  /* Fix navbar trasparente e rettangoli grigi - rimuoviamo questo fix che va in conflitto */
   
-  /* Migliora il layout generale su mobile */
-  .container-fluid {
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-  }
-
-  /* Assicura che la ricerca mobile sia ben visibile */
-  #search-input-mobile {
-    font-size: 16px !important; /* Previene zoom su iOS */
-    padding: 12px !important;
-    border-radius: 8px !important;
-  }
-
-  #search-button-mobile {
-    padding: 12px 16px !important;
-    border-radius: 0 8px 8px 0 !important;
-  }
-
-  /* Nessuna ombra su header e navbar mobile */
-  header, nav, .navbar {
-    box-shadow: none !important;
-  }
-
-  /* Stili aggiuntivi per migliorare la UX mobile */
-  
-  /* Miglioramento del contrasto per la navbar */
-  .navbar-brand:hover, .navbar-brand:focus {
-    color: #fff !important;
-    opacity: 0.9 !important;
-  }
-
-  /* Migliore gestione del testo lungo su mobile */
-  .greeting {
-    font-size: 0.9rem !important;
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    max-width: 150px !important;
-  }
-
-  /* Immagine profilo mobile ottimizzata */
-  .profile-image-container {
-    width: 40px !important;
-    height: 40px !important;
-  }
-
-  .profile-image {
-    width: 40px !important;
-    height: 40px !important;
-    border: 2px solid rgba(255,255,255,0.3) !important;
-  }
-
-  /* Spacing migliorato per gli elementi della navbar */
-  .d-flex.align-items-center {
-    gap: 10px !important;
-  }
-
-  /* Z-index ottimizzato per dropdown mobile */
-  .dropdown-content,
-  .profile-dropdown {
-    z-index: 9999 !important;
-  }
-
-  /* Assicura che il contenuto non vada sotto l'header fisso */
-  main, .container, .container-fluid {
-    padding-top: 0 !important;
-    margin-top: 0 !important;
-  }
-
-  /* Migliora la leggibilità dei link */
-  a {
-    color: inherit !important;
-    text-decoration: none !important;
-  }
-
-  a:hover, a:focus {
-    text-decoration: underline !important;
-  }
-
-  /* Stili per la barra di ricerca che si estende su tutta la larghezza */
-  .w-100.d-md-none {
-    margin-top: 10px !important;
-  }
-
-  .w-100.d-md-none .input-group {
-    border-radius: 8px !important;
-    overflow: hidden !important;
-  }
-
-  /* Nasconde elementi che possono causare problemi su mobile */
-  .desktop-only {
-    display: none !important;
-  }
-
-  /* Fix specifico per Bootstrap navbar su mobile */
-  .navbar-expand-md .navbar-nav {
-    flex-direction: row !important;
-  }
-
-  .navbar-expand-md .navbar-nav .nav-link {
-    padding-left: 0.5rem !important;
-    padding-right: 0.5rem !important;
-  }
-
-  /* Migliora la touch area per gli elementi interattivi */
-  button, .btn, .dropbtn, a {
-    min-height: 44px !important;
-    min-width: 44px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-
-  /* Stili specifici aggiuntivi per dispositivi mobile */
-  /* Forza la visualizzazione corretta della navbar su tutti i dispositivi mobile */
-  .mobile-navbar {
-    background: linear-gradient(90deg, #35424a, #e8491d) !important;
-    background-color: transparent !important;
-    backdrop-filter: blur(10px) !important;
-    -webkit-backdrop-filter: blur(10px) !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-  }
-
-  /* Stili per il body mobile */
-  .mobile-device {
-    -webkit-text-size-adjust: 100% !important;
-    -webkit-tap-highlight-color: transparent !important;
-    touch-action: manipulation !important;
-  }
-
-  /* Container mobile migliorato */
-  .mobile-container {
-    padding-left: 15px !important;
-    padding-right: 15px !important;
-    max-width: 100% !important;
-  }
-
-  /* Fix per Safari mobile */
-  @supports (-webkit-appearance: none) {
-    .navbar, nav {
-      background: linear-gradient(90deg, #35424a, #e8491d) !important;
-      background-color: transparent !important;
-    }
-  }
-
-  /* Fix per Chrome mobile */
-  @media screen and (-webkit-min-device-pixel-ratio: 0) {
-    .navbar, nav {
-      background: linear-gradient(90deg, #35424a, #e8491d) !important;
-      background-color: transparent !important;
-    }
-  }
-
-  /* Fix per Firefox mobile */
-  @-moz-document url-prefix() {
-    .navbar, nav {
-      background: linear-gradient(90deg, #35424a, #e8491d) !important;
-      background-color: transparent !important;
-    }
-  }
-
-  /* Dropdown mobile unificati già gestiti sopra - sezione rimossa per evitare conflitti */
-  .dropdown-content.mobile-dropdown a:focus {
+  .dropdown-content a:hover {
     background: #f8f9fa !important;
-    color: #007bff !important;
+    color: #e74c3c !important;
   }
-
-  .dropdown-content.mobile-dropdown a i {
-    margin-right: 12px !important;
-    width: 20px !important;
+  
+  .dropdown-content a i {
+    font-size: 1.1rem !important;
+    color: #e74c3c !important;
+    min-width: 20px !important;
     text-align: center !important;
   }
-
-  /* Overlay per chiudere i dropdown */
+  
+  .dropdown-divider {
+    height: 1px !important;
+    background: #f1f3f4 !important;
+    margin: 0 !important;
+    border: none !important;
+  }
+  
+  .dropdown-badge {
+    background: #e74c3c !important;
+    color: white !important;
+    font-size: 0.75rem !important;
+    min-width: 20px !important;
+    height: 20px !important;
+    border-radius: 10px !important;
+    margin-left: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-weight: 500 !important;
+  }
+  
+  /* === SEARCH BAR MOBILE === */
+  .w-100.d-md-none {
+    padding: 0.5rem 0 0.75rem 0;
+  }
+  
+  .input-group {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  #search-input-mobile {
+    font-size: 16px; /* Previene zoom su iOS */
+    padding: 0.75rem 1rem;
+    border: 1px solid #dee2e6;
+    border-right: none;
+    background: white;
+    border-radius: 8px 0 0 8px;
+  }
+  
+  #search-input-mobile:focus {
+    outline: none;
+    border-color: #e74c3c;
+    box-shadow: none;
+  }
+  
+  #search-button-mobile {
+    padding: 0.75rem 1rem;
+    background: #e74c3c;
+    border: 1px solid #e74c3c;
+    color: white;
+    border-radius: 0 8px 8px 0;
+    transition: background-color 0.2s ease;
+  }
+  
+  #search-button-mobile:hover {
+    background: #c0392b;
+  }
+  
+  /* === CONTAINER PRINCIPALE === */
+  .container, main.container {
+    width: 100%;
+    max-width: 100%;
+    padding: 1rem;
+    margin: 0;
+  }
+  
+  /* === CARD E COMPONENTI === */
+  .card, .car-item, .car-listing, .car-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border: none;
+    transition: box-shadow 0.2s ease;
+  }
+  
+  .card:hover, .car-item:hover, .car-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  
+  .car-item img, .car-card img {
+    width: 100%;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    aspect-ratio: 16/10;
+    object-fit: cover;
+  }
+  
+  .car-title, .car-item h2, .car-card h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #e74c3c;
+  }
+  
+  .car-meta, .car-info, .car-details {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+  }
+  
+  /* === BOTTONI === */
+  .btn, button, input[type="submit"], .dropbtn {
+    font-size: 1rem;
+    padding: 0.75rem 1.5rem;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .btn-primary, .dropbtn {
+    background: #e74c3c;
+    color: white;
+  }
+  
+  .btn-primary:hover, .dropbtn:hover {
+    background: #c0392b;
+    color: white;
+  }
+  
+  .btn-outline-secondary {
+    background: white;
+    color: #6c757d;
+    border: 1px solid #dee2e6;
+  }
+  
+  .btn-outline-secondary:hover {
+    background: #6c757d;
+    color: white;
+  }
+  
+  .favorites-btn, .add-favorite, .remove-favorite {
+    background: white;
+    color: #e74c3c;
+    border: 2px solid #e74c3c;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+  }
+  
+  .favorites-btn:hover, .add-favorite:hover, .remove-favorite:hover {
+    background: #e74c3c;
+    color: white;
+  }
+  
+  /* === MESSAGGI FLASH === */
+  .flash-messages-container {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    z-index: 1050;
+    max-width: none;
+  }
+  
+  .flash-message {
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .flash-message.success {
+    background: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+  }
+  
+  .flash-message.error, .flash-message.danger {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+  }
+  
+  .close-button {
+    margin-left: auto;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0.7;
+    padding: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .close-button:hover {
+    opacity: 1;
+  }
+  
+  /* === FORM E INPUT === */
+  form {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  input, select, textarea {
+    font-size: 16px; /* Previene zoom su iOS */
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+    margin-bottom: 1rem;
+    width: 100%;
+    background: white;
+    transition: border-color 0.2s ease;
+  }
+  
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+  }
+  
+  label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    display: block;
+    color: #495057;
+  }
+  
+  /* === RECENSIONI === */
+  .review, .review-item {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-left: 4px solid #e74c3c;
+  }
+  
+  /* === PROFILO === */
+  .profile-section, .profile-info, .profile-form {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  /* === FOOTER === */
+  .footer, footer {
+    background: #343a40;
+    color: white;
+    font-size: 0.9rem;
+    padding: 2rem 1rem;
+    text-align: center;
+    margin-top: 2rem;
+  }
+  
+  /* === ELEMENTI DA NASCONDERE === */
+  .d-md-inline, .d-md-block, .d-md-flex {
+    display: none !important;
+  }
+  
+  /* === MIGLIORAMENTI TOUCH E GESTURES === */
+  .mobile-device * {
+    -webkit-tap-highlight-color: rgba(231, 76, 60, 0.1);
+    touch-action: manipulation;
+  }
+  
+  /* === MIGLIORAMENTI ACCESSIBILITÀ === */
+  .dropdown-content a:focus {
+    outline: 2px solid #e74c3c;
+    outline-offset: 2px;
+  }
+  
+  /* === ANIMAZIONI SMOOTH === */
+  .dropdown-content {
+    backdrop-filter: blur(2px) !important;
+  }
+  
+  /* === OVERLAY PER DROPDOWN === */
   .mobile-dropdown-overlay {
     position: fixed !important;
     top: 0 !important;
     left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    background: rgba(0,0,0,0.5) !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.3) !important;
     z-index: 9998 !important;
     opacity: 0 !important;
-    animation: fadeIn 0.3s ease-out forwards !important;
+    visibility: hidden !important;
+    transition: opacity 0.3s ease !important;
   }
-
-  @keyframes fadeIn {
-    to {
-      opacity: 1;
-    }
+  
+  .mobile-dropdown-overlay.show {
+    opacity: 1 !important;
+    visibility: visible !important;
   }
-
-  /* Stili per prevenire il zoom su iOS */
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="search"],
-  textarea,
-  select {
-    font-size: 16px !important;
-  }
-
-  /* Migliora la gestione del focus su mobile */
-  button:focus,
-  .btn:focus,
-  .dropbtn:focus,
-  a:focus,
-  input:focus,
-  textarea:focus,
-  select:focus {
-    outline: 2px solid #007bff !important;
-    outline-offset: 2px !important;
-  }
-
-  /* Stili per migliorare la leggibilità su schermi piccoli */
-  .text-truncate-mobile {
-    white-space: nowrap !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-  }
-
-  /* Fix per il layout quando la tastiera virtuale è aperta */
-  .mobile-device.keyboard-open {
-    height: 100vh !important;
-    overflow: hidden !important;
-  }
-
-    /* Mobile dropdown fix - leggero e non invasivo */
-  .mobile-dropdown {
-    position: fixed !important;
-    bottom: 20px !important;
-    top: auto !important;
-    left: 50% !important;
-    transform: translateX(-50%) !important;
-    z-index: 9999 !important;
-    width: 320px !important;
-    max-width: 90vw !important;
+  
+  /* === MIGLIORAMENTI PERFORMANCE === */
+  .dropdown-content, .card, .btn {
+    will-change: transform, opacity;
   }
 }

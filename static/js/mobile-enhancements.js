@@ -1,345 +1,509 @@
-// Mobile enhancements for WikiSportCars - VERSIONE DROPDOWN STANDARD
-// Converte il profile dropdown per usare la stessa logica del dropdown standard
-
-// Flag di inizializzazione
-let mobileEnhanced = false;
+// === SISTEMA MOBILE UNIFICATO PER WIKISPORTCARS ===
+// Design moderno e semplificato per l'interfaccia mobile
 
 document.addEventListener('DOMContentLoaded', function() {
-    if (mobileEnhanced) return;
-    
-    console.log('🚀 Mobile enhancements - CONVERSIONE A DROPDOWN STANDARD');
-    
-    try {
-        // Forza inizializzazione per test anche su desktop se nella pagina di test
-        const isTestPage = window.location.pathname.includes('test_dropdown') || 
-                          window.location.pathname.includes('test_final_profile_dropdown') ||
-                          window.location.pathname.includes('test_profile_dropdown') ||
-                          window.location.pathname.includes('test_mobile');
-        
-        if (isMobileDevice() || isTestPage) {
-            console.log('📱 Dispositivo mobile/pagina test - conversione a logica standard');
-            convertProfileToStandardDropdown();
-            setupMobileDropdowns();
-        } else {
-            console.log('🖥️ Desktop - mobile enhancements non necessari');
-        }
-        mobileEnhanced = true;
-    } catch (error) {
-        console.error('❌ Errore mobile enhancements:', error);
+    // Attendi che la configurazione sia caricata
+    if (typeof window.MobileConfig !== 'undefined') {
+        initWithConfig();
+    } else {
+        // Fallback se la configurazione non è disponibile
+        setTimeout(initWithConfig, 100);
     }
 });
 
-function isMobileDevice() {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const mobileKeywords = ['android', 'webos', 'iphone', 'ipad', 'ipod', 'blackberry', 'windows phone'];
-    return mobileKeywords.some(keyword => userAgent.includes(keyword)) || window.innerWidth <= 768;
-}
-
-function convertProfileToStandardDropdown() {
-    console.log('🔄 Conversione del profile dropdown a logica standard...');
+function initWithConfig() {
+    const config = window.MobileConfig || {};
     
-    const profileDropdown = document.getElementById('profileDropdown');
-    const profileContainer = document.getElementById('profileImageContainer');
-    
-    if (profileDropdown && profileContainer) {
-        // RIMUOVI la classe profile-dropdown che ha stili CSS conflittuali 
-        profileDropdown.classList.remove('profile-dropdown');
-        
-        // AGGIUNGI le classi per usare la stessa logica del dropdown standard
-        profileDropdown.classList.add('dropdown-content');
-        profileContainer.classList.add('dropbtn');
-        
-        console.log('✅ Profile dropdown convertito:');
-        console.log('   - Rimossa classe profile-dropdown (stili CSS conflittuali)');
-        console.log('   - Aggiunta classe dropdown-content (stili CSS compatibili)');
-        console.log('   - Aggiunta classe dropbtn al container');
-        
-        // Configura SUBITO l'event listener usando la logica standard
-        setupProfileClickHandler(profileContainer, profileDropdown);
+    if (isMobileDevice()) {
+        config.log?.('info', 'Dispositivo mobile rilevato - inizializzazione interfaccia mobile...');
+        initMobileInterface();
     }
 }
 
-function setupProfileClickHandler(container, dropdown) {
-    console.log('🖱️ Configurazione event listener standard per profile dropdown...');
-    console.log('Container:', container);
-    console.log('Dropdown:', dropdown);
-    
-    // Rimuovi vecchi event listeners clonando l'elemento
-    const newContainer = container.cloneNode(true);
-    const parent = container.parentNode;
-    parent.replaceChild(newContainer, container);
-    
-    console.log('✅ Elemento container clonato e sostituito');
-    
-    // IMPORTANTE: Aggiorna il riferimento al dropdown dopo la sostituzione del container
-    const updatedDropdown = document.getElementById('profileDropdown');
-    
-    // Aggiungi event listener STANDARD come per dropdown non-loggato
-    newContainer.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        console.log('🔄 CLICK RILEVATO su profilo - usando logica dropdown standard');
-        console.log('Dropdown before toggle:', {
-            classes: Array.from(updatedDropdown.classList),
-            hasShow: updatedDropdown.classList.contains('show'),
-            computedDisplay: getComputedStyle(updatedDropdown).display,
-            computedOpacity: getComputedStyle(updatedDropdown).opacity,
-            computedVisibility: getComputedStyle(updatedDropdown).visibility
-        });
-        
-        // Chiudi tutti gli altri dropdown come fa il dropdown standard
-        document.querySelectorAll('.dropdown-content.show').forEach(dd => {
-            if (dd !== updatedDropdown) {
-                dd.classList.remove('show');
-                console.log('🔄 Chiuso altro dropdown:', dd.id);
-            }
-        });
-        
-        // Toggle dropdown usando classe standard
-        updatedDropdown.classList.toggle('show');
-        
-        console.log('✅ Dropdown toggled - classe show:', updatedDropdown.classList.contains('show'));
-        console.log('Dropdown after toggle:', {
-            classes: Array.from(updatedDropdown.classList),
-            hasShow: updatedDropdown.classList.contains('show'),
-            computedDisplay: getComputedStyle(updatedDropdown).display,
-            computedOpacity: getComputedStyle(updatedDropdown).opacity,
-            computedVisibility: getComputedStyle(updatedDropdown).visibility,
-            computedPointerEvents: getComputedStyle(updatedDropdown).pointerEvents
-        });
-    });
-    
-    console.log('🔧 Event listener configurato per profile dropdown');
+// Rileva se il dispositivo è mobile (usa config se disponibile)
+function isMobileDevice() {
+    const config = window.MobileConfig;
+    if (config && config.isMobile) {
+        return config.isMobile();
+    }
+    // Fallback
+    return window.innerWidth <= 768 || 
+           /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
-function setupMobileDropdowns() {
-    console.log('📋 Setup dropdown mobile con logica standard...');
+// Inizializza l'interfaccia mobile
+function initMobileInterface() {
+    // Aggiungi classe mobile al body
+    document.body.classList.add('mobile-device');
     
-    // Applica stili mobile solo ai dropdown con classe dropdown-content
+    // Inizializza i dropdown mobile
+    initMobileDropdowns();
+    
+    // Ottimizza la search bar
+    optimizeMobileSearch();
+    
+    // Gestisci l'orientamento del dispositivo
+    handleOrientationChange();
+    
+    console.log('✅ Interfaccia mobile inizializzata');
+}
+
+// Gestisce i dropdown su mobile
+function initMobileDropdowns() {
     const dropdowns = document.querySelectorAll('.dropdown-content');
     
     dropdowns.forEach(dropdown => {
-        enhanceDropdownForMobile(dropdown);
+        // Aggiungi classe identificativa
+        dropdown.classList.add('mobile-dropdown');
+        
+        // Observer per applicare stili mobile quando il dropdown viene mostrato
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'class') {
+                    const target = mutation.target;
+                    if (target.classList.contains('show')) {
+                        applyMobileDropdownStyles(target);
+                    }
+                }
+            });
+        });
+        
+        observer.observe(dropdown, {
+            attributes: true,
+            attributeFilter: ['class']
+        });
     });
     
-    // Setup click handlers che usano la stessa logica di base.html
-    setupStandardClickHandlers();
-}
-
-function enhanceDropdownForMobile(dropdown) {
-    if (!dropdown) return;
-    
-    console.log(`🎨 Migliorando dropdown per mobile: ${dropdown.id || dropdown.className}`);
-    
-    // Aggiungi classe per identificazione
-    dropdown.classList.add('mobile-enhanced');
-    
-    // Observer per rilevare quando il dropdown diventa visibile
-    const observer = new MutationObserver(() => {
-        if (dropdown.classList.contains('show') && !dropdown.classList.contains('mobile-positioned')) {
-            console.log('🔄 Observer rilevato: dropdown mostrato, applicando stili mobile...');
-            applyMobileStyles(dropdown);
+    // Gestisci click outside per chiudere dropdown
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.dropdown, .profile-image-container, .dropdown-content')) {
+            closeAllDropdowns();
         }
     });
     
-    observer.observe(dropdown, {
-        attributes: true,
-        attributeFilter: ['class']
+    // Chiudi dropdown con tasto ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeAllDropdowns();
+        }
     });
-    
-    // CHECK IMMEDIATO: se il dropdown è già visibile, applica subito gli stili mobile
-    if (dropdown.classList.contains('show')) {
-        console.log('🔄 Dropdown già visibile al momento dell\'enhancement, applicando stili mobile...');
-        applyMobileStyles(dropdown);
+}
+
+// Gestisce l'overlay del dropdown mobile
+function createMobileOverlay() {
+    let overlay = document.querySelector('.mobile-dropdown-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'mobile-dropdown-overlay';
+        overlay.addEventListener('click', closeAllDropdowns);
+        document.body.appendChild(overlay);
     }
-    
-    console.log(`✅ Dropdown ${dropdown.id} configurato per mobile`);
+    return overlay;
 }
 
-function applyMobileStyles(dropdown) {
-    if (!dropdown) return;
+// Mostra l'overlay quando un dropdown è aperto
+function showMobileOverlay() {
+    const overlay = createMobileOverlay();
+    overlay.classList.add('show');
+}
+
+// Nasconde l'overlay
+function hideMobileOverlay() {
+    const overlay = document.querySelector('.mobile-dropdown-overlay');
+    if (overlay) {
+        overlay.classList.remove('show');
+    }
+}
+
+// Applica stili mobile ai dropdown
+function applyMobileDropdownStyles(dropdown) {
+    // Forza posizionamento mobile
+    dropdown.style.position = 'fixed';
+    dropdown.style.left = '50%';
+    dropdown.style.bottom = '2rem';
+    dropdown.style.top = 'unset';
+    dropdown.style.right = 'unset';
+    dropdown.style.transform = 'translateX(-50%)';
+    dropdown.style.width = '90vw';
+    dropdown.style.maxWidth = '350px';
+    dropdown.style.minWidth = '280px';
+    dropdown.style.zIndex = '9999';
     
-    console.log('📱 Applicando stili mobile per posizionamento in basso allo schermo');
-    console.log('Target dropdown:', dropdown.id, dropdown.classList);
+    // Mostra overlay
+    showMobileOverlay();
     
-    // Assicurati che abbia la classe dropdown-content per ereditare tutti gli stili CSS corretti
-    dropdown.classList.add('dropdown-content');
+    // Previeni scroll del body
+    document.body.style.overflow = 'hidden';
     
-    // FORZA gli stili mobile per posizionare il dropdown in basso allo schermo
-    const mobileStyles = {
-        'position': 'fixed',
-        'left': '50%',
-        'transform': 'translateX(-50%)',
-        'bottom': '20px',
-        'top': 'auto',
-        'right': 'auto',
-        'width': '90vw',
-        'max-width': '320px',
-        'z-index': '9999'
-    };
-    
-    // Applica TUTTI gli stili mobile con !important per sovrascrivere il CSS esistente
-    Object.entries(mobileStyles).forEach(([prop, value]) => {
-        dropdown.style.setProperty(prop, value, 'important');
+    console.log('📱 Stili mobile applicati al dropdown:', dropdown.id);
+}
+
+// Chiude tutti i dropdown aperti
+function closeAllDropdowns() {
+    document.querySelectorAll('.dropdown-content.show').forEach(dropdown => {
+        dropdown.classList.remove('show');
     });
     
-    // EXTRA: rimuovi eventuali stili di posizionamento ereditati dal profile-dropdown
-    dropdown.style.removeProperty('top');
-    dropdown.style.setProperty('bottom', '20px', 'important');
+    // Nascondi overlay e ripristina scroll
+    hideMobileOverlay();
+    document.body.style.overflow = '';
+}
+
+// Ottimizza la search bar per mobile
+function optimizeMobileSearch() {
+    const searchInputs = document.querySelectorAll('#search-input-mobile, #search-input');
     
-    // Marca come mobile-ready
-    dropdown.classList.add('mobile-positioned');
-    
-    console.log('✅ Stili mobile applicati - dropdown posizionato in basso');
-    console.log('Dropdown position after mobile styles:', {
-        position: getComputedStyle(dropdown).position,
-        bottom: getComputedStyle(dropdown).bottom,
-        top: getComputedStyle(dropdown).top,
-        left: getComputedStyle(dropdown).left,
-        transform: getComputedStyle(dropdown).transform
+    searchInputs.forEach(input => {
+        // Previene zoom su iOS
+        input.style.fontSize = '16px';
+        
+        // Migliora l'esperienza touch
+        input.addEventListener('focus', function() {
+            // Scorri in vista l'input quando viene focussato
+            setTimeout(() => {
+                this.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+        });
     });
 }
 
-function setupStandardClickHandlers() {
-    console.log('🖱️ Setup handler click globali...');
-    
-    // Click outside per chiudere - IDENTICO al comportamento standard
-    document.addEventListener('click', (e) => {
-        const openDropdowns = document.querySelectorAll('.dropdown-content.show');
-        openDropdowns.forEach(dropdown => {
-            // Trova il parent container
-            const container = dropdown.parentElement?.querySelector('.dropbtn, .profile-image-container');
+// Gestisce i cambi di orientamento
+function handleOrientationChange() {
+    window.addEventListener('orientationchange', function() {
+        setTimeout(() => {
+            // Chiudi tutti i dropdown aperti dopo rotazione
+            closeAllDropdowns();
             
-            if (!dropdown.contains(e.target) && !container?.contains(e.target)) {
-                dropdown.classList.remove('show');
-                console.log('🔄 Dropdown chiuso per click outside');
+            // Riapplica stili se necessario
+            if (isMobileDevice()) {
+                document.body.classList.add('mobile-device');
+            } else {
+                document.body.classList.remove('mobile-device');
             }
-        });
+        }, 100);
     });
     
-    console.log('✅ Click handlers globali configurati');
+    window.addEventListener('resize', function() {
+        if (isMobileDevice()) {
+            document.body.classList.add('mobile-device');
+        } else {
+            document.body.classList.remove('mobile-device');
+        }
+    });
 }
 
-// === FUNZIONI UTILITY GLOBALI ===
+// Utility per debug mobile
+window.debugMobile = function() {
+    console.log('🔍 Debug Mobile Interface:');
+    console.log('- Mobile device:', isMobileDevice());
+    console.log('- Body classes:', Array.from(document.body.classList));
+    console.log('- Dropdown count:', document.querySelectorAll('.dropdown-content').length);
+    console.log('- Active dropdowns:', document.querySelectorAll('.dropdown-content.show').length);
+};
 
-// Debug function per testing
-window.debugMobileDropdowns = function() {
-    console.log('🔧 Debug Mobile Dropdowns:');
-    const dropdowns = document.querySelectorAll('.dropdown-content, .profile-dropdown');
-    dropdowns.forEach(dd => {
-        const styles = window.getComputedStyle(dd);
-        console.log(`Dropdown ${dd.id}:`, {
-            show: dd.classList.contains('show'),
-            position: styles.position,
-            pointerEvents: styles.pointerEvents,
-            opacity: styles.opacity,
-            visibility: styles.visibility,
-            classes: Array.from(dd.classList)
-        });
+// Utility per forzare applicazione stili mobile
+window.forceMobileStyles = function() {
+    console.log('🔧 Forzando applicazione stili mobile...');
+    document.querySelectorAll('.dropdown-content.show').forEach(dropdown => {
+        applyMobileDropdownStyles(dropdown);
     });
 };
 
-// Test profile dropdown click function
-window.testProfileClick = function() {
-    console.log('🧪 Testing profile dropdown click...');
-    const container = document.getElementById('profileImageContainer');
-    const dropdown = document.getElementById('profileDropdown');
+// === FUNZIONALITÀ AVANZATE MOBILE ===
+
+// Gestisce l'inserimento di icone e miglioramenti UI
+function enhanceMobileUI() {
+    // Aggiungi icone ai bottoni se mancanti
+    const buttons = document.querySelectorAll('.btn, button');
+    buttons.forEach(btn => {
+        if (btn.classList.contains('btn-primary') && !btn.querySelector('i')) {
+            const icon = document.createElement('i');
+            icon.className = 'fas fa-check';
+            btn.prepend(icon);
+        }
+    });
     
-    if (container && dropdown) {
-        console.log('Before click - dropdown classes:', Array.from(dropdown.classList));
-        console.log('Before click - container classes:', Array.from(container.classList));
+    // Migliora i link del dropdown
+    const dropdownLinks = document.querySelectorAll('.dropdown-content a');
+    dropdownLinks.forEach(link => {
+        link.addEventListener('touchstart', function() {
+            this.style.backgroundColor = '#f8f9fa';
+        });
         
-        // Simula click
-        container.click();
+        link.addEventListener('touchend', function() {
+            setTimeout(() => {
+                this.style.backgroundColor = '';
+            }, 150);
+        });
+    });
+}
+
+// Gestisce swipe gestures sui dropdown
+function addSwipeGestures() {
+    let startY = 0;
+    let currentY = 0;
+    let isSwipping = false;
+    
+    document.addEventListener('touchstart', function(e) {
+        if (e.target.closest('.dropdown-content')) {
+            startY = e.touches[0].clientY;
+            isSwipping = true;
+        }
+    });
+    
+    document.addEventListener('touchmove', function(e) {
+        if (!isSwipping) return;
+        
+        currentY = e.touches[0].clientY;
+        const diffY = currentY - startY;
+        
+        // Se l'utente swipe verso il basso di almeno 50px, chiudi il dropdown
+        if (diffY > 50) {
+            closeAllDropdowns();
+            isSwipping = false;
+        }
+    });
+    
+    document.addEventListener('touchend', function() {
+        isSwipping = false;
+    });
+}
+
+// Inizializzazione avanzata
+function initAdvancedMobileFeatures() {
+    enhanceMobileUI();
+    addSwipeGestures();
+    
+    // Aggiungi listener per i link che dovrebbero chiudere i dropdown
+    document.querySelectorAll('.dropdown-content a').forEach(link => {
+        link.addEventListener('click', function() {
+            // Chiudi dropdown dopo un breve delay per permettere la navigazione
+            setTimeout(closeAllDropdowns, 100);
+        });
+    });
+}
+
+// Aggiorna la funzione di inizializzazione principale
+const originalInitMobileInterface = initMobileInterface;
+initMobileInterface = function() {
+    originalInitMobileInterface();
+    initAdvancedMobileFeatures();
+    console.log('✅ Funzionalità avanzate mobile inizializzate');
+};
+
+// === SISTEMA DI DEBUG AVANZATO ===
+
+// Crea un pannello di debug mobile
+function createMobileDebugPanel() {
+    if (document.querySelector('#mobile-debug-panel')) return;
+    
+    const panel = document.createElement('div');
+    panel.id = 'mobile-debug-panel';
+    panel.style.cssText = `
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        z-index: 10000;
+        max-width: 200px;
+        display: none;
+    `;
+    
+    panel.innerHTML = `
+        <div><strong>Mobile Debug</strong></div>
+        <div>Viewport: <span id="debug-viewport"></span></div>
+        <div>Device: <span id="debug-device"></span></div>
+        <div>Dropdowns: <span id="debug-dropdowns"></span></div>
+        <div>Active: <span id="debug-active"></span></div>
+        <button onclick="this.parentElement.style.display='none'" style="background:red;color:white;border:none;border-radius:4px;padding:2px 6px;margin-top:5px;">Close</button>
+    `;
+    
+    document.body.appendChild(panel);
+    
+    // Aggiorna info debug ogni secondo
+    setInterval(updateDebugInfo, 1000);
+}
+
+// Aggiorna le informazioni del debug panel
+function updateDebugInfo() {
+    const panel = document.querySelector('#mobile-debug-panel');
+    if (!panel || panel.style.display === 'none') return;
+    
+    const viewportEl = document.querySelector('#debug-viewport');
+    const deviceEl = document.querySelector('#debug-device');
+    const dropdownsEl = document.querySelector('#debug-dropdowns');
+    const activeEl = document.querySelector('#debug-active');
+    
+    if (viewportEl) viewportEl.textContent = `${window.innerWidth}x${window.innerHeight}`;
+    if (deviceEl) deviceEl.textContent = isMobileDevice() ? 'Mobile' : 'Desktop';
+    if (dropdownsEl) dropdownsEl.textContent = document.querySelectorAll('.dropdown-content').length;
+    if (activeEl) activeEl.textContent = document.querySelectorAll('.dropdown-content.show').length;
+}
+
+// === GESTIONE AVANZATA DELLE ANIMAZIONI ===
+
+// Chiude i dropdown con animazione
+function closeDropdownsWithAnimation() {
+    const activeDropdowns = document.querySelectorAll('.dropdown-content.show');
+    const overlay = document.querySelector('.mobile-dropdown-overlay.show');
+    
+    activeDropdowns.forEach(dropdown => {
+        dropdown.classList.add('hiding');
+        dropdown.classList.remove('show');
         
         setTimeout(() => {
-            console.log('After click - dropdown classes:', Array.from(dropdown.classList));
-            console.log('After click - dropdown visible:', dropdown.classList.contains('show'));
-            
-            const styles = getComputedStyle(dropdown);
-            console.log('After click - computed styles:', {
-                opacity: styles.opacity,
-                visibility: styles.visibility,
-                pointerEvents: styles.pointerEvents,
-                position: styles.position
-            });
-        }, 100);
-    } else {
-        console.error('❌ Profile elements not found!');
+            dropdown.classList.remove('hiding');
+        }, 300);
+    });
+    
+    if (overlay) {
+        overlay.classList.add('hiding');
+        overlay.classList.remove('show');
+        
+        setTimeout(() => {
+            overlay.classList.remove('hiding');
+            overlay.style.display = 'none';
+        }, 300);
     }
-};
-
-// Force conversion function for testing
-window.forceConvertProfile = function() {
-    console.log('🔧 Force converting profile dropdown...');
-    convertProfileToStandardDropdown();
-    setupMobileDropdowns();
-};
-
-// Force mobile styles function for testing  
-window.forceMobileStyles = function() {
-    console.log('🔧 Force applying mobile styles to profile dropdown...');
-    const profileDropdown = document.getElementById('profileDropdown');
-    if (profileDropdown) {
-        profileDropdown.classList.add('dropdown-content');
-        profileDropdown.classList.add('show');
-        applyMobileStyles(profileDropdown);
-        console.log('✅ Mobile styles applied to profile dropdown');
-    } else {
-        console.error('❌ Profile dropdown not found');
-    }
-};
-
-// Force apply styles function per testing
-window.forceApplyMobileStyles = function() {
-    console.log('🔧 Force applying mobile styles...');
-    const dropdowns = document.querySelectorAll('.dropdown-content.show');
-    dropdowns.forEach(applyMobileStyles);
-};
-
-// Utility functions
-function addMobileClasses() {
-    document.body.classList.add('mobile-device');
+    
+    // Ripristina scroll del body
+    setTimeout(() => {
+        document.body.style.overflow = '';
+    }, 100);
 }
 
-function optimizeSearchInput() {
-    const searchInput = document.querySelector('input[type="search"], .search-input');
-    if (searchInput) {
-        searchInput.style.fontSize = '16px'; // Previene zoom su iOS
-    }
-}
+// === GESTIONE MIGLIORATA DELLE PERFORMANCE ===
 
-// Inizializzazione utilities
-if (isMobileDevice()) {
-    addMobileClasses();
-    optimizeSearchInput();
-}
-
-// FALLBACK: Listener per resize window che riattiva mobile enhancements se necessario
-window.addEventListener('resize', function() {
-    if (isMobileDevice() && !mobileEnhanced) {
-        console.log('📱 Resize rilevato - dispositivo ora mobile, attivando enhancements...');
-        try {
-            convertProfileToStandardDropdown();
-            setupMobileDropdowns();
-            mobileEnhanced = true;
-        } catch (error) {
-            console.error('❌ Errore durante resize enhancement:', error);
+// Throttle function per limitare le chiamate
+function throttle(func, limit) {
+    let inThrottle;
+    return function() {
+        const args = arguments;
+        const context = this;
+        if (!inThrottle) {
+            func.apply(context, args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
         }
     }
-});
+}
 
-// FALLBACK 2: Forza controllo mobile dopo un breve delay per casi edge
-setTimeout(() => {
-    if (isMobileDevice() && !mobileEnhanced) {
-        console.log('📱 Controllo delay - dispositivo mobile, attivando enhancements...');
-        try {
-            convertProfileToStandardDropdown();
-            setupMobileDropdowns();
-            mobileEnhanced = true;
-        } catch (error) {
-            console.error('❌ Errore durante delay enhancement:', error);
-        }
+// Debounce function per ritardare le chiamate
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// === UTILITY AVANZATE ===
+
+// Rileva il tipo di dispositivo con maggiore precisione
+function getDeviceType() {
+    const ua = navigator.userAgent;
+    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+        return 'tablet';
     }
-}, 1000);
+    if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+        return 'mobile';
+    }
+    return 'desktop';
+}
+
+// Rileva se il dispositivo supporta il touch
+function isTouchDevice() {
+    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+}
+
+// === MIGLIORAMENTI ACCESSIBILITÀ ===
+
+// Gestisce la navigazione da tastiera nei dropdown
+function handleKeyboardNavigation() {
+    document.addEventListener('keydown', function(e) {
+        const activeDropdown = document.querySelector('.dropdown-content.show');
+        if (!activeDropdown) return;
+        
+        const links = activeDropdown.querySelectorAll('a');
+        const currentFocus = document.activeElement;
+        let currentIndex = Array.from(links).indexOf(currentFocus);
+        
+        switch(e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                currentIndex = (currentIndex + 1) % links.length;
+                links[currentIndex].focus();
+                break;
+                
+            case 'ArrowUp':
+                e.preventDefault();
+                currentIndex = currentIndex <= 0 ? links.length - 1 : currentIndex - 1;
+                links[currentIndex].focus();
+                break;
+                
+            case 'Enter':
+                if (currentFocus.tagName === 'A') {
+                    currentFocus.click();
+                }
+                break;
+        }
+    });
+}
+
+// === AGGIORNAMENTO FUNZIONI ESISTENTI ===
+
+// Sostituisce la funzione closeAllDropdowns con versione animata
+closeAllDropdowns = closeDropdownsWithAnimation;
+
+// === INIZIALIZZAZIONE AVANZATA ===
+
+// Estende l'inizializzazione mobile
+const originalInitAdvanced = initAdvancedMobileFeatures;
+initAdvancedMobileFeatures = function() {
+    originalInitAdvanced();
+    
+    // Aggiungi nuove funzionalità
+    handleKeyboardNavigation();
+    
+    // Crea debug panel se in modalità debug
+    if (window.location.search.includes('debug=true')) {
+        createMobileDebugPanel();
+        document.querySelector('#mobile-debug-panel').style.display = 'block';
+    }
+    
+    console.log('🚀 Sistema mobile avanzato completamente inizializzato');
+    console.log('📱 Dispositivo:', getDeviceType());
+    console.log('👆 Touch support:', isTouchDevice());
+};
+
+// === UTILITY PUBBLICHE PER DEBUG ===
+
+window.showMobileDebug = function() {
+    createMobileDebugPanel();
+    document.querySelector('#mobile-debug-panel').style.display = 'block';
+};
+
+window.hideMobileDebug = function() {
+    const panel = document.querySelector('#mobile-debug-panel');
+    if (panel) panel.style.display = 'none';
+};
+
+window.getMobileStats = function() {
+    return {
+        deviceType: getDeviceType(),
+        isMobile: isMobileDevice(),
+        isTouch: isTouchDevice(),
+        viewport: `${window.innerWidth}x${window.innerHeight}`,
+        dropdowns: document.querySelectorAll('.dropdown-content').length,
+        activeDropdowns: document.querySelectorAll('.dropdown-content.show').length,
+        bodyClasses: Array.from(document.body.classList)
+    };
+};

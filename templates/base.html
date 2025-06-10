@@ -22,6 +22,7 @@
 
     <!-- CSS mobile only -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-animations.css') }}">
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon/favicon.png') }}">
@@ -55,7 +56,7 @@
                             {% else %}
                                 <img src="{{ url_for('static', filename='images/default-profile.svg') }}" alt="Profilo" class="profile-image no-tooltip">
                             {% endif %}
-                            <div class="profile-dropdown" id="profileDropdown">
+                            <div class="profile-dropdown dropdown-content" id="profileDropdown">
                                 <a href="{{ url_for('profile') }}"><i class="fas fa-user"></i> Profilo</a>
                                 <a href="{{ url_for('favorites') }}"><i class="fas fa-heart"></i> Preferiti <span class="dropdown-badge" id="favoritesCount"></span></a>
                                 {% if current_user.is_authenticated and current_user.is_admin %}
@@ -380,7 +381,11 @@
     </script>
 
     <!-- Mobile enhancements script -->
+    <script src="{{ url_for('static', filename='js/mobile-config.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mobile-performance.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mobile-feedback.js') }}"></script>
     <script src="{{ url_for('static', filename='js/mobile-enhancements.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/mobile-test.js') }}"></script>
 
     <!-- UNIFIED DROPDOWN SYSTEM - NESSUN OVERRIDE AGGIUNTIVO -->
     <script>
