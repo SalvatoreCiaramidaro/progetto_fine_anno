@@ -99,7 +99,6 @@ else:
     # Configurazione per ambiente locale
     app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), config.get('PATHS_LOCAL', 'upload_folder'))
     app.debug = config.getboolean('FLASK', 'debug_local')
-    app.config['SERVER_NAME'] = config.get('PATHS_LOCAL', 'server_name')
     app.config['PREFERRED_URL_SCHEME'] = config.get('PATHS_LOCAL', 'url_scheme')
 
 # Configura le estensioni consentite dal config.ini
