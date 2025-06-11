@@ -17,12 +17,36 @@
     <!-- CSS personalizzati -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/flash_messages.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dropdown.css') }}">
+    <!-- RIMOSSO dropdown.css perché vuoto -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar-custom.css') }}">
 
-    <!-- CSS mobile only -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-animations.css') }}">
+    <!-- CSS di debug per dropdown -->
+    <style>
+        /* FORZA STILI DROPDOWN - DEBUG */
+        .dropdown-content,
+        .profile-dropdown {
+            background-color: #ffffff !important;
+            color: #333 !important;
+        }
+        
+        .dropdown-content a,
+        .profile-dropdown a {
+            color: #333 !important;
+            background-color: transparent !important;
+            display: block !important;
+        }
+        
+        .dropdown-content a:hover,
+        .profile-dropdown a:hover {
+            background-color: #f8f9fa !important;
+            color: #e8491d !important;
+        }
+        
+        .dropdown-content a i,
+        .profile-dropdown a i {
+            color: inherit !important;
+        }
+    </style>
 
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon/favicon.png') }}">
@@ -135,12 +159,30 @@
 
     <!-- Script principale -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/dropdown-enhancements.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/mobile.js') }}"></script>
+    <!-- RIMOSSO dropdown-enhancements.js per evitare conflitti -->
+    <!-- RIMOSSO mobile.js temporaneamente per debug -->
+    <!--<script src="{{ url_for('static', filename='js/mobile.js') }}"></script>-->
 
     <!-- Script per gestione search mobile, dropdown e shrinking navbar -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 WikiSportCars inizializzato');
+            
+            // Carica CSS mobile solo se necessario
+            if (window.innerWidth <= 768 && ('ontouchstart' in window || navigator.maxTouchPoints > 0)) {
+                console.log('📱 Caricamento CSS mobile...');
+                const mobileCSS = document.createElement('link');
+                mobileCSS.rel = 'stylesheet';
+                mobileCSS.href = '{{ url_for("static", filename="css/mobile.css") }}';
+                document.head.appendChild(mobileCSS);
+                
+                const mobileAnimationsCSS = document.createElement('link');
+                mobileAnimationsCSS.rel = 'stylesheet';
+                mobileAnimationsCSS.href = '{{ url_for("static", filename="css/mobile-animations.css") }}';
+                document.head.appendChild(mobileAnimationsCSS);
+            } else {
+                console.log('💻 Modalità desktop - CSS mobile NON caricati');
+            }
             // Gestione header shrinking on scroll
             const header = document.querySelector('header');
             let lastScrollTop = 0;
@@ -166,86 +208,87 @@
                     requestAnimationFrame(handleHeaderShrink);
                 }
             });
-            // ========== GESTIONE DROPDOWN COMPLETAMENTE UNIFICATA ==========
-            // Gestione del dropdown del profilo - IDENTICA alla logica del menu dropdown
+
+            // ========== GESTIONE DROPDOWN ORIGINALE COMPLETA (PC) ==========
             const profileImageContainer = document.getElementById('profileImageContainer');
             const profileDropdown = document.getElementById('profileDropdown');
+            const menuBtn = document.querySelector('.dropbtn');
+            const menuDropdown = document.getElementById('menuDropdown');
 
+            let isProfileMenuOpen = false;
+
+            // === DROPDOWN PROFILO (utenti loggati) ===
             if (profileImageContainer && profileDropdown) {
-                let isProfileMenuOpen = false;
+                console.log('🔧 Configurando dropdown profilo...');
                 
-                // Click sul profilo - LOGICA IDENTICA AL MENU DROPDOWN
+                // Click sul profilo
                 profileImageContainer.addEventListener('click', function(e) {
+                    e.preventDefault();
                     e.stopPropagation();
+                    console.log('👆 Click su profilo');
                     
-                    // Toggle stato usando la stessa logica del menu
                     isProfileMenuOpen = !isProfileMenuOpen;
                     
                     if (isProfileMenuOpen) {
-                        // Apri dropdown profilo
                         profileDropdown.classList.add('show');
                         this.setAttribute('aria-expanded', 'true');
+                        console.log('✅ Profilo aperto');
                         
-                        // Chiudi dropdown menu se aperto (stessa logica)
-                        const menuDropdown = document.getElementById('menuDropdown');
+                        // Chiudi dropdown menu se aperto
                         if (menuDropdown && menuDropdown.classList.contains('show')) {
                             menuDropdown.classList.remove('show');
-                            document.querySelector('.dropbtn')?.setAttribute('aria-expanded', 'false');
+                            menuBtn?.setAttribute('aria-expanded', 'false');
                         }
                     } else {
-                        // Chiudi dropdown profilo
                         profileDropdown.classList.remove('show');
                         this.setAttribute('aria-expanded', 'false');
+                        console.log('❌ Profilo chiuso');
                     }
                 });
                 
-                // Previeni chiusura quando si clicca sui link del dropdown (identico)
+                // Previeni chiusura quando si clicca sui link del dropdown
                 profileDropdown.addEventListener('click', function(e) {
                     e.stopPropagation();
                 });
 
-                // Supporto tastiera (identico)
+                // Supporto tastiera
                 profileImageContainer.addEventListener('keydown', function(e) {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
-                        
-                        isProfileMenuOpen = !isProfileMenuOpen;
-                        
-                        if (isProfileMenuOpen) {
-                            profileDropdown.classList.add('show');
-                            this.setAttribute('aria-expanded', 'true');
-                        } else {
-                            profileDropdown.classList.remove('show');
-                            this.setAttribute('aria-expanded', 'false');
-                        }
+                        this.click();
                     }
                 });
                 
                 profileImageContainer.setAttribute('tabindex', '0');
+                console.log('✅ Dropdown profilo configurato');
             }
 
-            // Gestione del dropdown del menu (solo per utenti non loggati) - LOGICA ORIGINALE
-            const menuBtn = document.querySelector('.dropbtn');
-            const menuDropdown = document.getElementById('menuDropdown');
-
+            // === DROPDOWN MENU (utenti non loggati) ===
             if (menuBtn && menuDropdown) {
-                // Click sul menu - LOGICA ORIGINALE CHE FUNZIONA
+                console.log('🔧 Configurando dropdown menu...');
+                
+                // Click sul menu
                 menuBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
                     e.stopPropagation();
+                    console.log('👆 Click su menu');
                     
                     const isCurrentlyOpen = menuDropdown.classList.contains('show');
                     
                     if (isCurrentlyOpen) {
                         menuDropdown.classList.remove('show');
                         this.setAttribute('aria-expanded', 'false');
+                        console.log('❌ Menu chiuso');
                     } else {
                         menuDropdown.classList.add('show');
                         this.setAttribute('aria-expanded', 'true');
+                        console.log('✅ Menu aperto');
                         
                         // Chiudi dropdown profilo se aperto
                         if (profileDropdown && profileDropdown.classList.contains('show')) {
                             profileDropdown.classList.remove('show');
-                            profileImageContainer.setAttribute('aria-expanded', 'false');
+                            profileImageContainer?.setAttribute('aria-expanded', 'false');
+                            isProfileMenuOpen = false;
                         }
                     }
                 });
@@ -254,17 +297,23 @@
                 menuDropdown.addEventListener('click', function(e) {
                     e.stopPropagation();
                 });
+                
+                console.log('✅ Dropdown menu configurato');
             }
 
-            // ========== CHIUSURA DROPDOWN UNIFICATA ==========
-            // Chiudi dropdown quando si clicca altrove - LOGICA UNIFICATA
+            // === CHIUSURA DROPDOWN ===
+            // Chiudi dropdown quando si clicca altrove
             document.addEventListener('click', function(e) {
+                console.log('👆 Click documento');
+                
                 // Chiudi dropdown profilo se clicco fuori
                 if (profileDropdown && 
                     !profileImageContainer?.contains(e.target) && 
                     !profileDropdown.contains(e.target)) {
                     profileDropdown.classList.remove('show');
                     profileImageContainer?.setAttribute('aria-expanded', 'false');
+                    isProfileMenuOpen = false;
+                    console.log('❌ Profilo chiuso (click fuori)');
                 }
                 
                 // Chiudi dropdown menu se clicco fuori
@@ -273,21 +322,23 @@
                     !menuDropdown.contains(e.target)) {
                     menuDropdown.classList.remove('show');
                     menuBtn?.setAttribute('aria-expanded', 'false');
+                    console.log('❌ Menu chiuso (click fuori)');
                 }
             });
 
-            // Chiudi dropdown con ESC - LOGICA UNIFICATA
+            // Chiudi dropdown con ESC
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
-                    // Chiudi dropdown profilo
                     if (profileDropdown && profileDropdown.classList.contains('show')) {
                         profileDropdown.classList.remove('show');
                         profileImageContainer?.setAttribute('aria-expanded', 'false');
+                        isProfileMenuOpen = false;
+                        console.log('❌ Profilo chiuso (ESC)');
                     }
-                    // Chiudi dropdown menu
                     if (menuDropdown && menuDropdown.classList.contains('show')) {
                         menuDropdown.classList.remove('show');
                         menuBtn?.setAttribute('aria-expanded', 'false');
+                        console.log('❌ Menu chiuso (ESC)');
                     }
                 }
             });
@@ -377,40 +428,31 @@
                     searchInputMobile.value = this.value;
                 });
             }
-        });
-    </script>
-
-    <!-- Mobile enhancements script -->
-    <script src="{{ url_for('static', filename='js/mobile-config.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/mobile-performance.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/mobile-feedback.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/mobile-enhancements.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/mobile-test.js') }}"></script>
-
-    <!-- UNIFIED DROPDOWN SYSTEM - NESSUN OVERRIDE AGGIUNTIVO -->
-    <script>
-        // Sistema dropdown unificato: tutta la logica è nel script principale sopra
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('✅ Sistema dropdown unificato attivo');
-            
-            // Debug per mobile
-            if (window.innerWidth <= 768) {
-                console.log('📱 Modalità mobile rilevata');
-                
-                // Forza refresh degli stili CSS su mobile se necessario
-                const style = document.createElement('style');
-                style.textContent = `
-                    @media (max-width: 768px) {
-                        .profile-dropdown.show {
-                            position: fixed !important;
-                            bottom: 20px !important;
-                            left: 50% !important;
-                            transform: translateX(-50%) !important;
-                            z-index: 9999 !important;
+            // Carica conteggio preferiti se l'utente è loggato
+            const favoritesCountBadge = document.getElementById('favoritesCount');
+            if (favoritesCountBadge) {
+                fetch('/api/favorites/count')
+                    .then(response => {
+                        if (response.redirected) {
+                            favoritesCountBadge.style.display = 'none';
+                            return null;
                         }
-                    }
-                `;
-                document.head.appendChild(style);
+                        if (!response.ok) throw new Error('Errore nel recupero dei dati');
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (!data) return;
+                        if (data.count > 0) {
+                            favoritesCountBadge.textContent = data.count;
+                            favoritesCountBadge.style.display = 'inline-block';
+                        } else {
+                            favoritesCountBadge.style.display = 'none';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errore conteggio preferiti:', error);
+                        favoritesCountBadge.style.display = 'none';
+                    });
             }
         });
     </script>

@@ -1,0 +1,140 @@
+/* ====== STILI DROPDOWN DESKTOP ====== */
+
+/* Stili base per dropdown container */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+/* Stili comuni per tutti i dropdown content */
+.dropdown-content,
+.profile-dropdown {
+    position: absolute;
+    background-color: #ffffff;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    border-radius: 6px;
+    z-index: 1001;
+    display: none;
+    min-width: 200px;
+    border: 1px solid #e0e0e0;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+/* Posizionamento specifico */
+.dropdown-content {
+    right: 0;
+    top: 100%;
+    margin-top: 2px;
+}
+
+.profile-dropdown {
+    right: 0;
+    top: 100%;
+    margin-top: 8px;
+}
+
+/* Link nei dropdown */
+.dropdown-content a,
+.profile-dropdown a {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    text-decoration: none;
+    color: #2c3e50;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f8f9fa;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.dropdown-content a:last-child,
+.profile-dropdown a:last-child {
+    border-bottom: none;
+}
+
+/* Icone nei dropdown */
+.dropdown-content a i,
+.profile-dropdown a i {
+    margin-right: 10px;
+    width: 16px;
+    text-align: center;
+    color: #6c757d;
+    transition: color 0.2s ease;
+}
+
+/* Hover effects */
+.dropdown-content a:hover,
+.profile-dropdown a:hover {
+    background-color: #f8f9fa;
+    color: #e8491d;
+    transform: translateX(4px);
+}
+
+.dropdown-content a:hover i,
+.profile-dropdown a:hover i {
+    color: #e8491d;
+}
+
+/* Stato attivo/focus */
+.dropdown-content a:focus,
+.profile-dropdown a:focus {
+    background-color: #f8f9fa;
+    outline: none;
+    box-shadow: inset 3px 0 0 #e8491d;
+}
+
+/* Stato visibile con animazione */
+.dropdown-content.show,
+.profile-dropdown.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Divider nei dropdown */
+.dropdown-divider {
+    height: 1px;
+    background-color: #e9ecef;
+    margin: 8px 0;
+    border: none;
+}
+
+/* Badge per notifiche/contatori */
+.dropdown-badge {
+    background-color: #e8491d;
+    color: white;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: auto;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+/* Responsive: nasconde animazioni su dispositivi più lenti */
+@media (prefers-reduced-motion: reduce) {
+    .dropdown-content,
+    .profile-dropdown {
+        transition: none;
+    }
+}
+
+/* Media query per mobile - disable desktop styles */
+@media (max-width: 768px) {
+    .dropdown-content,
+    .profile-dropdown {
+        /* Reset styles - mobile.js gestisce il comportamento mobile */
+        position: fixed;
+        transform: none;
+        opacity: 1;
+        transition: none;
+    }
+}

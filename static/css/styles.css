@@ -444,35 +444,52 @@ header.header-shrink .dropbtn {
 .dropdown-content {
     display: none;
     position: absolute;
-    background-color: #f9f9f9;
+    background-color: #ffffff !important;
     min-width: 200px;
     box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
+    z-index: 1001;
     border-radius: 5px;
     overflow: hidden;
-    transition: max-height 0.3s ease-out;
-    max-height: 0;
+    transition: all 0.3s ease;
+    opacity: 0;
+    transform: translateY(-10px);
     right: 0;
     left: auto;
+    border: 1px solid #ddd;
 }
 
 .dropdown-content a {
-    display: block;
-    padding: 12px 16px;
-    text-decoration: none;
-    color: #ffffff;
-    transition: background-color 0.2s, padding-left 0.3s;
+    display: block !important;
+    padding: 12px 16px !important;
+    text-decoration: none !important;
+    color: #333 !important;
+    background-color: transparent !important;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.dropdown-content a:last-child {
+    border-bottom: none;
 }
 
 .dropdown-content a:hover {
-    background-color: #45a049;
+    background-color: #f8f9fa !important;
+    color: #e8491d !important;
     padding-left: 20px;
 }
 
-/* Rimuovo l'hover per dropdown - ora gestito solo via JavaScript click */
+.dropdown-content a i {
+    margin-right: 8px;
+    width: 16px;
+    text-align: center;
+    color: inherit !important;
+}
+
+/* Mostra il dropdown con animazione */
 .dropdown-content.show {
     display: block;
-    max-height: 500px;
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .nav-right {
@@ -581,41 +598,95 @@ header.header-shrink .default-profile-image i {
     position: absolute;
     top: 100%;
     right: 0;
-    background-color: white;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    border-radius: 4px;
-    z-index: 10;
+    background-color: #ffffff !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    z-index: 1001;
     display: none;
     min-width: 200px;
     margin-top: 5px;
+    border: 1px solid #ddd;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
 }
 
 .profile-dropdown a {
-    display: block;
-    padding: 12px 16px;
-    text-decoration: none;
-    color: #ffffff;
-    transition: background-color 0.2s, padding-left 0.3s;
+    display: block !important;
+    padding: 12px 16px !important;
+    text-decoration: none !important;
+    color: #333 !important;
+    background-color: transparent !important;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.profile-dropdown a:last-child {
+    border-bottom: none;
 }
 
 .profile-dropdown a:hover {
-    background-color: #45a049;
+    background-color: #f8f9fa !important;
+    color: #e8491d !important;
     padding-left: 20px;
 }
 
-/* Classe per mostrare il dropdown */
-.profile-dropdown.show {
-    display: block;
+.profile-dropdown a i {
+    margin-right: 8px;
+    width: 16px;
+    text-align: center;
+    color: inherit !important;
 }
 
-/* Stili per i messaggi flash */
-.flash-messages-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    max-width: 350px;
-    min-width: 280px;
+.profile-dropdown .dropdown-divider {
+    height: 1px;
+    background-color: #e9ecef;
+    margin: 0;
+}
+
+/* Classe per mostrare il dropdown con animazione */
+.profile-dropdown.show {
+    display: block;
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Stili per badge e divider nei dropdown */
+.dropdown-badge {
+    background-color: #e8491d;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 0.75em;
+    margin-left: 5px;
+    min-width: 16px;
+    text-align: center;
+    display: inline-block;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #e9ecef;
+    margin: 0;
+}
+
+/* Hover states migliorati per accessibilità */
+.profile-image-container:hover .profile-image,
+.profile-image-container:focus .profile-image {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
+
+.dropbtn:focus,
+.profile-image-container:focus {
+    outline: 2px solid #e8491d;
+    outline-offset: 2px;
+}
+
+/* Cursore pointer per elementi interattivi */
+.profile-image-container,
+.dropbtn {
+    cursor: pointer;
 }
 
 /* Rimuove l'outline arancione quando gli elementi sono in focus */
