@@ -50,13 +50,13 @@
   
   .navbar-brand {
     font-size: 1.5rem;
-    color: #e74c3c;
+    color: white;
     margin-right: 1rem;
     text-decoration: none;
   }
   
   .navbar-brand:hover {
-    color: #c0392b;
+    color: #f0f0f0;
   }
   
   /* === PROFILO E DROPDOWN === */
