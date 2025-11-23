@@ -5,3 +5,8 @@ myvenv
 venv
 .env
 
+# Ignora il contenuto della cartella car_images ma non la cartella stessa
+static/car_images/*
+!static/car_images/.gitkeep
+
+test_cache.py

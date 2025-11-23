@@ -10,9 +10,40 @@
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1>Dashboard Admin</h1>
-                <a href="{{ url_for('admin_add_car') }}" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Aggiungi Auto
-                </a>
+                <div>
+                    <button id="cacheStatusBtn" class="btn btn-info me-2">
+                        <i class="fas fa-info-circle"></i> Stato Cache
+                    </button>
+                    <button id="preloadCacheBtn" class="btn btn-warning me-2">
+                        <i class="fas fa-download"></i> Pre-carica Immagini
+                    </button>
+                    <button id="clearCacheBtn" class="btn btn-danger me-2">
+                        <i class="fas fa-trash"></i> Pulisci Cache
+                    </button>
+                    <button id="cleanupOldCacheBtn" class="btn btn-warning me-2">
+                        <i class="fas fa-broom"></i> Pulisci File Vecchi
+                    </button>
+                    <a href="{{ url_for('admin_add_car') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Aggiungi Auto
+                    </a>
+                </div>
+            </div>
+
+            <!-- Cache Status Modal -->
+            <div class="modal fade" id="cacheStatusModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Stato Cache Immagini</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body" id="cacheStatusContent">
+                            <div class="text-center">
+                                <i class="fas fa-spinner fa-spin"></i> Caricamento...
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <div class="card">
@@ -93,6 +124,144 @@ $(document).ready(function() {
                 error: function() {
                     toastr.error('Errore nella richiesta al server');
                     btn.prop('disabled', false).html(originalIcon);
+                }
+            });
+        }
+    });
+
+    // Cache management functions
+    $('#cacheStatusBtn').on('click', function() {
+        $('#cacheStatusContent').html('<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Caricamento...</div>');
+        $('#cacheStatusModal').modal('show');
+
+        $.ajax({
+            url: '/admin/cache/status',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    let html = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">Statistiche Cache</h6>
+                                        <p><strong>File in cache:</strong> ${response.cached_files_count}</p>
+                                        <p><strong>Dimensione totale:</strong> ${response.total_size_mb} MB</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6 class="card-title">File Recenti (max 20)</h6>
+                                        <div style="max-height: 200px; overflow-y: auto;">
+                    `;
+                    
+                    response.files.forEach(function(file) {
+                        html += `<div class="small">${file.filename} (${file.size_mb} MB, ${file.days_old} giorni)</div>`;
+                    });
+                    
+                    html += `
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    $('#cacheStatusContent').html(html);
+                } else {
+                    $('#cacheStatusContent').html('<div class="alert alert-danger">Errore: ' + response.message + '</div>');
+                }
+            },
+            error: function() {
+                $('#cacheStatusContent').html('<div class="alert alert-danger">Errore nella richiesta al server</div>');
+            }
+        });
+    });
+
+    $('#preloadCacheBtn').on('click', function() {
+        const btn = $(this);
+        const originalHtml = btn.html();
+        
+        if (confirm('Questo processo potrebbe richiedere del tempo. Continuare?')) {
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Pre-caricamento...');
+
+            $.ajax({
+                url: '/admin/cache/preload',
+                type: 'POST',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                    btn.prop('disabled', false).html(originalHtml);
+                },
+                error: function() {
+                    toastr.error('Errore nella richiesta al server');
+                    btn.prop('disabled', false).html(originalHtml);
+                }
+            });
+        }
+    });
+
+    $('#clearCacheBtn').on('click', function() {
+        const btn = $(this);
+        const originalHtml = btn.html();
+        
+        if (confirm('Sei sicuro di voler pulire tutta la cache delle immagini?')) {
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Pulizia...');
+
+            $.ajax({
+                url: '/admin/cache/clear',
+                type: 'POST',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                    btn.prop('disabled', false).html(originalHtml);
+                },
+                error: function() {
+                    toastr.error('Errore nella richiesta al server');
+                    btn.prop('disabled', false).html(originalHtml);
+                }
+            });
+        }
+    });
+
+    $('#cleanupOldCacheBtn').on('click', function() {
+        const btn = $(this);
+        const originalHtml = btn.html();
+        
+        const days = prompt('Elimina file più vecchi di quanti giorni? (default: 30)', '30');
+        if (days === null) return; // Utente ha cliccato annulla
+        
+        const daysOld = parseInt(days) || 30;
+        
+        if (confirm(`Sei sicuro di voler eliminare tutti i file della cache più vecchi di ${daysOld} giorni?`)) {
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Pulizia...');
+
+            $.ajax({
+                url: '/admin/cache/cleanup',
+                type: 'POST',
+                data: { days_old: daysOld },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(response.message);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                    btn.prop('disabled', false).html(originalHtml);
+                },
+                error: function() {
+                    toastr.error('Errore nella richiesta al server');
+                    btn.prop('disabled', false).html(originalHtml);
                 }
             });
         }

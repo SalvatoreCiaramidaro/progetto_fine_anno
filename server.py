@@ -3,9 +3,11 @@ import os
 import uuid
 import logging
 import configparser
+import hashlib
+import requests
 from functools import wraps
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify, send_from_directory
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
 from urllib.parse import urlparse, urljoin
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -108,6 +110,11 @@ app.config['ALLOWED_EXTENSIONS'] = {ext.strip() for ext in allowed_extensions}
 # Assicurati che la cartella per il caricamento delle immagini esista
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
+# Configurazione cache immagini auto
+app.config['CAR_IMAGES_CACHE_DIR'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'car_images')
+app.config['MAX_CACHE_SIZE_MB'] = 500  # Massimo 500MB di cache
+os.makedirs(app.config['CAR_IMAGES_CACHE_DIR'], exist_ok=True)
+
 # Inizializza LoginManager
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -130,6 +137,205 @@ class User(UserMixin):
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+def get_cached_image_path(image_url):
+    """Genera un nome file sicuro basato sull'URL dell'immagine"""
+    if not image_url:
+        return None
+    
+    # Crea un hash dell'URL per generare un nome file unico
+    url_hash = hashlib.md5(image_url.encode()).hexdigest()
+    
+    # Estrae l'estensione dall'URL
+    parsed_url = urlparse(image_url)
+    file_ext = os.path.splitext(parsed_url.path)[1]
+    if not file_ext or file_ext.lower() not in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+        file_ext = '.jpg'  # Default extension
+    
+    filename = f"{url_hash}{file_ext}"
+    return os.path.join(app.config['CAR_IMAGES_CACHE_DIR'], filename)
+
+def download_and_cache_image(image_url):
+    """Scarica un'immagine dall'URL e la salva nella cache locale"""
+    if not image_url:
+        return None
+    
+    cache_path = get_cached_image_path(image_url)
+    if not cache_path:
+        return None
+    
+    # Se l'immagine è già in cache, restituisci il percorso
+    if os.path.exists(cache_path):
+        return cache_path
+    
+    try:
+        # Headers per evitare blocchi da parte di alcuni siti
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        }
+        
+        # Scarica l'immagine
+        response = requests.get(image_url, timeout=10, stream=True, headers=headers)
+        response.raise_for_status()
+        
+        # Verifica che sia un'immagine
+        content_type = response.headers.get('content-type', '')
+        if not content_type.startswith('image/'):
+            logging.warning(f"L'URL non sembra essere un'immagine: {image_url}")
+            return None
+        
+        # Salva l'immagine nella cache
+        with open(cache_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        
+        logging.info(f"Immagine scaricata e salvata: {cache_path}")
+        
+        # Controlla se la cache è troppo grande e pulisci se necessario
+        check_cache_size()
+        
+        return cache_path
+        
+    except Exception as e:
+        logging.error(f"Errore nel download dell'immagine {image_url}: {str(e)}")
+        return None
+
+def check_cache_size():
+    """Controlla la dimensione della cache e pulisce i file più vecchi se necessario"""
+    try:
+        cache_dir = app.config['CAR_IMAGES_CACHE_DIR']
+        max_size_bytes = app.config['MAX_CACHE_SIZE_MB'] * 1024 * 1024
+        
+        if not os.path.exists(cache_dir):
+            return
+        
+        # Calcola la dimensione totale e ottieni info sui file
+        files_info = []
+        total_size = 0
+        
+        for filename in os.listdir(cache_dir):
+            file_path = os.path.join(cache_dir, filename)
+            if os.path.isfile(file_path):
+                file_size = os.path.getsize(file_path)
+                file_mtime = os.path.getmtime(file_path)
+                total_size += file_size
+                files_info.append({
+                    'path': file_path,
+                    'filename': filename,
+                    'size': file_size,
+                    'mtime': file_mtime
+                })
+        
+        # Se la cache è troppo grande, rimuovi i file più vecchi
+        if total_size > max_size_bytes:
+            logging.info(f"Cache troppo grande ({total_size / (1024*1024):.1f}MB), pulizia in corso...")
+            
+            # Ordina per data di modifica (più vecchi prima)
+            files_info.sort(key=lambda x: x['mtime'])
+            
+            removed_count = 0
+            for file_info in files_info:
+                if total_size <= max_size_bytes * 0.8:  # Riduci all'80% della dimensione massima
+                    break
+                
+                try:
+                    os.remove(file_info['path'])
+                    total_size -= file_info['size']
+                    removed_count += 1
+                    logging.info(f"Rimosso file vecchio dalla cache: {file_info['filename']}")
+                except Exception as e:
+                    logging.warning(f"Errore nella rimozione del file {file_info['filename']}: {str(e)}")
+            
+            logging.info(f"Pulizia automatica cache completata: {removed_count} file rimossi")
+            
+    except Exception as e:
+        logging.error(f"Errore nel controllo della dimensione della cache: {str(e)}")
+
+def get_cached_image_url(image_url):
+    """Restituisce l'URL della cache locale per un'immagine, scaricandola se necessario"""
+    if not image_url:
+        return None
+    
+    # Se l'URL è già locale, restituiscilo così com'è
+    if image_url.startswith('/static/') or image_url.startswith('static/'):
+        return image_url
+    
+    cache_path = download_and_cache_image(image_url)
+    if cache_path and os.path.exists(cache_path):
+        # Restituisce il percorso relativo per il web
+        filename = os.path.basename(cache_path)
+        return f"/static/car_images/{filename}"
+    
+    # Se il download fallisce, restituisce l'URL originale come fallback
+    return image_url
+
+def preload_car_images():
+    """Pre-carica tutte le immagini delle auto nella cache locale"""
+    try:
+        with db_cursor(dictionary=True) as (cursor, conn):
+            # Ottieni tutte le immagini principali delle auto
+            cursor.execute('SELECT DISTINCT image FROM cars WHERE image IS NOT NULL AND image != ""')
+            main_images = cursor.fetchall()
+            
+            # Ottieni tutte le immagini aggiuntive
+            cursor.execute('SELECT DISTINCT image FROM car_images WHERE image IS NOT NULL AND image != ""')
+            additional_images = cursor.fetchall()
+            
+            # Combina tutte le immagini
+            all_images = []
+            for img in main_images:
+                if img['image']:
+                    all_images.append(img['image'])
+            for img in additional_images:
+                if img['image']:
+                    all_images.append(img['image'])
+            
+            # Rimuovi duplicati
+            unique_images = list(set(all_images))
+            
+            logging.info(f"Avvio pre-caricamento di {len(unique_images)} immagini...")
+            
+            # Pre-carica tutte le immagini
+            for image_url in unique_images:
+                try:
+                    download_and_cache_image(image_url)
+                except Exception as e:
+                    logging.warning(f"Errore nel pre-caricamento dell'immagine {image_url}: {str(e)}")
+            
+            logging.info("Pre-caricamento immagini completato!")
+            
+    except Exception as e:
+        logging.error(f"Errore nel pre-caricamento delle immagini: {str(e)}")
+
+def cleanup_old_cache(days_old=30):
+    """Rimuove le immagini della cache più vecchie di X giorni"""
+    import time
+    try:
+        cache_dir = app.config['CAR_IMAGES_CACHE_DIR']
+        if not os.path.exists(cache_dir):
+            return
+        
+        cutoff_time = time.time() - (days_old * 24 * 60 * 60)
+        removed_count = 0
+        
+        for filename in os.listdir(cache_dir):
+            file_path = os.path.join(cache_dir, filename)
+            if os.path.isfile(file_path):
+                file_mtime = os.path.getmtime(file_path)
+                if file_mtime < cutoff_time:
+                    try:
+                        os.remove(file_path)
+                        removed_count += 1
+                        logging.info(f"Rimosso file vecchio dalla cache: {filename}")
+                    except Exception as e:
+                        logging.warning(f"Errore nella rimozione del file {filename}: {str(e)}")
+        
+        logging.info(f"Pulizia cache completata: {removed_count} file rimossi")
+        return removed_count
+        
+    except Exception as e:
+        logging.error(f"Errore nella pulizia della cache: {str(e)}")
+        return 0
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -272,6 +478,11 @@ def reset_password(token):
     
     return render_template('reset_password.html', token=token)
 
+@app.route('/static/car_images/<filename>')
+def serve_car_image(filename):
+    """Serve le immagini delle auto dalla cache locale"""
+    return send_from_directory(app.config['CAR_IMAGES_CACHE_DIR'], filename)
+
 @app.route('/')
 def index():
     with db_cursor(dictionary=True) as (cursor, conn):
@@ -282,6 +493,12 @@ def index():
             GROUP BY cars.id
         ''')
         cars = cursor.fetchall()
+    
+    # Processa le immagini per la cache
+    for car in cars:
+        if car['image']:
+            car['image'] = get_cached_image_url(car['image'])
+    
     return render_template('index.html', cars=cars)
 
 
@@ -371,8 +588,20 @@ def car_detail(car_id):
         with db_cursor(dictionary=True) as (cursor, conn):
             cursor.execute('SELECT * FROM reviews WHERE car_id = %s AND user_id = %s', (car_id, current_user.id))
             user_review = cursor.fetchone()
+    
     if car:
-        car['images'] = [img['image'] for img in images]
+        # Processa l'immagine principale per la cache
+        if car['image']:
+            car['image'] = get_cached_image_url(car['image'])
+        
+        # Processa le immagini aggiuntive per la cache
+        cached_images = []
+        for img in images:
+            cached_url = get_cached_image_url(img['image'])
+            if cached_url:
+                cached_images.append(cached_url)
+        car['images'] = cached_images
+    
     is_favorite = False
     if current_user.is_authenticated:
         with db_cursor() as (cursor, conn):
@@ -497,6 +726,12 @@ def favorites():
             GROUP BY cars.id
         ''', (user_id,))
         favorite_cars = cursor.fetchall()
+    
+    # Processa le immagini per la cache
+    for car in favorite_cars:
+        if car['image']:
+            car['image'] = get_cached_image_url(car['image'])
+    
     return render_template('favorites.html', cars=favorite_cars)
 
 @app.route('/add_to_favorites/<int:car_id>', methods=['POST'])
@@ -583,6 +818,11 @@ def search():
                 (search_term, search_term, search_term)
             )
             cars = cursor.fetchall()
+        
+        # Processa le immagini per la cache
+        for car in cars:
+            if car['image']:
+                car['image'] = get_cached_image_url(car['image'])
 
         return render_template('search.html', cars=cars, query=query)
     except Exception as e:
@@ -622,6 +862,11 @@ def api_search():
                 else:
                     # Converti altri tipi in stringhe
                     safe_car[key] = str(value)
+            
+            # Processa l'immagine per la cache
+            if safe_car.get('image'):
+                safe_car['image'] = get_cached_image_url(safe_car['image'])
+            
             safe_cars.append(safe_car)
 
         return jsonify({"cars": safe_cars})
@@ -781,6 +1026,12 @@ def admin_dashboard():
     with db_cursor(dictionary=True) as (cursor, conn):
         cursor.execute('SELECT * FROM cars')
         cars = cursor.fetchall()
+    
+    # Processa le immagini per la cache
+    for car in cars:
+        if car['image']:
+            car['image'] = get_cached_image_url(car['image'])
+    
     return render_template('admin/dashboard.html', cars=cars)
 
 
@@ -941,6 +1192,82 @@ def api_favorites_count():
     except Exception as e:
         logging.error(f"Errore nel conteggio dei preferiti: {str(e)}")
         return jsonify({"success": False, "count": 0, "error": str(e)}), 500
+
+@app.route('/admin/cache/preload', methods=['POST'])
+@admin_required
+def admin_preload_cache():
+    """Endpoint admin per pre-caricare tutte le immagini nella cache"""
+    try:
+        preload_car_images()
+        return jsonify(success=True, message='Pre-caricamento delle immagini completato!')
+    except Exception as e:
+        logging.error(f"Errore nel pre-caricamento delle immagini: {str(e)}")
+        return jsonify(success=False, message=f'Errore: {str(e)}')
+
+@app.route('/admin/cache/clear', methods=['POST'])
+@admin_required
+def admin_clear_cache():
+    """Endpoint admin per pulire la cache delle immagini"""
+    try:
+        import shutil
+        if os.path.exists(app.config['CAR_IMAGES_CACHE_DIR']):
+            shutil.rmtree(app.config['CAR_IMAGES_CACHE_DIR'])
+            os.makedirs(app.config['CAR_IMAGES_CACHE_DIR'], exist_ok=True)
+        return jsonify(success=True, message='Cache delle immagini pulita!')
+    except Exception as e:
+        logging.error(f"Errore nella pulizia della cache: {str(e)}")
+        return jsonify(success=False, message=f'Errore: {str(e)}')
+
+@app.route('/admin/cache/status')
+@admin_required
+def admin_cache_status():
+    """Endpoint admin per visualizzare lo stato della cache"""
+    try:
+        import time
+        cache_dir = app.config['CAR_IMAGES_CACHE_DIR']
+        cached_files = []
+        total_size = 0
+        
+        if os.path.exists(cache_dir):
+            for filename in os.listdir(cache_dir):
+                file_path = os.path.join(cache_dir, filename)
+                if os.path.isfile(file_path):
+                    file_size = os.path.getsize(file_path)
+                    file_mtime = os.path.getmtime(file_path)
+                    days_old = (time.time() - file_mtime) / (24 * 60 * 60)
+                    total_size += file_size
+                    cached_files.append({
+                        'filename': filename,
+                        'size': file_size,
+                        'size_mb': round(file_size / (1024 * 1024), 2),
+                        'days_old': round(days_old, 1)
+                    })
+        
+        # Ordina per data (più recenti prima)
+        cached_files.sort(key=lambda x: x['days_old'])
+        
+        return jsonify({
+            'success': True,
+            'cached_files_count': len(cached_files),
+            'total_size_bytes': total_size,
+            'total_size_mb': round(total_size / (1024 * 1024), 2),
+            'files': cached_files[:20]  # Mostra solo i primi 20 file
+        })
+    except Exception as e:
+        logging.error(f"Errore nel recupero dello stato della cache: {str(e)}")
+        return jsonify(success=False, message=f'Errore: {str(e)}')
+
+@app.route('/admin/cache/cleanup', methods=['POST'])
+@admin_required
+def admin_cleanup_cache():
+    """Endpoint admin per pulire i file vecchi dalla cache"""
+    try:
+        days_old = int(request.form.get('days_old', 30))
+        removed_count = cleanup_old_cache(days_old)
+        return jsonify(success=True, message=f'Pulizia completata: {removed_count} file rimossi')
+    except Exception as e:
+        logging.error(f"Errore nella pulizia della cache: {str(e)}")
+        return jsonify(success=False, message=f'Errore: {str(e)}')
 
 if __name__ == '__main__':
     app.run(host=config.get('FLASK', 'host'))
