@@ -1069,9 +1069,9 @@ def admin_update_car_image(car_id):
         app.logger.error(f"Traceback completo: {traceback.format_exc()}")
         return jsonify(success=False, message=f'Errore: {str(e)}')
 
-@app.route('/api/favorites/count')
+@app.route('/admin/favorites/count')
 @login_required
-def api_favorites_count():
+def admin_favorites_count():
     user_id = current_user.id
     try:
         with db_cursor(dictionary=True) as (cursor, conn):
@@ -1306,3 +1306,6 @@ def inject_profile_image():
         except Exception as e:
             app.logger.error(f"Errore nel recupero dell'immagine del profilo: {str(e)}")
     return {'user_profile_image': None}
+
+if __name__ == '__main__':
+    app.run(host=config.get('FLASK', 'host'))
