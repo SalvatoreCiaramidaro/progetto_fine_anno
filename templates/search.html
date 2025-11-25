@@ -16,10 +16,12 @@
         {% for car in cars %}
             <div class="small-car-container" onclick="window.location='{{ url_for('car_detail', car_id=car.id) }}';" style="cursor: pointer;">
                 <div class="small-car-image">
-                    {% if car.image.startswith('http') or car.image.startswith('/static/') %}
-                        <img src="{{ car.image }}" alt="{{ car.name }}">
+                    {% if car.image.startswith('/static/') %}
+                        <img src="{{ car.image }}" alt="{{ car.name }}" loading="lazy">
+                    {% elif car.image.startswith('http') %}
+                        <img src="{{ car.image }}" alt="{{ car.name }}" loading="lazy" class="lazy-cache" data-remote-url="{{ car.image }}">
                     {% else %}
-                        <img src="{{ url_for('static', filename='images/' ~ car.image) }}" alt="{{ car.name }}">
+                        <img src="{{ url_for('static', filename='images/' ~ car.image) }}" alt="{{ car.name }}" loading="lazy">
                     {% endif %}
                 </div>
                 <div class="small-car-info">

@@ -65,7 +65,13 @@
                                 {% for car in cars %}
                                 <tr>
                                     <td>
-                                        <img src="{{ car.image }}" alt="{{ car.name }}" class="img-thumbnail" style="max-width: 100px;">
+                                        {% if car.image.startswith('/static/') %}
+                                            <img src="{{ car.image }}" alt="{{ car.name }}" class="img-thumbnail" style="max-width: 100px;" loading="lazy">
+                                        {% elif car.image.startswith('http') %}
+                                            <img src="{{ car.image }}" alt="{{ car.name }}" class="img-thumbnail lazy-cache" style="max-width: 100px;" loading="lazy" data-remote-url="{{ car.image }}">
+                                        {% else %}
+                                            <img src="{{ url_for('static', filename='images/' ~ car.image) }}" alt="{{ car.name }}" class="img-thumbnail" style="max-width: 100px;" loading="lazy">
+                                        {% endif %}
                                     </td>
                                     <td>{{ car.id }}</td>
                                     <td>{{ car.name }}</td>

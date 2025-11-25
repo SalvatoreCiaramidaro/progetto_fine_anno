@@ -251,7 +251,7 @@ def check_cache_size():
     except Exception as e:
         logging.error(f"Errore nel controllo della dimensione della cache: {str(e)}")
 
-def get_cached_image_url(image_url):
+def get_cached_image_url(image_url, check_only=False):
     """Restituisce l'URL della cache locale per un'immagine, scaricandola se necessario"""
     if not image_url:
         return None
@@ -260,6 +260,16 @@ def get_cached_image_url(image_url):
     if image_url.startswith('/static/') or image_url.startswith('static/'):
         return image_url
     
+    # Controlla se esiste già in cache
+    cache_path = get_cached_image_path(image_url)
+    if cache_path and os.path.exists(cache_path):
+        filename = os.path.basename(cache_path)
+        return f"/static/car_images/{filename}"
+    
+    # Se check_only è True, non scaricare, restituisci l'originale
+    if check_only:
+        return image_url
+
     cache_path = download_and_cache_image(image_url)
     if cache_path and os.path.exists(cache_path):
         # Restituisce il percorso relativo per il web
@@ -268,126 +278,6 @@ def get_cached_image_url(image_url):
     
     # Se il download fallisce, restituisce l'URL originale come fallback
     return image_url
-
-def preload_car_images():
-    """Pre-carica tutte le immagini delle auto nella cache locale"""
-    try:
-        with db_cursor(dictionary=True) as (cursor, conn):
-            # Ottieni tutte le immagini principali delle auto
-            cursor.execute('SELECT DISTINCT image FROM cars WHERE image IS NOT NULL AND image != ""')
-            main_images = cursor.fetchall()
-            
-            # Ottieni tutte le immagini aggiuntive
-            cursor.execute('SELECT DISTINCT image FROM car_images WHERE image IS NOT NULL AND image != ""')
-            additional_images = cursor.fetchall()
-            
-            # Combina tutte le immagini
-            all_images = []
-            for img in main_images:
-                if img['image']:
-                    all_images.append(img['image'])
-            for img in additional_images:
-                if img['image']:
-                    all_images.append(img['image'])
-            
-            # Rimuovi duplicati
-            unique_images = list(set(all_images))
-            
-            logging.info(f"Avvio pre-caricamento di {len(unique_images)} immagini...")
-            
-            # Pre-carica tutte le immagini
-            for image_url in unique_images:
-                try:
-                    download_and_cache_image(image_url)
-                except Exception as e:
-                    logging.warning(f"Errore nel pre-caricamento dell'immagine {image_url}: {str(e)}")
-            
-            logging.info("Pre-caricamento immagini completato!")
-            
-    except Exception as e:
-        logging.error(f"Errore nel pre-caricamento delle immagini: {str(e)}")
-
-def cleanup_old_cache(days_old=30):
-    """Rimuove le immagini della cache più vecchie di X giorni"""
-    import time
-    try:
-        cache_dir = app.config['CAR_IMAGES_CACHE_DIR']
-        if not os.path.exists(cache_dir):
-            return
-        
-        cutoff_time = time.time() - (days_old * 24 * 60 * 60)
-        removed_count = 0
-        
-        for filename in os.listdir(cache_dir):
-            file_path = os.path.join(cache_dir, filename)
-            if os.path.isfile(file_path):
-                file_mtime = os.path.getmtime(file_path)
-                if file_mtime < cutoff_time:
-                    try:
-                        os.remove(file_path)
-                        removed_count += 1
-                        logging.info(f"Rimosso file vecchio dalla cache: {filename}")
-                    except Exception as e:
-                        logging.warning(f"Errore nella rimozione del file {filename}: {str(e)}")
-        
-        logging.info(f"Pulizia cache completata: {removed_count} file rimossi")
-        return removed_count
-        
-    except Exception as e:
-        logging.error(f"Errore nella pulizia della cache: {str(e)}")
-        return 0
-
-@login_manager.user_loader
-def load_user(user_id):
-    try:
-        with db_cursor(dictionary=True) as (cursor, conn):
-            cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
-            user = cursor.fetchone()
-
-        if user:
-            return User(
-                id=user['id'],
-                username=user['username'],
-                email=user['email'],
-                password=user['password'],
-                confirmed=user['confirmed'],
-                profile_image=user.get('profile_image'),
-                is_admin=user.get('is_admin', 0)
-            )
-    except Exception as e:
-        logging.error(f"Errore durante il caricamento dell'utente: {str(e)}")
-    return None
-
-# Funzione per ottenere l'immagine del profilo corrente dell'utente
-def get_profile_image(user_id):
-    try:
-        with db_cursor(dictionary=True) as (cursor, conn):
-            cursor.execute('SELECT profile_image FROM users WHERE id = %s', (user_id,))
-            result = cursor.fetchone()
-            if result and result['profile_image']:
-                return result['profile_image']
-    except Exception as e:
-        app.logger.error(f"Errore nel recupero dell'immagine del profilo: {str(e)}")
-    return None
-
-# Context processor per rendere disponibile l'immagine del profilo in tutti i template
-@app.context_processor
-def inject_profile_image():
-    if current_user.is_authenticated:
-        try:
-            with db_cursor(dictionary=True) as (cursor, conn):
-                cursor.execute('SELECT profile_image FROM users WHERE id = %s', (current_user.id,))
-                result = cursor.fetchone()
-                app.logger.info(f"Immagine profilo recuperata: {result}")
-                
-                if result and result['profile_image']:
-                    # Percorso semplice senza manipolazioni complesse
-                    image_path = result['profile_image']
-                    app.logger.info(f"Percorso immagine: {image_path}")
-                    return {'user_profile_image': image_path}
-        except Exception as e:
-            app.logger.error(f"Errore nel recupero dell'immagine del profilo: {str(e)}")
-    return {'user_profile_image': None}
 
 @app.route('/confirm/<token>')
 def confirm_email(token):
@@ -497,7 +387,7 @@ def index():
     # Processa le immagini per la cache
     for car in cars:
         if car['image']:
-            car['image'] = get_cached_image_url(car['image'])
+            car['image'] = get_cached_image_url(car['image'], check_only=True)
     
     return render_template('index.html', cars=cars)
 
@@ -730,7 +620,7 @@ def favorites():
     # Processa le immagini per la cache
     for car in favorite_cars:
         if car['image']:
-            car['image'] = get_cached_image_url(car['image'])
+            car['image'] = get_cached_image_url(car['image'], check_only=True)
     
     return render_template('favorites.html', cars=favorite_cars)
 
@@ -822,7 +712,7 @@ def search():
         # Processa le immagini per la cache
         for car in cars:
             if car['image']:
-                car['image'] = get_cached_image_url(car['image'])
+                car['image'] = get_cached_image_url(car['image'], check_only=True)
 
         return render_template('search.html', cars=cars, query=query)
     except Exception as e:
@@ -865,7 +755,7 @@ def api_search():
             
             # Processa l'immagine per la cache
             if safe_car.get('image'):
-                safe_car['image'] = get_cached_image_url(safe_car['image'])
+                safe_car['image'] = get_cached_image_url(safe_car['image'], check_only=True)
             
             safe_cars.append(safe_car)
 
@@ -1030,7 +920,7 @@ def admin_dashboard():
     # Processa le immagini per la cache
     for car in cars:
         if car['image']:
-            car['image'] = get_cached_image_url(car['image'])
+            car['image'] = get_cached_image_url(car['image'], check_only=True)
     
     return render_template('admin/dashboard.html', cars=cars)
 
@@ -1269,5 +1159,150 @@ def admin_cleanup_cache():
         logging.error(f"Errore nella pulizia della cache: {str(e)}")
         return jsonify(success=False, message=f'Errore: {str(e)}')
 
-if __name__ == '__main__':
-    app.run(host=config.get('FLASK', 'host'))
+@app.route('/api/cache_image', methods=['POST'])
+def api_cache_image():
+    """API per scaricare e cachare un'immagine su richiesta (Lazy Loading)"""
+    data = request.get_json()
+    image_url = data.get('url')
+    
+    if not image_url:
+        return jsonify(success=False, message="URL mancante")
+        
+    # Se è già locale, restituisci successo
+    if image_url.startswith('/static/'):
+        return jsonify(success=True, url=image_url)
+        
+    # Tenta il download
+    try:
+        # Usa la funzione esistente che gestisce già il controllo esistenza
+        cached_path = download_and_cache_image(image_url)
+        
+        if cached_path and os.path.exists(cached_path):
+            filename = os.path.basename(cached_path)
+            return jsonify(success=True, url=f"/static/car_images/{filename}")
+        else:
+            return jsonify(success=False, message="Download fallito")
+            
+    except Exception as e:
+        logging.error(f"Errore API cache: {str(e)}")
+        return jsonify(success=False, message=str(e))
+
+def preload_car_images():
+    """Pre-carica tutte le immagini delle auto nella cache locale"""
+    try:
+        with db_cursor(dictionary=True) as (cursor, conn):
+            # Ottieni tutte le immagini principali delle auto
+            cursor.execute('SELECT DISTINCT image FROM cars WHERE image IS NOT NULL AND image != ""')
+            main_images = cursor.fetchall()
+            
+            # Ottieni tutte le immagini aggiuntive
+            cursor.execute('SELECT DISTINCT image FROM car_images WHERE image IS NOT NULL AND image != ""')
+            additional_images = cursor.fetchall()
+            
+            # Combina tutte le immagini
+            all_images = []
+            for img in main_images:
+                if img['image']:
+                    all_images.append(img['image'])
+            for img in additional_images:
+                if img['image']:
+                    all_images.append(img['image'])
+            
+            # Rimuovi duplicati
+            unique_images = list(set(all_images))
+            
+            logging.info(f"Avvio pre-caricamento di {len(unique_images)} immagini...")
+            
+            # Pre-carica tutte le immagini
+            for image_url in unique_images:
+                try:
+                    download_and_cache_image(image_url)
+                except Exception as e:
+                    logging.warning(f"Errore nel pre-caricamento dell'immagine {image_url}: {str(e)}")
+            
+            logging.info("Pre-caricamento immagini completato!")
+            
+    except Exception as e:
+        logging.error(f"Errore nel pre-caricamento delle immagini: {str(e)}")
+
+def cleanup_old_cache(days_old=30):
+    """Rimuove le immagini della cache più vecchie di X giorni"""
+    import time
+    try:
+        cache_dir = app.config['CAR_IMAGES_CACHE_DIR']
+        if not os.path.exists(cache_dir):
+            return
+        
+        cutoff_time = time.time() - (days_old * 24 * 60 * 60)
+        removed_count = 0
+        
+        for filename in os.listdir(cache_dir):
+            file_path = os.path.join(cache_dir, filename)
+            if os.path.isfile(file_path):
+                file_mtime = os.path.getmtime(file_path)
+                if file_mtime < cutoff_time:
+                    try:
+                        os.remove(file_path)
+                        removed_count += 1
+                        logging.info(f"Rimosso file vecchio dalla cache: {filename}")
+                    except Exception as e:
+                        logging.warning(f"Errore nella rimozione del file {filename}: {str(e)}")
+        
+        logging.info(f"Pulizia cache completata: {removed_count} file rimossi")
+        return removed_count
+        
+    except Exception as e:
+        logging.error(f"Errore nella pulizia della cache: {str(e)}")
+        return 0
+
+@login_manager.user_loader
+def load_user(user_id):
+    try:
+        with db_cursor(dictionary=True) as (cursor, conn):
+            cursor.execute('SELECT * FROM users WHERE id = %s', (user_id,))
+            user = cursor.fetchone()
+
+        if user:
+            return User(
+                id=user['id'],
+                username=user['username'],
+                email=user['email'],
+                password=user['password'],
+                confirmed=user['confirmed'],
+                profile_image=user.get('profile_image'),
+                is_admin=user.get('is_admin', 0)
+            )
+    except Exception as e:
+        logging.error(f"Errore durante il caricamento dell'utente: {str(e)}")
+    return None
+
+# Funzione per ottenere l'immagine del profilo corrente dell'utente
+def get_profile_image(user_id):
+    try:
+        with db_cursor(dictionary=True) as (cursor, conn):
+            cursor.execute('SELECT profile_image FROM users WHERE id = %s', (user_id,))
+            result = cursor.fetchone()
+            if result and result['profile_image']:
+                return result['profile_image']
+    except Exception as e:
+        app.logger.error(f"Errore nel recupero dell'immagine del profilo: {str(e)}")
+    return None
+
+# Context processor per rendere disponibile l'immagine del profilo in tutti i template
+@app.context_processor
+def inject_profile_image():
+    if current_user.is_authenticated:
+        try:
+            with db_cursor(dictionary=True) as (cursor, conn):
+                cursor.execute('SELECT profile_image FROM users WHERE id = %s', (current_user.id,))
+                result = cursor.fetchone()
+                app.logger.info(f"Immagine profilo recuperata: {result}")
+                
+                if result and result['profile_image']:
+                    # Percorso semplice senza manipolazioni complesse
+                    image_path = result['profile_image']
+                    app.logger.info(f"Percorso immagine: {image_path}")
+                    return {'user_profile_image': image_path}
+        except Exception as e:
+            app.logger.error(f"Errore nel recupero dell'immagine del profilo: {str(e)}")
+    return {'user_profile_image': None}
