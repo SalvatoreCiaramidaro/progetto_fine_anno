@@ -1307,5 +1307,58 @@ def inject_profile_image():
             app.logger.error(f"Errore nel recupero dell'immagine del profilo: {str(e)}")
     return {'user_profile_image': None}
 
+@app.route('/api/search_wikimedia')
+@login_required
+@admin_required
+def search_wikimedia():
+    query = request.args.get('q')
+    offset = request.args.get('offset', 0)
+    if not query:
+        return jsonify([])
+    
+    try:
+        # API di Wikimedia Commons
+        url = "https://commons.wikimedia.org/w/api.php"
+        params = {
+            "action": "query",
+            "format": "json",
+            "generator": "search",
+            "gsrnamespace": "6",  # Namespace 6 = File
+            "gsrsearch": f"filetype:bitmap {query}",
+            "gsrlimit": "20",
+            "gsroffset": offset,
+            "prop": "imageinfo",
+            "iiprop": "url|size|mime",
+            "iiurlwidth": "300"  # Per ottenere anche una thumbnail
+        }
+        
+        headers = {
+            'User-Agent': 'WikiSportCars/1.0 (contact@example.com)'
+        }
+        
+        response = requests.get(url, params=params, headers=headers, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        
+        results = []
+        pages = data.get('query', {}).get('pages', {})
+        
+        for page_id, page_data in pages.items():
+            if 'imageinfo' in page_data:
+                info = page_data['imageinfo'][0]
+                results.append({
+                    'title': page_data.get('title', '').replace('File:', ''),
+                    'url': info.get('url'),
+                    'thumb': info.get('thumburl', info.get('url')),
+                    'width': info.get('width'),
+                    'height': info.get('height')
+                })
+                
+        return jsonify(results)
+        
+    except Exception as e:
+        logging.error(f"Errore ricerca Wikimedia: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host=config.get('FLASK', 'host'))
